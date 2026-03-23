@@ -1,24 +1,44 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useEffect } from "react";
+import { Slot, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useAuthStore } from "@src/stores/auth";
+import "../global.css";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+function AuthGate() {
+  const router = useRouter();
+  const segments = useSegments();
+  const { isAuthenticated, isHydrated, user, hydrate } = useAuthStore();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    const inAuth = segments[0] === "(auth)";
+
+    if (!isAuthenticated && !inAuth) {
+      router.replace("/(auth)/login");
+    } else if (isAuthenticated && inAuth) {
+      // Route to the correct role tab
+      if (user?.role === "homeowner") {
+        router.replace("/(homeowner)/(dashboard)");
+      } else {
+        router.replace("/(contractor)/(dashboard)");
+      }
+    }
+  }, [isAuthenticated, isHydrated, segments, user, router]);
+
+  return <Slot />;
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthGate />
+      <StatusBar style="dark" />
+    </GestureHandlerRootView>
   );
 }
