@@ -9,19 +9,36 @@ import {
   Bell,
   Settings,
   LogOut,
+  ChevronRight,
 } from "lucide-react-native";
 import { useAuthStore } from "@src/stores/auth";
 import { getInitials } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
+import { contractorStats } from "@src/lib/mock-data";
 
 const MENU_ITEMS = [
-  { label: "Estimates", icon: FileText, route: "estimates" },
-  { label: "Projects", icon: FolderOpen, route: "projects" },
-  { label: "Invoices", icon: Receipt, route: "invoices" },
-  { label: "Clients", icon: Users, route: "clients" },
-  { label: "Reviews", icon: Star, route: "reviews" },
-  { label: "Notifications", icon: Bell, route: "notifications" },
-  { label: "Settings", icon: Settings, route: "settings" },
+  { label: "Estimates", icon: FileText },
+  { label: "Projects", icon: FolderOpen },
+  { label: "Invoices", icon: Receipt },
+  { label: "Clients", icon: Users },
+  { label: "Reviews", icon: Star },
+  { label: "Notifications", icon: Bell },
+  { label: "Settings", icon: Settings },
+] as const;
+
+const STATS = [
+  {
+    label: "Rating",
+    value: String(contractorStats.avgRating),
+  },
+  {
+    label: "Jobs",
+    value: String(contractorStats.completedJobs),
+  },
+  {
+    label: "Revenue",
+    value: "$47K",
+  },
 ] as const;
 
 export default function ContractorProfile() {
@@ -29,28 +46,49 @@ export default function ContractorProfile() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      <ScrollView className="flex-1 px-5 pt-4">
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         {/* Profile header */}
-        <View className="bg-white rounded-2xl p-5 mb-4 items-center">
+        <View className="bg-white rounded-2xl mx-5 mt-4 p-5 items-center">
           <View className="w-20 h-20 rounded-full bg-brand-600 items-center justify-center mb-3">
             <Text className="text-white text-2xl font-bold">
               {user ? getInitials(user.name) : "?"}
             </Text>
           </View>
           <Text className="text-xl font-bold text-dark">{user?.name}</Text>
-          <Text className="text-text-secondary">{user?.email}</Text>
+          <Text className="text-text-secondary mt-0.5">{user?.email}</Text>
           <View className="bg-brand-50 rounded-full px-3 py-1 mt-2">
-            <Text className="text-brand-600 text-sm font-medium capitalize">
-              {user?.role}
+            <Text className="text-brand-600 text-sm font-medium">
+              Contractor
             </Text>
           </View>
         </View>
 
+        {/* Stats row */}
+        <View className="flex-row mx-5 mt-3 bg-white rounded-2xl overflow-hidden">
+          {STATS.map((stat, i) => (
+            <View
+              key={stat.label}
+              className={`flex-1 items-center py-4 ${
+                i < STATS.length - 1 ? "border-r border-border" : ""
+              }`}
+            >
+              <Text className="text-xl font-bold text-dark">{stat.value}</Text>
+              <Text className="text-text-secondary text-sm mt-0.5">
+                {stat.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+
         {/* Menu items */}
-        <View className="bg-white rounded-2xl overflow-hidden mb-4">
+        <View className="bg-white rounded-2xl mx-5 mt-4 overflow-hidden">
           {MENU_ITEMS.map((item, i) => (
             <TouchableOpacity
-              key={item.route}
+              key={item.label}
               className={`flex-row items-center px-5 py-4 ${
                 i < MENU_ITEMS.length - 1 ? "border-b border-border" : ""
               }`}
@@ -60,7 +98,7 @@ export default function ContractorProfile() {
               <Text className="text-dark font-medium ml-3 flex-1">
                 {item.label}
               </Text>
-              <Text className="text-text-muted">{">"}</Text>
+              <ChevronRight size={18} color={BRAND.colors.textMuted} />
             </TouchableOpacity>
           ))}
         </View>
@@ -68,7 +106,7 @@ export default function ContractorProfile() {
         {/* Logout */}
         <TouchableOpacity
           onPress={logout}
-          className="bg-white rounded-2xl flex-row items-center px-5 py-4 mb-8"
+          className="bg-white rounded-2xl mx-5 mt-4 flex-row items-center px-5 py-4"
           activeOpacity={0.7}
         >
           <LogOut size={20} color="#EF4444" />

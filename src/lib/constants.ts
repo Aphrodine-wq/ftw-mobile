@@ -4,15 +4,15 @@ export const BRAND = {
   description:
     "Two-sided marketplace connecting homeowners with verified contractors. No lead fees. Fair pricing. Transparent estimates.",
   colors: {
-    primary: "#059669",
-    primaryHover: "#047857",
+    primary: "#C41E3A",
+    primaryHover: "#A5182F",
     dark: "#0F1419",
-    bgSoft: "#F7F8FA",
+    bgSoft: "#FDFBF8",
     bgCard: "#FFFFFF",
     textPrimary: "#111318",
     textSecondary: "#4B5563",
     textMuted: "#9CA3AF",
-    border: "#E5E7EB",
+    border: "#E5E1DB",
   },
 } as const;
 
