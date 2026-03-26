@@ -6,11 +6,14 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Search, MapPin, Users, ChevronDown, ChevronUp } from "lucide-react-native";
+import { Search, MapPin, Users, ChevronDown, ChevronUp, DollarSign, Clock, Send } from "lucide-react-native";
 import { mockJobs, type MockJob } from "@src/lib/mock-data";
 import { fetchJobs } from "@src/api/data";
+import * as api from "@src/api/client";
 import { formatCurrency } from "@src/lib/utils";
 import { BRAND, JOB_CATEGORIES } from "@src/lib/constants";
 
@@ -39,6 +42,116 @@ function getUrgencyLabel(urgency: MockJob["urgency"]): string {
 function formatShortDate(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max: number } }) {
+  const [expanded, setExpanded] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState("");
+  const [timeline, setTimeline] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!amount) return;
+    setSubmitting(true);
+    try {
+      await api.placeBid(jobId, {
+        amount: parseFloat(amount) * 100,
+        message,
+        timeline,
+      });
+      Alert.alert("Bid Placed", "Your bid has been submitted.");
+      setExpanded(false);
+      setAmount("");
+      setMessage("");
+      setTimeline("");
+    } catch (err) {
+      Alert.alert("Error", err instanceof Error ? err.message : "Failed to place bid");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!expanded) {
+    return (
+      <TouchableOpacity
+        onPress={() => setExpanded(true)}
+        className="bg-brand-600 rounded-xl py-3 items-center"
+        activeOpacity={0.7}
+      >
+        <Text className="text-white font-semibold">Place Bid</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View className="bg-gray-50 rounded-xl p-4 mt-2">
+      <Text className="text-sm font-bold text-dark mb-3">Your Bid</Text>
+
+      <View className="flex-row items-center bg-white border border-border rounded-lg px-3 py-2.5 mb-2">
+        <DollarSign size={16} color={BRAND.colors.textMuted} />
+        <TextInput
+          value={amount}
+          onChangeText={setAmount}
+          placeholder={`${formatCurrency(budget.min)} - ${formatCurrency(budget.max)}`}
+          placeholderTextColor={BRAND.colors.textMuted}
+          keyboardType="numeric"
+          className="flex-1 ml-2 text-dark"
+        />
+      </View>
+
+      <View className="flex-row items-center bg-white border border-border rounded-lg px-3 py-2.5 mb-2">
+        <Clock size={16} color={BRAND.colors.textMuted} />
+        <TextInput
+          value={timeline}
+          onChangeText={setTimeline}
+          placeholder="e.g. 3-4 weeks"
+          placeholderTextColor={BRAND.colors.textMuted}
+          className="flex-1 ml-2 text-dark"
+        />
+      </View>
+
+      <TextInput
+        value={message}
+        onChangeText={setMessage}
+        placeholder="Why you're the right contractor for this job..."
+        placeholderTextColor={BRAND.colors.textMuted}
+        multiline
+        numberOfLines={3}
+        textAlignVertical="top"
+        className="bg-white border border-border rounded-lg px-3 py-2.5 text-dark mb-3 min-h-[70px]"
+      />
+
+      <View className="flex-row gap-2">
+        <TouchableOpacity
+          onPress={() => setExpanded(false)}
+          className="flex-1 bg-white border border-border rounded-lg py-2.5 items-center"
+          activeOpacity={0.7}
+        >
+          <Text className="text-dark font-medium">Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={!amount || submitting}
+          className={`flex-1 rounded-lg py-2.5 items-center flex-row justify-center ${
+            amount && !submitting ? "bg-brand-600" : "bg-gray-200"
+          }`}
+          activeOpacity={0.7}
+        >
+          {submitting ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <>
+              <Send size={14} color={amount ? "#fff" : "#9CA3AF"} />
+              <Text className={`font-semibold ml-1.5 ${amount ? "text-white" : "text-gray-400"}`}>
+                Submit
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }
 
 export default function ContractorJobs() {
@@ -175,12 +288,7 @@ export default function ContractorJobs() {
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity
-                className="bg-brand-600 rounded-xl py-3 items-center"
-                activeOpacity={0.7}
-              >
-                <Text className="text-white font-semibold">Place Bid</Text>
-              </TouchableOpacity>
+              <BidForm jobId={item.id} budget={item.budget} />
             </View>
           )}
         </TouchableOpacity>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import {
   Plus,
   Briefcase,
@@ -48,6 +49,7 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export default function HomeownerDashboard() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const firstName = user?.name?.split(" ")[0] || "there";
   const [jobs, setJobs] = useState(mockJobs);
@@ -83,6 +85,7 @@ export default function HomeownerDashboard() {
           <TouchableOpacity
             className="bg-brand-600 rounded-2xl p-5 flex-row items-center"
             activeOpacity={0.8}
+            onPress={() => router.push("/(homeowner)/post-job" as any)}
           >
             <View className="w-12 h-12 rounded-full bg-white/20 items-center justify-center mr-4">
               <Plus size={24} color="white" />

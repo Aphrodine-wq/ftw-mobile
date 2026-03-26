@@ -220,3 +220,117 @@ export const homeownerStats = {
   totalSpent: 62400,
   projectsCompleted: 4,
 };
+
+export const mockFairRecords = [
+  {
+    id: "fr1",
+    publicId: "FR-A3X9K2",
+    category: "Painting",
+    locationCity: "Austin",
+    scopeSummary: "Full interior painting — 4 bedrooms, 2 bathrooms, living area, hallways.",
+    estimatedBudget: 4200,
+    finalCost: 4200,
+    budgetAccuracyPct: 100,
+    onBudget: true,
+    estimatedEndDate: "2026-01-20",
+    actualCompletionDate: "2026-01-18",
+    onTime: true,
+    qualityScoreAtCompletion: 94,
+    avgRating: 4.9,
+    reviewCount: 127,
+    disputeCount: 0,
+    homeownerConfirmed: true,
+    confirmedAt: "2026-01-19T14:30:00Z",
+    contractorName: "Marcus Johnson",
+    contractorCompany: "Johnson & Sons Construction",
+    contractorRating: 4.9,
+    contractorJobsCompleted: 127,
+    projectTitle: "Interior Painting",
+  },
+  {
+    id: "fr2",
+    publicId: "FR-B7M4P1",
+    category: "Remodeling",
+    locationCity: "Austin",
+    scopeSummary: "Complete kitchen remodel — new cabinets, quartz countertops, backsplash, plumbing, electrical.",
+    estimatedBudget: 38500,
+    finalCost: 36800,
+    budgetAccuracyPct: 95.6,
+    onBudget: true,
+    estimatedEndDate: "2026-02-28",
+    actualCompletionDate: "2026-03-02",
+    onTime: false,
+    qualityScoreAtCompletion: 92,
+    avgRating: 4.9,
+    reviewCount: 128,
+    disputeCount: 0,
+    homeownerConfirmed: true,
+    confirmedAt: "2026-03-03T10:15:00Z",
+    contractorName: "Marcus Johnson",
+    contractorCompany: "Johnson & Sons Construction",
+    contractorRating: 4.9,
+    contractorJobsCompleted: 128,
+    projectTitle: "Kitchen Remodel",
+  },
+  {
+    id: "fr3",
+    publicId: "FR-C2J8N5",
+    category: "Electrical",
+    locationCity: "Round Rock",
+    scopeSummary: "200A panel upgrade — replaced Federal Pacific with Square D. New grounding, surge protector.",
+    estimatedBudget: 4800,
+    finalCost: 5100,
+    budgetAccuracyPct: 93.8,
+    onBudget: true,
+    estimatedEndDate: "2026-01-15",
+    actualCompletionDate: "2026-01-14",
+    onTime: true,
+    qualityScoreAtCompletion: 91,
+    avgRating: 4.8,
+    reviewCount: 125,
+    disputeCount: 0,
+    homeownerConfirmed: true,
+    confirmedAt: "2026-01-15T09:00:00Z",
+    contractorName: "Marcus Johnson",
+    contractorCompany: "Johnson & Sons Construction",
+    contractorRating: 4.9,
+    contractorJobsCompleted: 125,
+    projectTitle: "Electrical Panel Upgrade",
+  },
+];
+
+export const mockReviews = [
+  { id: "r1", rating: 5, comment: "Incredible work on the kitchen remodel. On time, on budget, clean job site every day.", reviewerName: "Sarah Mitchell", date: "2026-03-15" },
+  { id: "r2", rating: 5, comment: "Marcus and his team were professional from start to finish. Highly recommend.", reviewerName: "Mike Chen", date: "2026-03-10" },
+  { id: "r3", rating: 4, comment: "Great electrical work. Minor scheduling hiccup but communicated well.", reviewerName: "David Park", date: "2026-02-28" },
+  { id: "r4", rating: 5, comment: "Best painting crew we've ever hired. Meticulous prep work.", reviewerName: "Lisa Torres", date: "2026-02-15" },
+  { id: "r5", rating: 5, comment: "The roof looks amazing. Insurance process was seamless.", reviewerName: "Amy Johnson", date: "2026-01-20" },
+];
+
+export const mockNotifications = [
+  { id: "n1", type: "bid_received", title: "New Bid Received", body: "Marcus Johnson bid $32,500 on Kitchen Remodel", read: false, createdAt: "2026-03-25T10:30:00Z" },
+  { id: "n2", type: "message", title: "New Message", body: "Sarah Mitchell sent you a message", read: false, createdAt: "2026-03-25T09:15:00Z" },
+  { id: "n3", type: "bid_accepted", title: "Bid Accepted", body: "Your bid on Roof Replacement was accepted", read: true, createdAt: "2026-03-24T16:00:00Z" },
+  { id: "n4", type: "payment", title: "Payment Received", body: "$14,200 received for Roof Replacement", read: true, createdAt: "2026-03-24T14:30:00Z" },
+  { id: "n5", type: "review", title: "New Review", body: "Mike Chen left you a 5-star review", read: true, createdAt: "2026-03-23T11:00:00Z" },
+];
+
+export const mockProjects = [
+  { id: "p1", name: "Kitchen Remodel", status: "active" as const, budget: 38500, spent: 25000, startDate: "2026-02-15", endDate: null, contractorName: "Marcus Johnson", homeownerName: "Sarah Mitchell" },
+  { id: "p2", name: "Roof Replacement", status: "active" as const, budget: 14200, spent: 7100, startDate: "2026-03-10", endDate: null, contractorName: "Marcus Johnson", homeownerName: "Mike Chen" },
+  { id: "p3", name: "Interior Painting", status: "completed" as const, budget: 4200, spent: 4200, startDate: "2026-01-10", endDate: "2026-01-18", contractorName: "Marcus Johnson", homeownerName: "Lisa Torres" },
+];
+
+export const mockClients = [
+  { id: "cl1", name: "Sarah Mitchell", email: "sarah@example.com", phone: "512-555-0101", projectCount: 2, totalSpent: 63500 },
+  { id: "cl2", name: "Mike Chen", email: "mike@example.com", phone: "512-555-0102", projectCount: 1, totalSpent: 14200 },
+  { id: "cl3", name: "Lisa Torres", email: "lisa@example.com", phone: "512-555-0103", projectCount: 1, totalSpent: 4200 },
+  { id: "cl4", name: "David Park", email: "david@example.com", phone: "512-555-0104", projectCount: 1, totalSpent: 8500 },
+];
+
+export const mockInvoices = [
+  { id: "inv1", amount: 7700, status: "paid" as const, dueDate: "2026-02-20", paidAt: "2026-02-22", description: "Kitchen Remodel — Milestone: Rough-In" },
+  { id: "inv2", amount: 7700, status: "sent" as const, dueDate: "2026-03-25", paidAt: null, description: "Kitchen Remodel — Milestone: Cabinets" },
+  { id: "inv3", amount: 14200, status: "paid" as const, dueDate: "2026-03-15", paidAt: "2026-03-14", description: "Roof Replacement — Full Payment" },
+  { id: "inv4", amount: 4200, status: "paid" as const, dueDate: "2026-01-20", paidAt: "2026-01-18", description: "Interior Painting — Full Payment" },
+];

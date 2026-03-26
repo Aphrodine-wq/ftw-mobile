@@ -59,3 +59,76 @@ export interface AuthUser {
   name: string;
   role: "homeowner" | "contractor";
 }
+
+export interface FairRecord {
+  id: string;
+  publicId: string;
+  category: string;
+  locationCity: string;
+  scopeSummary: string;
+  estimatedBudget: number;
+  finalCost: number;
+  budgetAccuracyPct: number;
+  onBudget: boolean;
+  estimatedEndDate: string;
+  actualCompletionDate: string;
+  onTime: boolean;
+  qualityScoreAtCompletion: number;
+  avgRating: number;
+  reviewCount: number;
+  disputeCount: number;
+  homeownerConfirmed: boolean;
+  confirmedAt: string | null;
+  contractorName: string;
+  contractorCompany: string;
+  contractorRating: number;
+  contractorJobsCompleted: number;
+  projectTitle: string;
+}
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  reviewerName: string;
+  date: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  status: "planning" | "active" | "completed" | "cancelled";
+  budget: number;
+  spent: number;
+  startDate: string;
+  endDate: string | null;
+  contractorName: string;
+  homeownerName: string;
+}
+
+export interface Invoice {
+  id: string;
+  amount: number;
+  status: "draft" | "sent" | "paid" | "overdue";
+  dueDate: string;
+  paidAt: string | null;
+  description: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  projectCount: number;
+  totalSpent: number;
+}

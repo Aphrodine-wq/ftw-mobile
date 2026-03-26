@@ -37,7 +37,22 @@
           "resizeMode": "contain",
           "backgroundColor": "#C41E3A"
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#C41E3A"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "FairTradeWorker uses your location to show nearby jobs and match you with local contractors.",
+          "locationWhenInUsePermission": "FairTradeWorker uses your location to show nearby jobs and match you with local contractors."
+        }
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

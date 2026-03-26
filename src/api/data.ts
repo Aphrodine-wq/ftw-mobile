@@ -1,29 +1,85 @@
-import { listJobs, listEstimates, listProjects, listClients, listNotifications, listInvoices } from "./client";
-import { mockJobs, mockEstimates, mockConversations, contractorStats, homeownerStats } from "@src/lib/mock-data";
+import * as api from "./client";
+import {
+  mockJobs,
+  mockEstimates,
+  mockConversations,
+  mockMessages,
+  mockBids,
+  mockFairRecords,
+  mockReviews,
+  mockNotifications,
+  mockProjects,
+  mockClients,
+  mockInvoices,
+  contractorStats,
+  homeownerStats,
+} from "@src/lib/mock-data";
 
 export async function fetchJobs() {
-  try { return await listJobs(); } catch { return mockJobs; }
+  try {
+    const jobs = await api.listJobs();
+    if (jobs.length > 0) return jobs;
+  } catch {}
+  return mockJobs;
 }
 
 export async function fetchEstimates() {
-  try { return await listEstimates(); } catch { return mockEstimates; }
+  try {
+    const estimates = await api.listEstimates();
+    if (estimates.length > 0) return estimates;
+  } catch {}
+  return mockEstimates;
 }
 
 export async function fetchProjects() {
-  try { return await listProjects(); } catch { return []; }
-}
-
-export async function fetchClients() {
-  try { return await listClients(); } catch { return []; }
-}
-
-export async function fetchNotifications() {
-  try { return await listNotifications(); } catch { return []; }
+  try {
+    const projects = await api.listProjects();
+    if (projects.length > 0) return projects;
+  } catch {}
+  return mockProjects;
 }
 
 export async function fetchInvoices() {
-  try { return await listInvoices(); } catch { return []; }
+  try {
+    const invoices = await api.listInvoices();
+    if (invoices.length > 0) return invoices;
+  } catch {}
+  return mockInvoices;
 }
 
-// Re-export stats (no API for aggregate stats yet)
-export { contractorStats, homeownerStats, mockConversations };
+export async function fetchClients() {
+  try {
+    const clients = await api.listClients();
+    if (clients.length > 0) return clients;
+  } catch {}
+  return mockClients;
+}
+
+export async function fetchReviews() {
+  try {
+    const reviews = await api.listReviews();
+    if (reviews.length > 0) return reviews;
+  } catch {}
+  return mockReviews;
+}
+
+export async function fetchNotifications() {
+  try {
+    const notifs = await api.listNotifications();
+    if (notifs.length > 0) return notifs;
+  } catch {}
+  return mockNotifications;
+}
+
+export async function fetchFairRecords(contractorId?: string) {
+  try {
+    const data = await api.listFairRecords(contractorId || "me");
+    if (data.records.length > 0) return data;
+  } catch {}
+  return {
+    records: mockFairRecords,
+    stats: { total: mockFairRecords.length, avg_budget_accuracy: 96.8, on_time_rate: 80.0, avg_rating: 4.9 },
+  };
+}
+
+export { contractorStats, homeownerStats, mockConversations, mockBids, mockMessages, mockFairRecords };
