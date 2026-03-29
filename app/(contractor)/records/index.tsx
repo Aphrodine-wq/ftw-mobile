@@ -105,24 +105,36 @@ export default function RecordsScreen() {
 
       {/* Stats Row */}
       <View className="flex-row mx-5 mt-4 gap-2">
-        <View className="flex-1 bg-white rounded-2xl p-3 items-center">
+        <View
+          className="flex-1 bg-white border border-border p-3 items-center"
+          style={{ borderRadius: 0 }}
+        >
           <Text className="text-xl font-bold text-dark">{stats.total}</Text>
           <Text className="text-text-muted text-xs mt-0.5">Records</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-3 items-center">
-          <Text className="text-xl font-bold text-emerald-600">
+        <View
+          className="flex-1 bg-white border border-border p-3 items-center"
+          style={{ borderRadius: 0 }}
+        >
+          <Text className="text-xl font-bold text-dark">
             {stats.avg_budget_accuracy}%
           </Text>
           <Text className="text-text-muted text-xs mt-0.5">Budget Acc.</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-3 items-center">
-          <Text className="text-xl font-bold text-blue-600">
+        <View
+          className="flex-1 bg-white border border-border p-3 items-center"
+          style={{ borderRadius: 0 }}
+        >
+          <Text className="text-xl font-bold text-dark">
             {stats.on_time_rate}%
           </Text>
           <Text className="text-text-muted text-xs mt-0.5">On-Time</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-3 items-center">
-          <Text className="text-xl font-bold text-amber-600">
+        <View
+          className="flex-1 bg-white border border-border p-3 items-center"
+          style={{ borderRadius: 0 }}
+        >
+          <Text className="text-xl font-bold text-dark">
             {stats.avg_rating}
           </Text>
           <Text className="text-text-muted text-xs mt-0.5">Rating</Text>
@@ -137,7 +149,10 @@ export default function RecordsScreen() {
   );
 
   const renderRecord = ({ item }: { item: FairRecord }) => (
-    <View className="bg-white rounded-2xl mx-5 mb-3 p-4">
+    <View
+      className="bg-white border border-border mx-5 mb-3 p-4"
+      style={{ borderRadius: 0 }}
+    >
       {/* Title + Category */}
       <View className="flex-row items-start justify-between mb-2">
         <View className="flex-1 mr-3">
@@ -186,7 +201,8 @@ export default function RecordsScreen() {
         </View>
         <View className="flex-1" />
         <TouchableOpacity
-          className="flex-row items-center bg-gray-100 rounded-lg px-3 py-1.5 mr-2"
+          className="flex-row items-center bg-gray-100 px-3 py-1.5 mr-2"
+          style={{ borderRadius: 0 }}
           activeOpacity={0.7}
           onPress={() => handleCertificate(item)}
         >
@@ -196,12 +212,13 @@ export default function RecordsScreen() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="flex-row items-center bg-brand-50 rounded-lg px-3 py-1.5"
+          className="flex-row items-center bg-gray-100 px-3 py-1.5"
+          style={{ borderRadius: 0 }}
           activeOpacity={0.7}
           onPress={() => handleShare(item)}
         >
-          <Share2 size={14} color={BRAND.colors.primary} />
-          <Text className="text-brand-600 text-sm font-semibold ml-1.5">
+          <Share2 size={14} color={BRAND.colors.dark} />
+          <Text className="text-dark text-sm font-semibold ml-1.5">
             Share
           </Text>
         </TouchableOpacity>

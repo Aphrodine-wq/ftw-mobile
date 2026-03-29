@@ -24,15 +24,15 @@ import { router } from "expo-router";
 type Notification = (typeof mockNotifications)[number] & { read: boolean };
 
 const TYPE_ICONS: Record<string, { icon: typeof DollarSign; color: string; bg: string }> = {
-  bid_received: { icon: DollarSign, color: "#059669", bg: "bg-emerald-50" },
-  bid_accepted: { icon: DollarSign, color: "#059669", bg: "bg-emerald-50" },
-  message: { icon: MessageSquare, color: "#2563EB", bg: "bg-blue-50" },
-  review: { icon: Star, color: "#D97706", bg: "bg-amber-50" },
-  payment: { icon: CreditCard, color: "#7C3AED", bg: "bg-purple-50" },
+  bid_received: { icon: DollarSign, color: "#6B7280", bg: "bg-gray-100" },
+  bid_accepted: { icon: DollarSign, color: "#6B7280", bg: "bg-gray-100" },
+  message: { icon: MessageSquare, color: "#6B7280", bg: "bg-gray-100" },
+  review: { icon: Star, color: "#6B7280", bg: "bg-gray-100" },
+  payment: { icon: CreditCard, color: "#6B7280", bg: "bg-gray-100" },
 };
 
 function getTypeConfig(type: string) {
-  return TYPE_ICONS[type] || { icon: Bell, color: BRAND.colors.textSecondary, bg: "bg-gray-100" };
+  return TYPE_ICONS[type] || { icon: Bell, color: "#6B7280", bg: "bg-gray-100" };
 }
 
 export default function ContractorNotifications() {
@@ -67,14 +67,16 @@ export default function ContractorNotifications() {
 
       return (
         <TouchableOpacity
-          className="bg-white rounded-2xl p-4 mx-5 mb-3"
+          className="bg-white border border-border p-4 mx-5 mb-3"
+          style={{ borderRadius: 0 }}
           activeOpacity={0.7}
           onPress={() => markRead(item.id)}
         >
           <View className="flex-row items-start">
             {/* Icon */}
             <View
-              className={`w-10 h-10 rounded-xl ${config.bg} items-center justify-center mr-3`}
+              className={`w-10 h-10 ${config.bg} items-center justify-center mr-3`}
+              style={{ borderRadius: 0 }}
             >
               <IconComponent size={18} color={config.color} />
             </View>
@@ -91,7 +93,10 @@ export default function ContractorNotifications() {
                   {item.title}
                 </Text>
                 {!item.read && (
-                  <View className="w-2.5 h-2.5 rounded-full bg-blue-500 ml-2" />
+                  <View
+                    className="w-2.5 h-2.5 bg-brand-600 ml-2"
+                    style={{ borderRadius: 0 }}
+                  />
                 )}
               </View>
               <Text
@@ -126,7 +131,10 @@ export default function ContractorNotifications() {
           Notifications
         </Text>
         {unreadCount > 0 && (
-          <View className="bg-brand-600 rounded-full px-2.5 py-0.5">
+          <View
+            className="bg-brand-600 px-2.5 py-0.5"
+            style={{ borderRadius: 0 }}
+          >
             <Text className="text-white text-xs font-bold">
               {unreadCount}
             </Text>

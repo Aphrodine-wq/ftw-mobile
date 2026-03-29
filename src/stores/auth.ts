@@ -84,10 +84,14 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const { user } = await meApi();
-          set({ user, isAuthenticated: true, isHydrated: true });
+          // Race the API call against a 3-second timeout
+          const result = await Promise.race([
+            meApi(),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 3000)),
+          ]);
+          set({ user: result.user, isAuthenticated: true, isHydrated: true });
         } catch {
-          // Token expired or invalid — clear auth
+          // Token expired, invalid, or backend unreachable — clear auth
           set({
             token: null,
             user: null,

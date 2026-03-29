@@ -8,25 +8,16 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Search, MapPin, Users, ChevronDown, ChevronUp, DollarSign, Clock, Send } from "lucide-react-native";
+import { Search, MapPin, Users, DollarSign, Clock, Send } from "lucide-react-native";
 import { mockJobs, type MockJob } from "@src/lib/mock-data";
 import { fetchJobs } from "@src/api/data";
 import * as api from "@src/api/client";
+import { useRealtimeJobs } from "@src/realtime/hooks";
 import { formatCurrency } from "@src/lib/utils";
 import { BRAND, JOB_CATEGORIES } from "@src/lib/constants";
-
-function getUrgencyDot(urgency: MockJob["urgency"]): string {
-  switch (urgency) {
-    case "high":
-      return "bg-red-500";
-    case "medium":
-      return "bg-amber-500";
-    case "low":
-      return "bg-emerald-500";
-  }
-}
 
 function getUrgencyLabel(urgency: MockJob["urgency"]): string {
   switch (urgency) {
@@ -39,13 +30,18 @@ function getUrgencyLabel(urgency: MockJob["urgency"]): string {
   }
 }
 
-function formatShortDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+function getUrgencyDot(urgency: MockJob["urgency"]): string {
+  switch (urgency) {
+    case "high":
+      return "bg-red-500";
+    case "medium":
+      return "bg-amber-500";
+    case "low":
+      return "bg-emerald-500";
+  }
 }
 
 function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max: number } }) {
-  const [expanded, setExpanded] = useState(false);
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
   const [timeline, setTimeline] = useState("");
@@ -61,7 +57,6 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
         timeline,
       });
       Alert.alert("Bid Placed", "Your bid has been submitted.");
-      setExpanded(false);
       setAmount("");
       setMessage("");
       setTimeline("");
@@ -72,23 +67,11 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
     }
   };
 
-  if (!expanded) {
-    return (
-      <TouchableOpacity
-        onPress={() => setExpanded(true)}
-        className="bg-brand-600 rounded-xl py-3 items-center"
-        activeOpacity={0.7}
-      >
-        <Text className="text-white font-semibold">Place Bid</Text>
-      </TouchableOpacity>
-    );
-  }
-
   return (
-    <View className="bg-gray-50 rounded-xl p-4 mt-2">
+    <View className="bg-gray-50 p-4 mt-2" style={{ borderRadius: 0 }}>
       <Text className="text-sm font-bold text-dark mb-3">Your Bid</Text>
 
-      <View className="flex-row items-center bg-white border border-border rounded-lg px-3 py-2.5 mb-2">
+      <View className="flex-row items-center bg-white border border-border px-3 py-2.5 mb-2" style={{ borderRadius: 0 }}>
         <DollarSign size={16} color={BRAND.colors.textMuted} />
         <TextInput
           value={amount}
@@ -100,7 +83,7 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
         />
       </View>
 
-      <View className="flex-row items-center bg-white border border-border rounded-lg px-3 py-2.5 mb-2">
+      <View className="flex-row items-center bg-white border border-border px-3 py-2.5 mb-2" style={{ borderRadius: 0 }}>
         <Clock size={16} color={BRAND.colors.textMuted} />
         <TextInput
           value={timeline}
@@ -119,23 +102,18 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
         multiline
         numberOfLines={3}
         textAlignVertical="top"
-        className="bg-white border border-border rounded-lg px-3 py-2.5 text-dark mb-3 min-h-[70px]"
+        className="bg-white border border-border px-3 py-2.5 text-dark mb-3 min-h-[70px]"
+        style={{ borderRadius: 0 }}
       />
 
       <View className="flex-row gap-2">
         <TouchableOpacity
-          onPress={() => setExpanded(false)}
-          className="flex-1 bg-white border border-border rounded-lg py-2.5 items-center"
-          activeOpacity={0.7}
-        >
-          <Text className="text-dark font-medium">Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           onPress={handleSubmit}
           disabled={!amount || submitting}
-          className={`flex-1 rounded-lg py-2.5 items-center flex-row justify-center ${
+          className={`flex-1 py-2.5 items-center flex-row justify-center ${
             amount && !submitting ? "bg-brand-600" : "bg-gray-200"
           }`}
+          style={{ borderRadius: 0 }}
           activeOpacity={0.7}
         >
           {submitting ? (
@@ -144,7 +122,7 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
             <>
               <Send size={14} color={amount ? "#fff" : "#9CA3AF"} />
               <Text className={`font-semibold ml-1.5 ${amount ? "text-white" : "text-gray-400"}`}>
-                Submit
+                Submit Bid
               </Text>
             </>
           )}
@@ -159,10 +137,15 @@ export default function ContractorJobs() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [jobs, setJobs] = useState<MockJob[]>(mockJobs);
+  const { jobs: realtimeJobs } = useRealtimeJobs();
 
   useEffect(() => {
     fetchJobs().then(setJobs);
   }, []);
+
+  useEffect(() => {
+    if (realtimeJobs.length > 0) setJobs(realtimeJobs as MockJob[]);
+  }, [realtimeJobs]);
 
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
@@ -187,30 +170,22 @@ export default function ContractorJobs() {
 
       return (
         <TouchableOpacity
-          className="bg-white rounded-2xl mx-5 mb-3 overflow-hidden"
+          className="bg-white border border-border mx-5 mb-3 overflow-hidden"
+          style={{ borderRadius: 0 }}
           activeOpacity={0.7}
           onPress={() => toggleExpand(item.id)}
         >
-          <View className="p-4">
-            {/* Top row: category + urgency */}
-            <View className="flex-row items-center justify-between mb-2">
-              <View className="bg-brand-50 rounded-full px-3 py-1">
-                <Text className="text-brand-600 text-xs font-medium">
-                  {item.category}
-                </Text>
-              </View>
-              <View className="flex-row items-center">
-                <View
-                  className={`w-2 h-2 rounded-full ${getUrgencyDot(item.urgency)} mr-1.5`}
-                />
-                <Text className="text-text-muted text-xs">
-                  {getUrgencyLabel(item.urgency)}
-                </Text>
-              </View>
-            </View>
+          {/* Thumbnail */}
+          <Image
+            source={{ uri: item.thumbnail }}
+            style={{ width: "100%", height: 140, borderRadius: 0 }}
+            resizeMode="cover"
+          />
 
+          {/* Content */}
+          <View className="p-4">
             {/* Title */}
-            <Text className="text-dark font-semibold text-base mb-1">
+            <Text className="text-dark font-bold text-base mb-1">
               {item.title}
             </Text>
 
@@ -222,48 +197,38 @@ export default function ContractorJobs() {
               </Text>
             </View>
 
-            {/* Budget + bids + date row */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-dark font-bold">
-                {formatCurrency(item.budget.min)} -{" "}
-                {formatCurrency(item.budget.max)}
-              </Text>
-              <View className="flex-row items-center">
-                <Users size={14} color={BRAND.colors.textMuted} />
-                <Text className="text-text-muted text-xs ml-1 mr-3">
-                  {item.bidCount} bids
-                </Text>
-                <Text className="text-text-muted text-xs">
-                  {formatShortDate(item.postedDate)}
-                </Text>
-              </View>
+            {/* Budget */}
+            <Text className="text-dark font-bold mb-2">
+              {formatCurrency(item.budget.min)} - {formatCurrency(item.budget.max)}
+            </Text>
+
+            {/* Category + Bids + Urgency row */}
+            <View className="flex-row items-center mb-2">
+              <Text className="text-text-secondary text-xs">{item.category}</Text>
+              <View className="w-1 h-1 bg-text-muted mx-2" style={{ borderRadius: 0.5 }} />
+              <Users size={12} color={BRAND.colors.textMuted} />
+              <Text className="text-text-muted text-xs ml-1">{item.bidCount} bids</Text>
+              <View className="w-1 h-1 bg-text-muted mx-2" style={{ borderRadius: 0.5 }} />
+              <View className={`w-2 h-2 ${getUrgencyDot(item.urgency)} mr-1`} style={{ borderRadius: 1 }} />
+              <Text className="text-text-muted text-xs">{getUrgencyLabel(item.urgency)}</Text>
             </View>
 
-            {/* Expand indicator */}
-            <View className="items-center mt-2">
-              {isExpanded ? (
-                <ChevronUp size={16} color={BRAND.colors.textMuted} />
-              ) : (
-                <ChevronDown size={16} color={BRAND.colors.textMuted} />
-              )}
-            </View>
+            {/* Description — 1 line */}
+            <Text className="text-text-muted text-sm" numberOfLines={1}>
+              {item.description}
+            </Text>
           </View>
 
-          {/* Expanded details */}
+          {/* Expanded bid form */}
           {isExpanded && (
             <View className="px-4 pb-4 border-t border-border pt-3">
-              <Text className="text-text-secondary text-sm leading-5 mb-3">
-                {item.description}
-              </Text>
               <View className="flex-row items-center justify-between mb-3">
                 <Text className="text-text-secondary text-sm">
                   Posted by{" "}
-                  <Text className="text-dark font-medium">
-                    {item.postedBy}
-                  </Text>
+                  <Text className="text-dark font-medium">{item.postedBy}</Text>
                 </Text>
                 <View
-                  className={`rounded-full px-2.5 py-0.5 ${
+                  className={`px-2.5 py-0.5 ${
                     item.status === "open"
                       ? "bg-emerald-50"
                       : item.status === "bidding"
@@ -272,6 +237,7 @@ export default function ContractorJobs() {
                       ? "bg-amber-50"
                       : "bg-gray-100"
                   }`}
+                  style={{ borderRadius: 0 }}
                 >
                   <Text
                     className={`text-xs font-medium capitalize ${
@@ -309,7 +275,7 @@ export default function ContractorJobs() {
 
       {/* Search bar */}
       <View className="px-5 mt-2 mb-3">
-        <View className="bg-white rounded-xl flex-row items-center px-4 py-3 border border-border">
+        <View className="bg-white flex-row items-center px-4 py-3 border border-border" style={{ borderRadius: 0 }}>
           <Search size={18} color={BRAND.colors.textMuted} />
           <TextInput
             className="flex-1 ml-3 text-dark text-base"
@@ -331,11 +297,12 @@ export default function ContractorJobs() {
           contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
         >
           <TouchableOpacity
-            className={`rounded-full px-4 py-2 border ${
+            className={`px-4 py-2 border ${
               activeCategory === null
                 ? "bg-brand-600 border-brand-600"
                 : "bg-white border-border"
             }`}
+            style={{ borderRadius: 0 }}
             activeOpacity={0.7}
             onPress={() => setActiveCategory(null)}
           >
@@ -350,11 +317,12 @@ export default function ContractorJobs() {
           {JOB_CATEGORIES.map((cat) => (
             <TouchableOpacity
               key={cat}
-              className={`rounded-full px-4 py-2 border ${
+              className={`px-4 py-2 border ${
                 activeCategory === cat
                   ? "bg-brand-600 border-brand-600"
                   : "bg-white border-border"
               }`}
+              style={{ borderRadius: 0 }}
               activeOpacity={0.7}
               onPress={() =>
                 setActiveCategory(activeCategory === cat ? null : cat)

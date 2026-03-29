@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@src/stores/auth";
 
 export default function LoginScreen() {
@@ -17,6 +17,27 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading } = useAuthStore();
+  const router = useRouter();
+
+  const demoAs = (role: "contractor" | "homeowner") => {
+    // Set fake auth state for demo
+    useAuthStore.setState({
+      token: "demo-token",
+      user: {
+        id: "demo-1",
+        email: role === "contractor" ? "marcus@johnsonsons.com" : "michael@brown.com",
+        name: role === "contractor" ? "Marcus Johnson" : "Michael Brown",
+        role,
+      },
+      isAuthenticated: true,
+      isHydrated: true,
+    });
+    if (role === "homeowner") {
+      router.replace("/(homeowner)/(dashboard)" as any);
+    } else {
+      router.replace("/(contractor)/(dashboard)" as any);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -42,7 +63,10 @@ export default function LoginScreen() {
       <View className="flex-1 justify-center px-6">
         {/* Logo */}
         <View className="items-center mb-10">
-          <View className="w-16 h-16 rounded-2xl bg-brand-600 items-center justify-center mb-4">
+          <View
+            className="w-16 h-16 bg-brand-600 items-center justify-center mb-4"
+            style={{ borderRadius: 0 }}
+          >
             <Text className="text-white text-2xl font-bold">FTW</Text>
           </View>
           <Text className="text-2xl font-bold text-dark">FairTradeWorker</Text>
@@ -52,11 +76,14 @@ export default function LoginScreen() {
         </View>
 
         {/* Form */}
-        <View className="bg-white rounded-2xl p-6 shadow-sm">
-          <Text className="text-lg font-semibold text-dark mb-4">Sign In</Text>
+        <View
+          className="bg-white border border-border p-6"
+          style={{ borderRadius: 0 }}
+        >
+          <Text className="text-lg font-bold text-dark mb-4">Sign In</Text>
 
           <View className="mb-4">
-            <Text className="text-sm font-medium text-text-secondary mb-1.5">
+            <Text className="text-sm font-bold text-text-secondary mb-1.5">
               Email
             </Text>
             <TextInput
@@ -66,16 +93,20 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              className="border border-border rounded-xl px-4 py-3 text-dark bg-surface"
+              className="border border-border px-4 py-3 text-dark bg-surface"
+              style={{ borderRadius: 0 }}
               placeholderTextColor="#9CA3AF"
             />
           </View>
 
           <View className="mb-6">
-            <Text className="text-sm font-medium text-text-secondary mb-1.5">
+            <Text className="text-sm font-bold text-text-secondary mb-1.5">
               Password
             </Text>
-            <View className="flex-row items-center border border-border rounded-xl bg-surface">
+            <View
+              className="flex-row items-center border border-border bg-surface"
+              style={{ borderRadius: 0 }}
+            >
               <TextInput
                 value={password}
                 onChangeText={setPassword}
@@ -88,7 +119,7 @@ export default function LoginScreen() {
                 onPress={() => setShowPassword(!showPassword)}
                 className="px-4"
               >
-                <Text className="text-brand-600 text-sm font-medium">
+                <Text className="text-brand-600 text-sm font-bold">
                   {showPassword ? "Hide" : "Show"}
                 </Text>
               </TouchableOpacity>
@@ -98,50 +129,46 @@ export default function LoginScreen() {
           <TouchableOpacity
             onPress={handleLogin}
             disabled={isLoading}
-            className="bg-brand-600 rounded-xl py-3.5 items-center"
+            className="bg-brand-600 py-3.5 items-center"
+            style={{ borderRadius: 0 }}
             activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-semibold text-base">
+              <Text className="text-white font-bold text-base">
                 Sign In
               </Text>
             )}
           </TouchableOpacity>
 
-          {/* Social auth buttons — disabled until Phase 3 */}
+          {/* Demo buttons */}
           <View className="mt-6">
             <View className="flex-row items-center mb-4">
               <View className="flex-1 h-px bg-border" />
-              <Text className="mx-4 text-text-muted text-sm">or</Text>
+              <Text className="mx-4 text-text-muted text-sm">or try a demo</Text>
               <View className="flex-1 h-px bg-border" />
             </View>
 
             <TouchableOpacity
-              disabled
-              className="border border-border rounded-xl py-3 items-center mb-3 opacity-40"
+              onPress={() => demoAs("contractor")}
+              className="bg-dark py-3.5 items-center mb-3"
+              style={{ borderRadius: 0 }}
+              activeOpacity={0.8}
             >
-              <Text className="text-dark font-medium">
-                Continue with Google
+              <Text className="text-white font-bold text-base">
+                Demo as Contractor
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              disabled
-              className="border border-border rounded-xl py-3 items-center mb-3 opacity-40"
+              onPress={() => demoAs("homeowner")}
+              className="border-2 border-dark py-3 items-center"
+              style={{ borderRadius: 0 }}
+              activeOpacity={0.8}
             >
-              <Text className="text-dark font-medium">
-                Continue with Apple
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              disabled
-              className="border border-border rounded-xl py-3 items-center opacity-40"
-            >
-              <Text className="text-dark font-medium">
-                Sign in with Phone
+              <Text className="text-dark font-bold text-base">
+                Demo as Homeowner
               </Text>
             </TouchableOpacity>
           </View>
@@ -154,7 +181,7 @@ export default function LoginScreen() {
           </Text>
           <Link href="/(auth)/signup" asChild>
             <TouchableOpacity>
-              <Text className="text-brand-600 font-semibold">Sign Up</Text>
+              <Text className="text-brand-600 font-bold">Sign Up</Text>
             </TouchableOpacity>
           </Link>
         </View>

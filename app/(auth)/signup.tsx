@@ -58,7 +58,10 @@ export default function SignupScreen() {
       >
         {/* Header */}
         <View className="items-center mb-8 mt-12">
-          <View className="w-16 h-16 rounded-2xl bg-brand-600 items-center justify-center mb-4">
+          <View
+            className="w-16 h-16 bg-brand-600 items-center justify-center mb-4"
+            style={{ borderRadius: 0 }}
+          >
             <Text className="text-white text-2xl font-bold">FTW</Text>
           </View>
           <Text className="text-2xl font-bold text-dark">Create Account</Text>
@@ -69,28 +72,29 @@ export default function SignupScreen() {
 
         {/* Step indicator */}
         <View className="flex-row mb-6 gap-2">
-          <View className="flex-1 h-1 rounded-full bg-brand-600" />
+          <View className="flex-1 h-1 bg-brand-600" />
           <View
-            className={`flex-1 h-1 rounded-full ${step === 2 ? "bg-brand-600" : "bg-border"}`}
+            className={`flex-1 h-1 ${step === 2 ? "bg-brand-600" : "bg-border"}`}
           />
         </View>
 
         {step === 1 ? (
           /* Step 1: Role picker */
           <View>
-            <Text className="text-lg font-semibold text-dark mb-4">
+            <Text className="text-lg font-bold text-dark mb-4">
               I am a...
             </Text>
 
             <TouchableOpacity
               onPress={() => setRole("homeowner")}
-              className={`border-2 rounded-2xl p-5 mb-3 ${
+              className={`border-2 p-5 mb-3 ${
                 role === "homeowner"
                   ? "border-brand-600 bg-brand-50"
                   : "border-border bg-white"
               }`}
+              style={{ borderRadius: 0 }}
             >
-              <Text className="text-lg font-semibold text-dark">
+              <Text className="text-lg font-bold text-dark">
                 Homeowner
               </Text>
               <Text className="text-text-secondary mt-1">
@@ -100,13 +104,14 @@ export default function SignupScreen() {
 
             <TouchableOpacity
               onPress={() => setRole("contractor")}
-              className={`border-2 rounded-2xl p-5 mb-6 ${
+              className={`border-2 p-5 mb-6 ${
                 role === "contractor"
                   ? "border-brand-600 bg-brand-50"
                   : "border-border bg-white"
               }`}
+              style={{ borderRadius: 0 }}
             >
-              <Text className="text-lg font-semibold text-dark">
+              <Text className="text-lg font-bold text-dark">
                 Contractor
               </Text>
               <Text className="text-text-secondary mt-1">
@@ -117,13 +122,14 @@ export default function SignupScreen() {
             <TouchableOpacity
               onPress={() => role && setStep(2)}
               disabled={!role}
-              className={`rounded-xl py-3.5 items-center ${
+              className={`py-3.5 items-center ${
                 role ? "bg-brand-600" : "bg-border"
               }`}
+              style={{ borderRadius: 0 }}
               activeOpacity={0.8}
             >
               <Text
-                className={`font-semibold text-base ${
+                className={`font-bold text-base ${
                   role ? "text-white" : "text-text-muted"
                 }`}
               >
@@ -133,13 +139,16 @@ export default function SignupScreen() {
           </View>
         ) : (
           /* Step 2: Details form */
-          <View className="bg-white rounded-2xl p-6 shadow-sm">
-            <Text className="text-lg font-semibold text-dark mb-4">
+          <View
+            className="bg-white border border-border p-6"
+            style={{ borderRadius: 0 }}
+          >
+            <Text className="text-lg font-bold text-dark mb-4">
               Your Details
             </Text>
 
             <View className="mb-4">
-              <Text className="text-sm font-medium text-text-secondary mb-1.5">
+              <Text className="text-sm font-bold text-text-secondary mb-1.5">
                 Full Name
               </Text>
               <TextInput
@@ -148,13 +157,14 @@ export default function SignupScreen() {
                 placeholder={
                   role === "contractor" ? "Company or your name" : "Your name"
                 }
-                className="border border-border rounded-xl px-4 py-3 text-dark bg-surface"
+                className="border border-border px-4 py-3 text-dark bg-surface"
+                style={{ borderRadius: 0 }}
                 placeholderTextColor="#9CA3AF"
               />
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm font-medium text-text-secondary mb-1.5">
+              <Text className="text-sm font-bold text-text-secondary mb-1.5">
                 Email
               </Text>
               <TextInput
@@ -164,13 +174,14 @@ export default function SignupScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                className="border border-border rounded-xl px-4 py-3 text-dark bg-surface"
+                className="border border-border px-4 py-3 text-dark bg-surface"
+                style={{ borderRadius: 0 }}
                 placeholderTextColor="#9CA3AF"
               />
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm font-medium text-text-secondary mb-1.5">
+              <Text className="text-sm font-bold text-text-secondary mb-1.5">
                 Password
               </Text>
               <TextInput
@@ -178,20 +189,22 @@ export default function SignupScreen() {
                 onChangeText={setPassword}
                 placeholder="Min 8 characters"
                 secureTextEntry
-                className="border border-border rounded-xl px-4 py-3 text-dark bg-surface"
+                className="border border-border px-4 py-3 text-dark bg-surface"
+                style={{ borderRadius: 0 }}
                 placeholderTextColor="#9CA3AF"
               />
             </View>
 
             <View className="mb-6">
-              <Text className="text-sm font-medium text-text-secondary mb-1.5">
+              <Text className="text-sm font-bold text-text-secondary mb-1.5">
                 Location
               </Text>
               <TextInput
                 value={location}
                 onChangeText={setLocation}
                 placeholder="City, State"
-                className="border border-border rounded-xl px-4 py-3 text-dark bg-surface"
+                className="border border-border px-4 py-3 text-dark bg-surface"
+                style={{ borderRadius: 0 }}
                 placeholderTextColor="#9CA3AF"
               />
             </View>
@@ -199,13 +212,14 @@ export default function SignupScreen() {
             <TouchableOpacity
               onPress={handleSignup}
               disabled={isLoading}
-              className="bg-brand-600 rounded-xl py-3.5 items-center mb-3"
+              className="bg-brand-600 py-3.5 items-center mb-3"
+              style={{ borderRadius: 0 }}
               activeOpacity={0.8}
             >
               {isLoading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-semibold text-base">
+                <Text className="text-white font-bold text-base">
                   Create Account
                 </Text>
               )}
@@ -215,7 +229,7 @@ export default function SignupScreen() {
               onPress={() => setStep(1)}
               className="items-center py-2"
             >
-              <Text className="text-text-secondary font-medium">Back</Text>
+              <Text className="text-text-secondary font-bold">Back</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -225,7 +239,7 @@ export default function SignupScreen() {
           <Text className="text-text-secondary">Already have an account? </Text>
           <Link href="/(auth)/login" asChild>
             <TouchableOpacity>
-              <Text className="text-brand-600 font-semibold">Sign In</Text>
+              <Text className="text-brand-600 font-bold">Sign In</Text>
             </TouchableOpacity>
           </Link>
         </View>

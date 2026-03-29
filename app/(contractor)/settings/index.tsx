@@ -105,10 +105,13 @@ export default function ContractorSettings() {
         {/* Sections */}
         {SECTIONS.map((section) => (
           <View key={section.title} className="mt-5">
-            <Text className="text-text-secondary text-sm font-semibold uppercase tracking-wide px-5 mb-2">
+            <Text className="text-dark text-sm font-bold uppercase tracking-wide px-5 mb-2">
               {section.title}
             </Text>
-            <View className="bg-white rounded-2xl mx-5 overflow-hidden">
+            <View
+              className="bg-white border border-border mx-5 overflow-hidden"
+              style={{ borderRadius: 0 }}
+            >
               {section.items.map((item, i) => {
                 const IconComponent = item.icon;
                 return (
@@ -121,11 +124,11 @@ export default function ContractorSettings() {
                     }`}
                     activeOpacity={0.7}
                   >
-                    <View className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center mr-3">
-                      <IconComponent
-                        size={18}
-                        color={BRAND.colors.textSecondary}
-                      />
+                    <View
+                      className="w-9 h-9 bg-gray-100 items-center justify-center mr-3"
+                      style={{ borderRadius: 0 }}
+                    >
+                      <IconComponent size={18} color="#4B5563" />
                     </View>
                     <View className="flex-1">
                       <Text className="text-dark font-medium text-base">
@@ -147,13 +150,17 @@ export default function ContractorSettings() {
         <View className="mx-5 mt-6">
           <TouchableOpacity
             onPress={logout}
-            className="bg-white rounded-2xl flex-row items-center px-4 py-4"
+            className="bg-white border border-border flex-row items-center px-4 py-4"
+            style={{ borderRadius: 0 }}
             activeOpacity={0.7}
           >
-            <View className="w-9 h-9 rounded-xl bg-red-50 items-center justify-center mr-3">
-              <LogOut size={18} color="#EF4444" />
+            <View
+              className="w-9 h-9 bg-gray-100 items-center justify-center mr-3"
+              style={{ borderRadius: 0 }}
+            >
+              <LogOut size={18} color="#4B5563" />
             </View>
-            <Text className="text-red-500 font-medium text-base">
+            <Text className="text-dark font-medium text-base">
               Sign Out
             </Text>
           </TouchableOpacity>

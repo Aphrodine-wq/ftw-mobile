@@ -80,7 +80,8 @@ export default function EstimatesScreen() {
           <Text className="text-2xl font-bold text-dark">Estimates</Text>
         </View>
         <TouchableOpacity
-          className="bg-brand-600 rounded-xl p-2.5"
+          className="bg-brand-600 p-2.5"
+          style={{ borderRadius: 0 }}
           activeOpacity={0.7}
         >
           <Plus size={20} color="#FFFFFF" />
@@ -88,19 +89,22 @@ export default function EstimatesScreen() {
       </View>
 
       {/* Summary Stats */}
-      <View className="flex-row mx-5 mt-4 bg-white rounded-2xl overflow-hidden">
+      <View
+        className="flex-row mx-5 mt-4 bg-white border border-border overflow-hidden"
+        style={{ borderRadius: 0 }}
+      >
         <View className="flex-1 items-center py-4 border-r border-border">
           <Text className="text-2xl font-bold text-dark">{totalEstimates}</Text>
           <Text className="text-text-secondary text-sm mt-0.5">Total</Text>
         </View>
         <View className="flex-1 items-center py-4 border-r border-border">
-          <Text className="text-2xl font-bold text-amber-600">
+          <Text className="text-2xl font-bold text-dark">
             {formatCurrency(pendingValue)}
           </Text>
           <Text className="text-text-secondary text-sm mt-0.5">Pending</Text>
         </View>
         <View className="flex-1 items-center py-4">
-          <Text className="text-2xl font-bold text-emerald-600">
+          <Text className="text-2xl font-bold text-dark">
             {formatCurrency(acceptedValue)}
           </Text>
           <Text className="text-text-secondary text-sm mt-0.5">Accepted</Text>
@@ -111,11 +115,15 @@ export default function EstimatesScreen() {
 
   const renderEstimate = ({ item }: { item: MockEstimate }) => (
     <TouchableOpacity
-      className="bg-white rounded-2xl mx-5 mb-3 p-4 flex-row items-center"
+      className="bg-white border border-border mx-5 mb-3 p-4 flex-row items-center"
+      style={{ borderRadius: 0 }}
       activeOpacity={0.7}
     >
-      <View className="w-10 h-10 rounded-xl bg-brand-50 items-center justify-center mr-3">
-        <FileText size={20} color={BRAND.colors.primary} />
+      <View
+        className="w-10 h-10 bg-gray-100 items-center justify-center mr-3"
+        style={{ borderRadius: 0 }}
+      >
+        <FileText size={20} color="#4B5563" />
       </View>
       <View className="flex-1">
         <Text className="text-dark font-semibold" numberOfLines={1}>

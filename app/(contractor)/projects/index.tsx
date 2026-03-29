@@ -83,7 +83,8 @@ export default function ProjectsScreen() {
 
     return (
       <TouchableOpacity
-        className="bg-white rounded-2xl mx-5 mb-3 p-4"
+        className="bg-white border border-border mx-5 mb-3 p-4"
+        style={{ borderRadius: 0 }}
         activeOpacity={0.7}
       >
         {/* Title + Status */}
@@ -108,16 +109,19 @@ export default function ProjectsScreen() {
               {formatCurrency(item.spent)} / {formatCurrency(item.budget)}
             </Text>
           </View>
-          <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <View
+            className="h-2 bg-gray-100 overflow-hidden"
+            style={{ borderRadius: 0 }}
+          >
             <View
-              className={`h-full rounded-full ${
+              className={`h-full ${
                 item.status === "completed"
                   ? "bg-emerald-500"
                   : progress > 90
                   ? "bg-amber-500"
                   : "bg-brand-600"
               }`}
-              style={{ width: `${progress}%` }}
+              style={{ width: `${progress}%`, borderRadius: 0 }}
             />
           </View>
           {item.status === "active" && (

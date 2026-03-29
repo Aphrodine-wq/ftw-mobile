@@ -4,273 +4,208 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Image,
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  Briefcase,
-  Clock,
-  DollarSign,
-  TrendingUp,
-  ChevronRight,
-  FileText,
-  Search,
-} from "lucide-react-native";
+import { Star, ChevronRight, MapPin, Circle, CheckCircle2 } from "lucide-react-native";
 import { useAuthStore } from "@src/stores/auth";
 import {
   mockJobs,
   mockEstimates,
   contractorStats,
 } from "@src/lib/mock-data";
-import { fetchJobs, fetchEstimates } from "@src/api/data";
+import { fetchEstimates } from "@src/api/data";
 import { formatCurrency } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
+import { useRouter } from "expo-router";
 
-const STAT_CARDS = [
-  {
-    label: "Active Jobs",
-    value: String(contractorStats.activeJobs),
-    icon: Briefcase,
-    color: BRAND.colors.primary,
-    bg: "bg-brand-50",
-  },
-  {
-    label: "Pending Bids",
-    value: String(contractorStats.pendingBids),
-    icon: Clock,
-    color: "#D97706",
-    bg: "bg-amber-50",
-  },
-  {
-    label: "Revenue",
-    value: "$47,250",
-    icon: DollarSign,
-    color: "#059669",
-    bg: "bg-emerald-50",
-  },
-  {
-    label: "Win Rate",
-    value: "68%",
-    icon: TrendingUp,
-    color: "#2563EB",
-    bg: "bg-blue-50",
-  },
-] as const;
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const COL_WIDTH = (SCREEN_WIDTH - 36) / 2; // 12px padding each side + 12px gap
 
-function getStatusColor(status: string): {
-  bg: string;
-  text: string;
-} {
+function getStatusColor(status: string): { bg: string; text: string } {
   switch (status) {
     case "accepted":
-      return { bg: "bg-emerald-50", text: "text-emerald-700" };
+      return { bg: "bg-gray-100", text: "text-dark" };
     case "sent":
-      return { bg: "bg-blue-50", text: "text-blue-700" };
-    case "draft":
-      return { bg: "bg-gray-100", text: "text-gray-600" };
-    case "declined":
-      return { bg: "bg-red-50", text: "text-red-700" };
+      return { bg: "bg-gray-100", text: "text-dark" };
     default:
-      return { bg: "bg-gray-100", text: "text-gray-600" };
+      return { bg: "bg-gray-100", text: "text-text-secondary" };
   }
 }
 
+const MILESTONES = [
+  { id: "ms1", task: "Countertops", project: "Kitchen Remodel", client: "Michael Brown", status: "in_progress" as const },
+  { id: "ms2", task: "Tile & waterproofing", project: "Bathroom Reno", client: "Sarah Williams", status: "in_progress" as const },
+  { id: "ms3", task: "Decking boards", project: "Deck Build", client: "Robert Johnson", status: "in_progress" as const },
+  { id: "ms4", task: "Flashings & ridge", project: "Roof Replacement", client: "Patricia Taylor", status: "in_progress" as const },
+];
+
 export default function ContractorDashboard() {
-  const user = useAuthStore((s) => s.user);
-  const firstName = user?.name?.split(" ")[0] || "there";
+  const router = useRouter();
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
+    year: "numeric",
   });
 
-  const [jobs, setJobs] = useState(mockJobs);
   const [estimates, setEstimates] = useState(mockEstimates);
+  const [activeJob, setActiveJob] = useState(0);
+  const featuredJob = mockJobs[activeJob];
 
   useEffect(() => {
-    fetchJobs().then(setJobs);
     fetchEstimates().then(setEstimates);
   }, []);
 
-  const recentJobs = jobs.slice(0, 3);
-
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-5 pt-4 pb-2">
-          <Text className="text-2xl font-bold text-dark">
-            Hey, {firstName}
-          </Text>
-          <Text className="text-text-secondary mt-1">{today}</Text>
-        </View>
+      {/* Date Header */}
+      <View className="px-4 pt-3 pb-2">
+        <Text className="text-xl font-bold text-dark">{today}</Text>
+      </View>
 
-        {/* Stat Cards — 2x2 grid */}
-        <View className="px-5 mt-4 flex-row flex-wrap justify-between">
-          {STAT_CARDS.map((stat) => (
-            <View
-              key={stat.label}
-              className="bg-white rounded-2xl p-4 mb-3"
-              style={{ width: (Dimensions.get("window").width - 52) / 2 }}
-            >
-              <View
-                className={`w-10 h-10 rounded-xl ${stat.bg} items-center justify-center mb-3`}
-              >
-                <stat.icon size={20} color={stat.color} />
-              </View>
-              <Text className="text-2xl font-bold text-dark">{stat.value}</Text>
-              <Text className="text-text-secondary text-sm mt-1">
-                {stat.label}
-              </Text>
-            </View>
-          ))}
-        </View>
+      {/* Two Column Grid — fills remaining space */}
+      <View className="flex-1 px-3 pb-2" style={{ flexDirection: "row", gap: 8 }}>
+          {/* Left Column */}
+          <View style={{ flex: 1 }} className="gap-2">
 
-        {/* Recent Jobs */}
-        <View className="mt-4">
-          <View className="px-5 flex-row items-center justify-between mb-3">
-            <Text className="text-lg font-bold text-dark">Recent Jobs</Text>
-            <TouchableOpacity
-              className="flex-row items-center"
-              activeOpacity={0.7}
-            >
-              <Text className="text-brand-600 text-sm font-medium mr-1">
-                View All
-              </Text>
-              <ChevronRight size={16} color={BRAND.colors.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
-          >
-            {recentJobs.map((job) => (
-              <TouchableOpacity
-                key={job.id}
-                className="bg-white rounded-2xl p-4"
-                style={{ width: 260 }}
-                activeOpacity={0.7}
-              >
-                <View className="flex-row items-center justify-between mb-2">
-                  <View className="bg-brand-50 rounded-full px-3 py-1">
-                    <Text className="text-brand-600 text-xs font-medium">
-                      {job.category}
-                    </Text>
-                  </View>
-                  <View
-                    className={`w-2 h-2 rounded-full ${
-                      job.urgency === "high"
-                        ? "bg-red-500"
-                        : job.urgency === "medium"
-                        ? "bg-amber-500"
-                        : "bg-emerald-500"
-                    }`}
-                  />
-                </View>
-                <Text
-                  className="text-dark font-semibold text-base mb-1"
-                  numberOfLines={1}
-                >
-                  {job.title}
-                </Text>
-                <Text className="text-text-secondary text-sm mb-2">
-                  {job.location}
-                </Text>
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-dark font-bold">
-                    {formatCurrency(job.budget.min)} -{" "}
-                    {formatCurrency(job.budget.max)}
-                  </Text>
-                  <Text className="text-text-muted text-xs">
-                    {job.bidCount} bids
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Recent Estimates */}
-        <View className="mt-6 px-5">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-lg font-bold text-dark">
-              Recent Estimates
-            </Text>
-            <TouchableOpacity
-              className="flex-row items-center"
-              activeOpacity={0.7}
-            >
-              <Text className="text-brand-600 text-sm font-medium mr-1">
-                View All
-              </Text>
-              <ChevronRight size={16} color={BRAND.colors.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <View className="bg-white rounded-2xl overflow-hidden">
-            {estimates.map((estimate, i) => {
-              const statusStyle = getStatusColor(estimate.status);
-              return (
+            {/* Job Marketplace Tile */}
+            <View className="bg-white border border-border" style={{ borderRadius: 0 }}>
+              <View className="flex-row items-center justify-between px-4 pt-3 pb-2">
+                <Text className="text-base font-bold text-dark">Jobs</Text>
                 <TouchableOpacity
-                  key={estimate.id}
-                  className={`flex-row items-center px-4 py-3 ${
-                    i < estimates.length - 1
-                      ? "border-b border-border"
-                      : ""
-                  }`}
+                  className="flex-row items-center"
+                  onPress={() => router.push("/(contractor)/(jobs)" as any)}
                   activeOpacity={0.7}
                 >
-                  <View className="flex-1">
-                    <Text
-                      className="text-dark font-medium"
-                      numberOfLines={1}
-                    >
-                      {estimate.title}
-                    </Text>
-                    <Text className="text-text-secondary text-sm mt-0.5">
-                      {estimate.client}
-                    </Text>
-                  </View>
-                  <View className="items-end ml-3">
-                    <Text className="text-dark font-semibold">
-                      {formatCurrency(estimate.total)}
-                    </Text>
-                    <View
-                      className={`${statusStyle.bg} rounded-full px-2 py-0.5 mt-1`}
-                    >
-                      <Text
-                        className={`${statusStyle.text} text-xs font-medium capitalize`}
-                      >
-                        {estimate.status}
-                      </Text>
+                  <Text className="text-brand-600 text-xs font-bold mr-0.5">Browse</Text>
+                  <ChevronRight size={14} color={BRAND.colors.primary} />
+                </TouchableOpacity>
+              </View>
+              {featuredJob && (
+                <TouchableOpacity activeOpacity={0.8} onPress={() => setActiveJob((activeJob + 1) % mockJobs.length)}>
+                  <Image
+                    source={{ uri: featuredJob.thumbnail }}
+                    style={{ width: "100%", height: 140 }}
+                    resizeMode="cover"
+                  />
+                  <View className="px-4 py-3">
+                    <Text className="text-sm font-bold text-dark" numberOfLines={1}>{featuredJob.title}</Text>
+                    <View className="flex-row items-center mt-1">
+                      <MapPin size={11} color={BRAND.colors.textMuted} />
+                      <Text className="text-xs text-text-muted ml-1">{featuredJob.location}</Text>
                     </View>
+                    <Text className="text-sm font-bold text-dark mt-1">
+                      {formatCurrency(featuredJob.budget.min)}–{formatCurrency(featuredJob.budget.max)}
+                    </Text>
                   </View>
                 </TouchableOpacity>
-              );
-            })}
+              )}
+            </View>
+
+            {/* Estimate History Tile */}
+            <View className="bg-white border border-border flex-1" style={{ borderRadius: 0 }}>
+              <View className="flex-row items-center justify-between px-4 pt-3 pb-2">
+                <Text className="text-base font-bold text-dark">Estimates</Text>
+                <TouchableOpacity
+                  className="flex-row items-center"
+                  onPress={() => router.push("/(contractor)/estimates" as any)}
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-brand-600 text-xs font-bold mr-0.5">All</Text>
+                  <ChevronRight size={14} color={BRAND.colors.primary} />
+                </TouchableOpacity>
+              </View>
+              <View className="px-4 pb-3">
+                {estimates.slice(0, 3).map((est, i) => {
+                  const statusStyle = getStatusColor(est.status);
+                  return (
+                    <View
+                      key={est.id}
+                      className={`flex-row items-center justify-between py-2.5 ${i < 2 ? "border-b border-border" : ""}`}
+                    >
+                      <View className="flex-1 mr-2">
+                        <Text className="text-sm font-bold text-dark" numberOfLines={1}>{est.client}</Text>
+                        <Text className="text-xs text-text-muted">{formatCurrency(est.total)}</Text>
+                      </View>
+                      <View className={`${statusStyle.bg} px-2 py-0.5`} style={{ borderRadius: 0 }}>
+                        <Text className={`${statusStyle.text} text-[10px] font-bold capitalize`}>{est.status}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+
+          {/* Right Column */}
+          <View style={{ flex: 1 }} className="gap-2">
+
+            {/* Milestones Tile */}
+            <View className="bg-white border border-border flex-1" style={{ borderRadius: 0 }}>
+              <View className="flex-row items-center justify-between px-4 pt-3 pb-2">
+                <Text className="text-base font-bold text-dark">Milestones</Text>
+                <View className="bg-gray-100 px-2 py-0.5" style={{ borderRadius: 0 }}>
+                  <Text className="text-xs font-bold text-text-secondary">
+                    {MILESTONES.filter(m => m.status === "in_progress").length}
+                  </Text>
+                </View>
+              </View>
+              <View className="px-4 pb-3">
+                {MILESTONES.map((ms, i) => (
+                  <View
+                    key={ms.id}
+                    className={`flex-row items-start py-2.5 ${i < MILESTONES.length - 1 ? "border-b border-border" : ""}`}
+                  >
+                    <View className="mt-0.5 mr-2.5">
+                      {ms.status === "done" ? (
+                        <CheckCircle2 size={16} color={BRAND.colors.primary} />
+                      ) : (
+                        <Circle size={16} color={BRAND.colors.textMuted} />
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <Text className={`text-sm font-bold ${ms.status === "done" ? "text-text-muted" : "text-dark"}`} numberOfLines={1}>
+                        {ms.task}
+                      </Text>
+                      <Text className="text-xs text-text-muted mt-0.5">{ms.project} — {ms.client}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Scorecard Tile */}
+            <View className="bg-white border border-border p-4" style={{ borderRadius: 0 }}>
+              <Text className="text-base font-bold text-dark mb-3">Scorecard</Text>
+              <View className="items-center pb-3 border-b border-border">
+                <Text className="text-xs text-text-muted">Revenue</Text>
+                <Text className="text-2xl font-bold text-dark mt-1">
+                  {formatCurrency(contractorStats.monthlyRevenue)}
+                </Text>
+                <Text className="text-xs text-text-muted mt-2">Rating</Text>
+                <Text className="text-2xl font-bold text-dark mt-1">{contractorStats.avgRating}</Text>
+              </View>
+              <View className="flex-row pt-3">
+                <View className="flex-1 items-center">
+                  <Text className="text-sm font-bold text-dark">{contractorStats.winRate}%</Text>
+                  <Text className="text-[10px] text-text-muted mt-0.5">Win Rate</Text>
+                </View>
+                <View className="flex-1 items-center">
+                  <Text className="text-sm font-bold text-dark">{contractorStats.pendingBids}</Text>
+                  <Text className="text-[10px] text-text-muted mt-0.5">Pending</Text>
+                </View>
+                <View className="flex-1 items-center">
+                  <Text className="text-sm font-bold text-dark">{contractorStats.completedJobs}</Text>
+                  <Text className="text-[10px] text-text-muted mt-0.5">Done</Text>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View className="px-5 mt-6 mb-8 flex-row gap-3">
-          <TouchableOpacity
-            className="flex-1 bg-brand-600 rounded-2xl py-4 flex-row items-center justify-center"
-            activeOpacity={0.7}
-          >
-            <FileText size={18} color="#FFFFFF" />
-            <Text className="text-white font-semibold ml-2">New Estimate</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 bg-white rounded-2xl py-4 flex-row items-center justify-center border border-border"
-            activeOpacity={0.7}
-          >
-            <Search size={18} color={BRAND.colors.dark} />
-            <Text className="text-dark font-semibold ml-2">Browse Jobs</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

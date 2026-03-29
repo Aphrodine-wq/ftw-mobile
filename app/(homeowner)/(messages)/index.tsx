@@ -13,6 +13,7 @@ import { ArrowLeft, Send } from "lucide-react-native";
 import { mockConversations, mockMessages } from "@src/lib/mock-data";
 import type { MockConversation, MockMessage } from "@src/lib/mock-data";
 import { BRAND } from "@src/lib/constants";
+import { useRealtimeChat } from "@src/realtime/hooks";
 
 function ConversationRow({
   conversation,
@@ -99,9 +100,15 @@ function ChatView({
     mockMessages[conversation.id] || []
   );
   const flatListRef = useRef<FlatList>(null);
+  const { messages: realtimeMessages, sendMessage: realtimeSend } = useRealtimeChat(conversation.id);
+
+  useEffect(() => {
+    if (realtimeMessages.length > 0) setMessages(realtimeMessages as MockMessage[]);
+  }, [realtimeMessages]);
 
   const handleSend = () => {
     if (!text.trim()) return;
+    realtimeSend(text.trim());
     const newMsg: MockMessage = {
       id: `m-${Date.now()}`,
       text: text.trim(),

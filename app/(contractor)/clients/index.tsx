@@ -43,12 +43,13 @@ export default function ContractorClients() {
   const renderClient = useCallback(
     ({ item }: { item: Client }) => (
       <TouchableOpacity
-        className="bg-white rounded-2xl p-4 mx-5 mb-3"
+        className="bg-white border border-border p-4 mx-5 mb-3"
+        style={{ borderRadius: 0 }}
         activeOpacity={0.7}
       >
         <View className="flex-row items-center mb-3">
-          <View className="w-12 h-12 rounded-full bg-brand-600 items-center justify-center mr-3">
-            <Text className="text-white font-bold text-base">
+          <View className="w-12 h-12 rounded-full bg-gray-100 items-center justify-center mr-3">
+            <Text className="text-gray-600 font-bold text-base">
               {getInitials(item.name)}
             </Text>
           </View>
@@ -104,8 +105,11 @@ export default function ContractorClients() {
           <ChevronLeft size={24} color={BRAND.colors.dark} />
         </TouchableOpacity>
         <Text className="text-2xl font-bold text-dark flex-1">Clients</Text>
-        <View className="bg-brand-50 rounded-full px-3 py-1">
-          <Text className="text-brand-600 text-sm font-medium">
+        <View
+          className="bg-gray-100 px-3 py-1"
+          style={{ borderRadius: 0 }}
+        >
+          <Text className="text-gray-600 text-sm font-medium">
             {filtered.length}
           </Text>
         </View>
@@ -113,7 +117,10 @@ export default function ContractorClients() {
 
       {/* Search */}
       <View className="px-5 mt-3 mb-4">
-        <View className="bg-white rounded-xl flex-row items-center px-4 py-3 border border-border">
+        <View
+          className="bg-white flex-row items-center px-4 py-3 border border-border"
+          style={{ borderRadius: 0 }}
+        >
           <Search size={18} color={BRAND.colors.textMuted} />
           <TextInput
             className="flex-1 ml-3 text-dark text-base"
