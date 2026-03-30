@@ -29,7 +29,7 @@ interface AuthState {
     email: string;
     password: string;
     name: string;
-    role: "homeowner" | "contractor";
+    role: "homeowner" | "contractor" | "subcontractor";
     location?: string;
   }) => Promise<void>;
   logout: () => void;

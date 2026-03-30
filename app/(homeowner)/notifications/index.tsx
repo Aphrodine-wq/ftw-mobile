@@ -4,6 +4,7 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -13,6 +14,7 @@ import {
   CheckCheck,
   ChevronLeft,
   Bell,
+  Star,
 } from "lucide-react-native";
 import { fetchNotifications } from "@src/api/data";
 import { mockNotifications } from "@src/lib/mock-data";
@@ -23,13 +25,16 @@ import { router } from "expo-router";
 type Notification = (typeof mockNotifications)[number] & { read: boolean };
 
 const TYPE_ICONS: Record<string, { icon: typeof DollarSign; color: string; bg: string }> = {
-  bid_received: { icon: DollarSign, color: "#059669", bg: "bg-emerald-50" },
-  message: { icon: MessageSquare, color: "#2563EB", bg: "bg-blue-50" },
-  project_update: { icon: FolderOpen, color: "#7C3AED", bg: "bg-purple-50" },
+  bid_received: { icon: DollarSign, color: "#059669", bg: "#ECFDF5" },
+  message: { icon: MessageSquare, color: "#2563EB", bg: "#EFF6FF" },
+  project_update: { icon: FolderOpen, color: "#7C3AED", bg: "#F5F3FF" },
+  bid_accepted: { icon: DollarSign, color: "#059669", bg: "#ECFDF5" },
+  payment: { icon: DollarSign, color: "#D97706", bg: "#FFFBEB" },
+  review: { icon: Star, color: "#D97706", bg: "#FFFBEB" },
 };
 
 function getTypeConfig(type: string) {
-  return TYPE_ICONS[type] || { icon: Bell, color: BRAND.colors.textSecondary, bg: "bg-gray-100" };
+  return TYPE_ICONS[type] || { icon: Bell, color: BRAND.colors.textSecondary, bg: "#F3F4F6" };
 }
 
 export default function HomeownerNotifications() {
@@ -64,40 +69,39 @@ export default function HomeownerNotifications() {
 
       return (
         <TouchableOpacity
-          className="bg-white rounded-2xl p-4 mx-5 mb-3"
+          style={s.card}
           activeOpacity={0.7}
           onPress={() => markRead(item.id)}
         >
           <View className="flex-row items-start">
             {/* Icon */}
-            <View
-              className={`w-10 h-10 rounded-xl ${config.bg} items-center justify-center mr-3`}
-            >
+            <View style={[s.iconBox, { backgroundColor: config.bg }]}>
               <IconComponent size={18} color={config.color} />
             </View>
 
             {/* Content */}
-            <View className="flex-1">
+            <View style={{ flex: 1 }}>
               <View className="flex-row items-center">
                 <Text
-                  className={`flex-1 text-base ${
-                    !item.read ? "font-bold text-dark" : "font-medium text-dark"
-                  }`}
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: item.read ? "500" : "700",
+                    color: BRAND.colors.textPrimary,
+                  }}
                   numberOfLines={1}
                 >
                   {item.title}
                 </Text>
-                {!item.read && (
-                  <View className="w-2.5 h-2.5 rounded-full bg-blue-500 ml-2" />
-                )}
+                {!item.read && <View style={s.unreadDot} />}
               </View>
               <Text
-                className="text-text-secondary text-sm mt-0.5"
+                style={{ fontSize: 13, color: BRAND.colors.textSecondary, marginTop: 2 }}
                 numberOfLines={2}
               >
                 {item.body}
               </Text>
-              <Text className="text-text-muted text-xs mt-1.5">
+              <Text style={{ fontSize: 12, color: BRAND.colors.textMuted, marginTop: 6 }}>
                 {formatDate(item.createdAt)}
               </Text>
             </View>
@@ -119,12 +123,12 @@ export default function HomeownerNotifications() {
         >
           <ChevronLeft size={24} color={BRAND.colors.dark} />
         </TouchableOpacity>
-        <Text className="text-2xl font-bold text-dark flex-1">
+        <Text style={{ fontSize: 24, fontWeight: "700", color: BRAND.colors.textPrimary, flex: 1 }}>
           Notifications
         </Text>
         {unreadCount > 0 && (
-          <View className="bg-brand-600 rounded-full px-2.5 py-0.5">
-            <Text className="text-white text-xs font-bold">
+          <View style={s.countBadge}>
+            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>
               {unreadCount}
             </Text>
           </View>
@@ -140,7 +144,7 @@ export default function HomeownerNotifications() {
             onPress={markAllRead}
           >
             <CheckCheck size={16} color={BRAND.colors.primary} />
-            <Text className="text-brand-600 text-sm font-medium ml-1.5">
+            <Text style={{ color: BRAND.colors.primary, fontSize: 13, fontWeight: "600", marginLeft: 6 }}>
               Mark all read
             </Text>
           </TouchableOpacity>
@@ -153,11 +157,11 @@ export default function HomeownerNotifications() {
         keyExtractor={(item) => item.id}
         renderItem={renderNotification}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 90 }}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">
             <Bell size={40} color={BRAND.colors.textMuted} />
-            <Text className="text-text-secondary text-base mt-3">
+            <Text style={{ color: BRAND.colors.textSecondary, fontSize: 15, marginTop: 12 }}>
               No notifications yet.
             </Text>
           </View>
@@ -166,3 +170,35 @@ export default function HomeownerNotifications() {
     </SafeAreaView>
   );
 }
+
+const s = StyleSheet.create({
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    padding: 16,
+    marginBottom: 12,
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 0,
+    backgroundColor: "#2563EB",
+    marginLeft: 8,
+  },
+  countBadge: {
+    backgroundColor: BRAND.colors.primary,
+    borderRadius: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+});

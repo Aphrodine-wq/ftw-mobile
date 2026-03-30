@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
   FolderOpen,
+  ClipboardList,
   Star,
   Bell,
   Settings,
@@ -18,9 +19,16 @@ import { BRAND } from "@src/lib/constants";
 
 const MENU_ITEMS = [
   { label: "My Projects", icon: FolderOpen, route: "/(homeowner)/projects" },
+  { label: "Post a Job", icon: ClipboardList, route: "/(homeowner)/post-job" },
   { label: "Reviews", icon: Star, route: "/(homeowner)/reviews" },
   { label: "Notifications", icon: Bell, route: "/(homeowner)/notifications" },
   { label: "Settings", icon: Settings, route: "/(homeowner)/settings" },
+] as const;
+
+const STATS = [
+  { label: "Total Spent", value: formatCurrency(homeownerStats.totalSpent) },
+  { label: "Projects", value: String(homeownerStats.projectsCompleted) },
+  { label: "Reviews", value: "5" },
 ] as const;
 
 export default function HomeownerProfile() {
@@ -31,73 +39,172 @@ export default function HomeownerProfile() {
     <SafeAreaView className="flex-1 bg-surface">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <View className="bg-white rounded-2xl p-5 mb-4 items-center">
-          <View className="w-20 h-20 rounded-full bg-brand-600 items-center justify-center mb-3">
-            <Text className="text-white text-2xl font-bold">
+        <View style={styles.headerCard}>
+          <View style={styles.avatar}>
+            <Text style={{ color: "#FFFFFF", fontSize: 24, fontWeight: "700" }}>
               {user ? getInitials(user.name) : "?"}
             </Text>
           </View>
-          <Text className="text-xl font-bold text-dark">{user?.name}</Text>
-          <Text className="text-text-secondary mt-0.5">{user?.email}</Text>
-          <View className="bg-brand-50 rounded-full px-3 py-1 mt-2">
-            <Text className="text-brand-600 text-sm font-medium">Homeowner</Text>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+            {user?.name}
+          </Text>
+          <Text style={{ fontSize: 14, color: BRAND.colors.textSecondary, marginTop: 2 }}>
+            {user?.email}
+          </Text>
+          <View style={styles.roleBadge}>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: BRAND.colors.primary }}>
+              Homeowner
+            </Text>
           </View>
         </View>
 
-        {/* Stats */}
-        <View className="flex-row gap-3 mb-4">
-          <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-            <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center mb-2">
-              <DollarSign size={18} color="#16A34A" />
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          {STATS.map((stat, i) => (
+            <View
+              key={stat.label}
+              style={[
+                styles.statCell,
+                i < STATS.length - 1 && styles.statCellBorder,
+              ]}
+            >
+              <Text style={{ fontSize: 20, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+                {stat.value}
+              </Text>
+              <Text style={{ fontSize: 13, color: BRAND.colors.textSecondary, marginTop: 2 }}>
+                {stat.label}
+              </Text>
             </View>
-            <Text className="text-xl font-bold text-dark">
-              {formatCurrency(homeownerStats.totalSpent)}
-            </Text>
-            <Text className="text-text-secondary text-xs mt-0.5">Total Spent</Text>
-          </View>
-          <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-            <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mb-2">
-              <CheckCircle size={18} color="#2563EB" />
-            </View>
-            <Text className="text-xl font-bold text-dark">
-              {homeownerStats.projectsCompleted}
-            </Text>
-            <Text className="text-text-secondary text-xs mt-0.5">Projects</Text>
-          </View>
+          ))}
         </View>
 
         {/* Menu Items */}
-        <View className="bg-white rounded-2xl overflow-hidden mb-4">
-          {MENU_ITEMS.map((item, i) => (
-            <TouchableOpacity
-              key={item.route}
-              onPress={() => router.push(item.route as any)}
-              className={`flex-row items-center px-5 py-4 ${
-                i < MENU_ITEMS.length - 1 ? "border-b border-border" : ""
-              }`}
-              activeOpacity={0.7}
-            >
-              <item.icon size={20} color={BRAND.colors.textSecondary} />
-              <Text className="text-dark font-medium ml-3 flex-1">{item.label}</Text>
-              <ChevronRight size={18} color={BRAND.colors.textMuted} />
-            </TouchableOpacity>
-          ))}
+        <View style={styles.menuCard}>
+          {MENU_ITEMS.map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <TouchableOpacity
+                key={item.route}
+                onPress={() => router.push(item.route as any)}
+                style={[
+                  styles.menuItem,
+                  i < MENU_ITEMS.length - 1 && styles.menuItemBorder,
+                ]}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuIcon}>
+                  <Icon size={18} color={BRAND.colors.textSecondary} />
+                </View>
+                <Text style={{ color: BRAND.colors.textPrimary, fontWeight: "500", fontSize: 15, flex: 1 }}>
+                  {item.label}
+                </Text>
+                <ChevronRight size={18} color={BRAND.colors.textMuted} />
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Logout */}
         <TouchableOpacity
           onPress={logout}
-          className="bg-white rounded-2xl flex-row items-center px-5 py-4"
+          style={styles.logoutCard}
           activeOpacity={0.7}
         >
-          <LogOut size={20} color="#EF4444" />
-          <Text className="text-red-500 font-medium ml-3">Sign Out</Text>
+          <View style={[styles.menuIcon, { backgroundColor: "#FEF2F2" }]}>
+            <LogOut size={18} color="#EF4444" />
+          </View>
+          <Text style={{ color: "#EF4444", fontWeight: "500", fontSize: 15 }}>
+            Sign Out
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    padding: 20,
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 0,
+    backgroundColor: BRAND.colors.dark,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  roleBadge: {
+    backgroundColor: "#FDF2F3",
+    borderRadius: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginTop: 8,
+  },
+  statsRow: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  statCell: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  statCellBorder: {
+    borderRightWidth: 1,
+    borderRightColor: BRAND.colors.border,
+  },
+  menuCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  menuItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: BRAND.colors.border,
+  },
+  menuIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 0,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  logoutCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+});

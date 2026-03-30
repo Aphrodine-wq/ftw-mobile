@@ -1,47 +1,50 @@
 import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
-  Plus,
+  DollarSign,
   Briefcase,
-  MessageSquare,
-  CheckCircle,
-  ChevronRight,
   Star,
+  Clock,
+  MapPin,
+  ChevronRight,
+  ClipboardList,
 } from "lucide-react-native";
 import { useAuthStore } from "@src/stores/auth";
-import { mockJobs, mockBids, homeownerStats } from "@src/lib/mock-data";
+import {
+  mockJobs,
+  mockBids,
+  mockProjects,
+  homeownerStats,
+} from "@src/lib/mock-data";
 import { fetchJobs } from "@src/api/data";
-import { formatCurrency } from "@src/lib/utils";
+import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
+import { Badge } from "@src/components/ui/badge";
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  open: { bg: "bg-green-100", text: "text-green-700" },
-  bidding: { bg: "bg-blue-100", text: "text-blue-700" },
-  awarded: { bg: "bg-purple-100", text: "text-purple-700" },
-  in_progress: { bg: "bg-amber-100", text: "text-amber-700" },
-  completed: { bg: "bg-gray-100", text: "text-gray-600" },
-  cancelled: { bg: "bg-red-100", text: "text-red-700" },
+type BadgeVariant = "default" | "success" | "warning" | "danger" | "neutral";
+
+const STATUS_BADGE: Record<string, { label: string; variant: BadgeVariant }> = {
+  open: { label: "Open", variant: "success" },
+  bidding: { label: "Bidding", variant: "default" },
+  awarded: { label: "Awarded", variant: "warning" },
+  in_progress: { label: "In Progress", variant: "warning" },
+  completed: { label: "Completed", variant: "neutral" },
+  cancelled: { label: "Cancelled", variant: "danger" },
 };
-
-function StatusBadge({ status }: { status: string }) {
-  const colors = STATUS_COLORS[status] || STATUS_COLORS.open;
-  const label = status.replace("_", " ");
-  return (
-    <View className={`${colors.bg} rounded-full px-2.5 py-0.5`}>
-      <Text className={`${colors.text} text-xs font-semibold capitalize`}>
-        {label}
-      </Text>
-    </View>
-  );
-}
 
 function RatingStars({ rating }: { rating: number }) {
   return (
     <View className="flex-row items-center">
       <Star size={12} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
-      <Text className="text-xs font-medium text-dark ml-0.5">
+      <Text style={{ color: BRAND.colors.textPrimary, fontSize: 12, fontWeight: "500", marginLeft: 2 }}>
         {rating.toFixed(1)}
       </Text>
     </View>
@@ -58,10 +61,11 @@ export default function HomeownerDashboard() {
     fetchJobs().then(setJobs);
   }, []);
 
-  const myJobs = jobs.slice(0, 3);
-  const recentBids = mockBids.filter((b) =>
-    myJobs.some((j) => j.id === b.jobId)
+  const activeJobs = jobs.filter(
+    (j) => j.status === "in_progress" || j.status === "awarded"
   );
+  const recentBids = mockBids.filter((b) => b.status === "pending").slice(0, 4);
+  const activeProjects = mockProjects.filter((p) => p.status === "active");
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -72,146 +76,275 @@ export default function HomeownerDashboard() {
   return (
     <SafeAreaView className="flex-1 bg-surface">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        {/* Date Header */}
         <View className="px-5 pt-4 pb-2">
-          <Text className="text-2xl font-bold text-dark">
-            Welcome, {firstName}
+          <Text style={{ fontSize: 28, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+            {today}
           </Text>
-          <Text className="text-text-secondary mt-1">{today}</Text>
         </View>
 
-        {/* Post a Job CTA */}
-        <View className="px-5 mt-3">
-          <TouchableOpacity
-            className="bg-brand-600 rounded-2xl p-5 flex-row items-center"
-            activeOpacity={0.8}
-            onPress={() => router.push("/(homeowner)/post-job" as any)}
-          >
-            <View className="w-12 h-12 rounded-full bg-white/20 items-center justify-center mr-4">
-              <Plus size={24} color="white" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-white text-lg font-bold">
-                Post a New Job
+        {/* Active Jobs Section */}
+        {activeJobs.length > 0 && (
+          <View className="px-5 mt-4">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text style={{ fontSize: 18, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+                Active Jobs
               </Text>
-              <Text className="text-white/80 text-sm mt-0.5">
-                Get bids from verified contractors
-              </Text>
+              <TouchableOpacity
+                onPress={() => router.push("/(homeowner)/(jobs)" as any)}
+                activeOpacity={0.7}
+                className="flex-row items-center"
+              >
+                <Text style={{ fontSize: 14, fontWeight: "600", color: BRAND.colors.primary }}>
+                  View All
+                </Text>
+                <ChevronRight size={16} color={BRAND.colors.primary} />
+              </TouchableOpacity>
             </View>
-            <ChevronRight size={20} color="white" />
-          </TouchableOpacity>
-        </View>
+            {activeJobs.map((job) => {
+              const badge = STATUS_BADGE[job.status] || STATUS_BADGE.open;
+              return (
+                <TouchableOpacity
+                  key={job.id}
+                  style={styles.card}
+                  activeOpacity={0.7}
+                  onPress={() => router.push("/(homeowner)/(jobs)" as any)}
+                >
+                  <View className="flex-row items-start justify-between mb-2">
+                    <Text
+                      style={{ fontSize: 16, fontWeight: "600", color: BRAND.colors.textPrimary, flex: 1, marginRight: 8 }}
+                      numberOfLines={1}
+                    >
+                      {job.title}
+                    </Text>
+                    <Badge label={badge.label} variant={badge.variant} square />
+                  </View>
+                  <Text style={{ fontSize: 13, color: BRAND.colors.textMuted, marginBottom: 4 }}>
+                    {job.category}
+                  </Text>
+                  <View className="flex-row items-center justify-between">
+                    <Text style={{ fontSize: 14, fontWeight: "600", color: BRAND.colors.textPrimary }}>
+                      {formatCurrency(job.budget.min)} - {formatCurrency(job.budget.max)}
+                    </Text>
+                    <View className="flex-row items-center">
+                      <MapPin size={12} color={BRAND.colors.textMuted} />
+                      <Text style={{ fontSize: 12, color: BRAND.colors.textMuted, marginLeft: 4 }}>
+                        {job.location}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
-        {/* Stat Cards */}
+        {/* Stats Row */}
         <View className="flex-row px-5 mt-5 gap-3">
-          <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-            <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mb-2">
-              <Briefcase size={18} color="#2563EB" />
-            </View>
-            <Text className="text-2xl font-bold text-dark">
-              {homeownerStats.activeJobs}
-            </Text>
-            <Text className="text-text-secondary text-xs mt-0.5">
-              Active Jobs
-            </Text>
-          </View>
-          <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-            <View className="w-10 h-10 rounded-full bg-brand-100 items-center justify-center mb-2">
-              <MessageSquare size={18} color={BRAND.colors.primary} />
-            </View>
-            <Text className="text-2xl font-bold text-dark">
-              {homeownerStats.pendingBids}
-            </Text>
-            <Text className="text-text-secondary text-xs mt-0.5">
-              Incoming Bids
-            </Text>
-          </View>
-          <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-            <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center mb-2">
-              <CheckCircle size={18} color="#16A34A" />
-            </View>
-            <Text className="text-2xl font-bold text-dark">
-              {homeownerStats.projectsCompleted}
-            </Text>
-            <Text className="text-text-secondary text-xs mt-0.5">
-              Completed
-            </Text>
-          </View>
+          {[
+            { icon: DollarSign, label: "TOTAL SPENT", value: formatCurrency(homeownerStats.totalSpent), color: "#16A34A", bg: "#F0FDF4" },
+            { icon: Briefcase, label: "ACTIVE PROJECTS", value: String(homeownerStats.activeJobs), color: "#2563EB", bg: "#EFF6FF" },
+            { icon: ClipboardList, label: "BIDS RECEIVED", value: String(homeownerStats.pendingBids), color: BRAND.colors.primary, bg: "#FDF2F3" },
+          ].map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <View key={stat.label} style={styles.statCard}>
+                <View style={[styles.statIcon, { backgroundColor: stat.bg }]}>
+                  <Icon size={18} color={stat.color} />
+                </View>
+                <Text style={styles.statLabel}>{stat.label}</Text>
+                <Text style={styles.statValue}>{stat.value}</Text>
+              </View>
+            );
+          })}
         </View>
 
-        {/* Your Active Jobs */}
+        {/* Recent Bids Section */}
         <View className="px-5 mt-6">
-          <Text className="text-lg font-bold text-dark mb-3">
-            Your Active Jobs
-          </Text>
-          {myJobs.map((job) => (
-            <View
-              key={job.id}
-              className="bg-white rounded-2xl p-4 mb-3"
-            >
-              <View className="flex-row items-start justify-between mb-2">
-                <Text className="text-base font-semibold text-dark flex-1 mr-2">
-                  {job.title}
-                </Text>
-                <StatusBadge status={job.status} />
-              </View>
-              <Text className="text-text-secondary text-sm mb-3">
-                {job.category}
-              </Text>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-dark font-medium text-sm">
-                  {formatCurrency(job.budget.min)} - {formatCurrency(job.budget.max)}
-                </Text>
-                <Text className="text-text-secondary text-sm">
-                  {job.bidCount} {job.bidCount === 1 ? "bid" : "bids"}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* Recent Bids */}
-        <View className="px-5 mt-4 mb-8">
-          <Text className="text-lg font-bold text-dark mb-3">
+          <Text style={{ fontSize: 18, fontWeight: "700", color: BRAND.colors.textPrimary, marginBottom: 12 }}>
             Recent Bids
           </Text>
           {recentBids.length === 0 ? (
-            <View className="bg-white rounded-2xl p-5 items-center">
-              <Text className="text-text-secondary">
+            <View style={styles.card}>
+              <Text style={{ color: BRAND.colors.textMuted, textAlign: "center" }}>
                 No bids yet. Post a job to get started.
               </Text>
             </View>
           ) : (
             recentBids.map((bid) => (
-              <View
-                key={bid.id}
-                className="bg-white rounded-2xl p-4 mb-3"
-              >
+              <View key={bid.id} style={styles.card}>
                 <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-base font-semibold text-dark">
+                  <Text style={{ fontSize: 15, fontWeight: "600", color: BRAND.colors.textPrimary }}>
                     {bid.contractor.name}
                   </Text>
-                  <Text className="text-brand-600 font-bold text-base">
+                  <Text style={{ fontSize: 15, fontWeight: "700", color: BRAND.colors.primary }}>
                     {formatCurrency(bid.amount)}
                   </Text>
                 </View>
                 <View className="flex-row items-center mb-2">
                   <RatingStars rating={bid.contractor.rating} />
-                  <Text className="text-text-muted text-xs ml-2">
-                    {bid.contractor.jobsCompleted} jobs completed
+                  <Text style={{ fontSize: 12, color: BRAND.colors.textMuted, marginLeft: 8 }}>
+                    {bid.contractor.jobsCompleted} jobs
+                  </Text>
+                </View>
+                <View className="flex-row items-center mb-2">
+                  <Clock size={12} color={BRAND.colors.textSecondary} />
+                  <Text style={{ fontSize: 13, color: BRAND.colors.textSecondary, marginLeft: 4 }}>
+                    {bid.timeline}
                   </Text>
                 </View>
                 <Text
-                  className="text-text-secondary text-sm"
+                  style={{ fontSize: 13, color: BRAND.colors.textSecondary }}
                   numberOfLines={2}
                 >
                   {bid.message}
                 </Text>
+                {bid.status === "pending" && (
+                  <View className="flex-row gap-2 mt-3">
+                    <TouchableOpacity
+                      style={styles.acceptBtn}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "600" }}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.declineBtn}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={{ color: BRAND.colors.textPrimary, fontSize: 14, fontWeight: "500" }}>Decline</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             ))
           )}
         </View>
+
+        {/* My Projects Section */}
+        {activeProjects.length > 0 && (
+          <View className="px-5 mt-6">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text style={{ fontSize: 18, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+                My Projects
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push("/(homeowner)/projects" as any)}
+                activeOpacity={0.7}
+                className="flex-row items-center"
+              >
+                <Text style={{ fontSize: 14, fontWeight: "600", color: BRAND.colors.primary }}>
+                  View All
+                </Text>
+                <ChevronRight size={16} color={BRAND.colors.primary} />
+              </TouchableOpacity>
+            </View>
+            {activeProjects.slice(0, 2).map((project) => {
+              const progress = project.budget > 0 ? (project.spent / project.budget) * 100 : 0;
+              return (
+                <TouchableOpacity
+                  key={project.id}
+                  style={styles.card}
+                  activeOpacity={0.7}
+                  onPress={() => router.push("/(homeowner)/projects" as any)}
+                >
+                  <View className="flex-row items-start justify-between mb-1">
+                    <Text style={{ fontSize: 15, fontWeight: "600", color: BRAND.colors.textPrimary, flex: 1 }}>
+                      {project.name}
+                    </Text>
+                    <Badge label="Active" variant="success" square />
+                  </View>
+                  <Text style={{ fontSize: 13, color: BRAND.colors.textMuted, marginBottom: 8 }}>
+                    {project.contractorName}
+                  </Text>
+                  <View className="flex-row items-center justify-between mb-1.5">
+                    <Text style={{ fontSize: 13, color: BRAND.colors.textSecondary }}>
+                      {formatCurrency(project.spent)} of {formatCurrency(project.budget)}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: BRAND.colors.textMuted }}>
+                      {Math.round(progress)}%
+                    </Text>
+                  </View>
+                  <View style={styles.progressTrack}>
+                    <View
+                      style={[styles.progressFill, { width: `${Math.min(progress, 100)}%` }]}
+                    />
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Bottom Spacer */}
+        <View style={{ height: 90 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    padding: 16,
+    marginBottom: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    padding: 14,
+    alignItems: "center",
+  },
+  statIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: BRAND.colors.textMuted,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: BRAND.colors.textPrimary,
+  },
+  acceptBtn: {
+    flex: 1,
+    backgroundColor: BRAND.colors.primary,
+    borderRadius: 0,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  declineBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 0,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: BRAND.colors.primary,
+    borderRadius: 0,
+  },
+});

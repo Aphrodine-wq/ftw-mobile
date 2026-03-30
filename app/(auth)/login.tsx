@@ -19,14 +19,19 @@ export default function LoginScreen() {
   const { login, isLoading } = useAuthStore();
   const router = useRouter();
 
-  const demoAs = (role: "contractor" | "homeowner") => {
-    // Set fake auth state for demo
+  const demoAs = (role: "contractor" | "homeowner" | "subcontractor") => {
+    const demoUsers = {
+      contractor: { name: "Marcus Johnson", email: "marcus@johnsonsons.com" },
+      homeowner: { name: "Michael Brown", email: "michael@brown.com" },
+      subcontractor: { name: "Jake Wilson", email: "jake@wilsonelectric.com" },
+    };
+    const demoUser = demoUsers[role];
     useAuthStore.setState({
       token: "demo-token",
       user: {
         id: "demo-1",
-        email: role === "contractor" ? "marcus@johnsonsons.com" : "michael@brown.com",
-        name: role === "contractor" ? "Marcus Johnson" : "Michael Brown",
+        email: demoUser.email,
+        name: demoUser.name,
         role,
       },
       isAuthenticated: true,
@@ -34,6 +39,8 @@ export default function LoginScreen() {
     });
     if (role === "homeowner") {
       router.replace("/(homeowner)/(dashboard)" as any);
+    } else if (role === "subcontractor") {
+      router.replace("/(subcontractor)/(dashboard)" as any);
     } else {
       router.replace("/(contractor)/(dashboard)" as any);
     }
@@ -163,12 +170,23 @@ export default function LoginScreen() {
 
             <TouchableOpacity
               onPress={() => demoAs("homeowner")}
-              className="border-2 border-dark py-3 items-center"
+              className="border-2 border-dark py-3 items-center mb-3"
               style={{ borderRadius: 0 }}
               activeOpacity={0.8}
             >
               <Text className="text-dark font-bold text-base">
                 Demo as Homeowner
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => demoAs("subcontractor")}
+              className="border-2 border-dark py-3 items-center"
+              style={{ borderRadius: 0 }}
+              activeOpacity={0.8}
+            >
+              <Text className="text-dark font-bold text-base">
+                Demo as Subcontractor
               </Text>
             </TouchableOpacity>
           </View>
@@ -182,6 +200,17 @@ export default function LoginScreen() {
           <Link href="/(auth)/signup" asChild>
             <TouchableOpacity>
               <Text className="text-brand-600 font-bold">Sign Up</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+
+        {/* Welcome link */}
+        <View className="items-center mt-3 mb-6">
+          <Link href="/(auth)/welcome" asChild>
+            <TouchableOpacity>
+              <Text className="text-text-muted text-sm">
+                First time? See what FairTradeWorker is about
+              </Text>
             </TouchableOpacity>
           </Link>
         </View>

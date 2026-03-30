@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -19,7 +20,6 @@ import {
   MapPin,
   DollarSign,
   Clock,
-  Camera,
   ImagePlus,
   X,
   Crosshair,
@@ -55,7 +55,6 @@ export default function PostJobScreen() {
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [detectingLocation, setDetectingLocation] = useState(false);
 
-  // Auto-detect location on mount
   useEffect(() => {
     (async () => {
       const loc = await getCurrentLocation();
@@ -105,7 +104,6 @@ export default function PostJobScreen() {
     setSubmitting(true);
     setError("");
     try {
-      // If user typed a location but we don't have coordinates, try geocoding
       let finalCoords = coords;
       if (!finalCoords && location) {
         finalCoords = await geocodeAddress(location);
@@ -122,7 +120,6 @@ export default function PostJobScreen() {
         longitude: finalCoords?.longitude,
       });
 
-      // Fire-and-forget photo uploads after job is created
       if (photos.length > 0 && job?.id) {
         photos.forEach((uri) => {
           uploadImage(uri, "job", job.id).catch(() => {});
@@ -143,46 +140,54 @@ export default function PostJobScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="flex-row items-center px-5 py-3 bg-white border-b border-border">
+        <View style={s.header}>
           <TouchableOpacity
-            onPress={() => (step === 1 ? router.back() : setStep((s) => (s - 1) as Step))}
+            onPress={() => (step === 1 ? router.back() : setStep((st) => (st - 1) as Step))}
             activeOpacity={0.7}
           >
             <ArrowLeft size={22} color={BRAND.colors.dark} />
           </TouchableOpacity>
-          <Text className="text-lg font-bold text-dark ml-3 flex-1">Post a Job</Text>
-          <Text className="text-sm text-text-muted">Step {step}/3</Text>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: BRAND.colors.textPrimary, marginLeft: 12, flex: 1 }}>
+            Post a Job
+          </Text>
+          <Text style={{ fontSize: 13, color: BRAND.colors.textMuted }}>
+            Step {step}/3
+          </Text>
         </View>
 
         {/* Progress bar */}
-        <View className="h-1 bg-gray-200 mx-5 mt-3 rounded-full overflow-hidden">
+        <View style={s.progressTrack}>
           <View
-            className="h-full bg-brand-600 rounded-full"
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={[s.progressFill, { width: `${(step / 3) * 100}%` }]}
           />
         </View>
 
         <ScrollView className="flex-1 px-5 pt-5" showsVerticalScrollIndicator={false}>
           {step === 1 && (
             <View>
-              <Text className="text-xl font-bold text-dark mb-2">What type of work?</Text>
-              <Text className="text-text-secondary mb-5">Select the category that best matches your project.</Text>
+              <Text style={{ fontSize: 20, fontWeight: "700", color: BRAND.colors.textPrimary, marginBottom: 8 }}>
+                What type of work?
+              </Text>
+              <Text style={{ fontSize: 14, color: BRAND.colors.textSecondary, marginBottom: 20 }}>
+                Select the category that best matches your project.
+              </Text>
               <View className="flex-row flex-wrap gap-2">
                 {JOB_CATEGORIES.map((cat) => (
                   <TouchableOpacity
                     key={cat}
                     onPress={() => setCategory(cat)}
-                    className={`px-4 py-2.5 rounded-xl border ${
-                      category === cat
-                        ? "bg-dark border-dark"
-                        : "bg-white border-border"
-                    }`}
+                    style={[
+                      s.chip,
+                      category === cat ? s.chipActive : s.chipInactive,
+                    ]}
                     activeOpacity={0.7}
                   >
                     <Text
-                      className={`text-sm font-medium ${
-                        category === cat ? "text-white" : "text-dark"
-                      }`}
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: category === cat ? "#FFFFFF" : BRAND.colors.textPrimary,
+                      }}
                     >
                       {cat}
                     </Text>
@@ -194,19 +199,23 @@ export default function PostJobScreen() {
 
           {step === 2 && (
             <View>
-              <Text className="text-xl font-bold text-dark mb-2">Describe the work</Text>
-              <Text className="text-text-secondary mb-5">Be specific — better descriptions get better bids.</Text>
+              <Text style={{ fontSize: 20, fontWeight: "700", color: BRAND.colors.textPrimary, marginBottom: 8 }}>
+                Describe the work
+              </Text>
+              <Text style={{ fontSize: 14, color: BRAND.colors.textSecondary, marginBottom: 20 }}>
+                Be specific -- better descriptions get better bids.
+              </Text>
 
-              <Text className="text-sm font-medium text-dark mb-1.5">Project Title</Text>
+              <Text style={s.fieldLabel}>Project Title</Text>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
                 placeholder={`${category} Project`}
                 placeholderTextColor={BRAND.colors.textMuted}
-                className="bg-white border border-border rounded-xl px-4 py-3 text-dark mb-4"
+                style={s.input}
               />
 
-              <Text className="text-sm font-medium text-dark mb-1.5">Description</Text>
+              <Text style={s.fieldLabel}>Description</Text>
               <TextInput
                 value={description}
                 onChangeText={setDescription}
@@ -215,28 +224,27 @@ export default function PostJobScreen() {
                 multiline
                 numberOfLines={5}
                 textAlignVertical="top"
-                className="bg-white border border-border rounded-xl px-4 py-3 text-dark mb-4 min-h-[120px]"
+                style={[s.input, { minHeight: 120 }]}
               />
 
-              <Text className="text-sm font-medium text-dark mb-1.5">Location</Text>
-              <View className="flex-row items-center bg-white border border-border rounded-xl px-4 py-3">
+              <Text style={s.fieldLabel}>Location</Text>
+              <View style={s.locationRow}>
                 <MapPin size={16} color={BRAND.colors.textMuted} />
                 <TextInput
                   value={location}
                   onChangeText={(text) => {
                     setLocation(text);
-                    // Clear coords when user manually edits — will re-geocode on submit
                     setCoords(null);
                   }}
                   placeholder="City, TX"
                   placeholderTextColor={BRAND.colors.textMuted}
-                  className="flex-1 ml-2 text-dark"
+                  style={{ flex: 1, marginLeft: 8, color: BRAND.colors.textPrimary, fontSize: 14 }}
                 />
                 <TouchableOpacity
                   onPress={handleDetectLocation}
                   disabled={detectingLocation}
                   activeOpacity={0.7}
-                  className="ml-2"
+                  style={{ marginLeft: 8 }}
                 >
                   {detectingLocation ? (
                     <ActivityIndicator size="small" color={BRAND.colors.primary} />
@@ -247,7 +255,7 @@ export default function PostJobScreen() {
               </View>
 
               {/* Photos */}
-              <Text className="text-sm font-medium text-dark mb-1.5 mt-4">
+              <Text style={[s.fieldLabel, { marginTop: 16 }]}>
                 Photos (optional, max 10)
               </Text>
               <ScrollView
@@ -257,11 +265,11 @@ export default function PostJobScreen() {
                 contentContainerStyle={{ gap: 8 }}
               >
                 {photos.map((uri, i) => (
-                  <View key={uri} className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 border border-border">
-                    <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
+                  <View key={uri} style={s.photoContainer}>
+                    <Image source={{ uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                     <TouchableOpacity
                       onPress={() => handleRemovePhoto(i)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-dark/60 items-center justify-center"
+                      style={s.photoRemoveBtn}
                       activeOpacity={0.7}
                     >
                       <X size={12} color="#fff" />
@@ -271,11 +279,11 @@ export default function PostJobScreen() {
                 {photos.length < 10 && (
                   <TouchableOpacity
                     onPress={handleAddPhoto}
-                    className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 items-center justify-center"
+                    style={s.photoAddBtn}
                     activeOpacity={0.7}
                   >
                     <ImagePlus size={20} color={BRAND.colors.textMuted} />
-                    <Text className="text-[10px] text-text-muted mt-0.5">Add</Text>
+                    <Text style={{ fontSize: 10, color: BRAND.colors.textMuted, marginTop: 2 }}>Add</Text>
                   </TouchableOpacity>
                 )}
               </ScrollView>
@@ -284,28 +292,36 @@ export default function PostJobScreen() {
 
           {step === 3 && (
             <View>
-              <Text className="text-xl font-bold text-dark mb-2">Budget and timeline</Text>
-              <Text className="text-text-secondary mb-5">Help contractors give you accurate bids.</Text>
-
-              <Text className="text-sm font-medium text-dark mb-2">
-                <DollarSign size={14} color={BRAND.colors.dark} /> Budget Range
+              <Text style={{ fontSize: 20, fontWeight: "700", color: BRAND.colors.textPrimary, marginBottom: 8 }}>
+                Budget and timeline
               </Text>
+              <Text style={{ fontSize: 14, color: BRAND.colors.textSecondary, marginBottom: 20 }}>
+                Help contractors give you accurate bids.
+              </Text>
+
+              <View className="flex-row items-center mb-2">
+                <DollarSign size={14} color={BRAND.colors.dark} />
+                <Text style={{ fontSize: 14, fontWeight: "500", color: BRAND.colors.textPrimary, marginLeft: 4 }}>
+                  Budget Range
+                </Text>
+              </View>
               <View className="flex-row flex-wrap gap-2 mb-6">
                 {BUDGET_RANGES.map((range) => (
                   <TouchableOpacity
                     key={range.label}
                     onPress={() => setBudgetRange(range)}
-                    className={`px-4 py-2.5 rounded-xl border ${
-                      budgetRange?.label === range.label
-                        ? "bg-dark border-dark"
-                        : "bg-white border-border"
-                    }`}
+                    style={[
+                      s.chip,
+                      budgetRange?.label === range.label ? s.chipActive : s.chipInactive,
+                    ]}
                     activeOpacity={0.7}
                   >
                     <Text
-                      className={`text-sm font-medium ${
-                        budgetRange?.label === range.label ? "text-white" : "text-dark"
-                      }`}
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: budgetRange?.label === range.label ? "#FFFFFF" : BRAND.colors.textPrimary,
+                      }}
                     >
                       {range.label}
                     </Text>
@@ -313,25 +329,29 @@ export default function PostJobScreen() {
                 ))}
               </View>
 
-              <Text className="text-sm font-medium text-dark mb-2">
-                <Clock size={14} color={BRAND.colors.dark} /> Timeline
-              </Text>
+              <View className="flex-row items-center mb-2">
+                <Clock size={14} color={BRAND.colors.dark} />
+                <Text style={{ fontSize: 14, fontWeight: "500", color: BRAND.colors.textPrimary, marginLeft: 4 }}>
+                  Timeline
+                </Text>
+              </View>
               <View className="flex-row flex-wrap gap-2 mb-6">
                 {TIMELINES.map((t) => (
                   <TouchableOpacity
                     key={t}
                     onPress={() => setTimeline(t)}
-                    className={`px-4 py-2.5 rounded-xl border ${
-                      timeline === t
-                        ? "bg-dark border-dark"
-                        : "bg-white border-border"
-                    }`}
+                    style={[
+                      s.chip,
+                      timeline === t ? s.chipActive : s.chipInactive,
+                    ]}
                     activeOpacity={0.7}
                   >
                     <Text
-                      className={`text-sm font-medium ${
-                        timeline === t ? "text-white" : "text-dark"
-                      }`}
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: timeline === t ? "#FFFFFF" : BRAND.colors.textPrimary,
+                      }}
                     >
                       {t}
                     </Text>
@@ -340,8 +360,8 @@ export default function PostJobScreen() {
               </View>
 
               {error ? (
-                <View className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
-                  <Text className="text-red-700 text-sm">{error}</Text>
+                <View style={s.errorBox}>
+                  <Text style={{ color: "#B91C1C", fontSize: 13 }}>{error}</Text>
                 </View>
               ) : null}
             </View>
@@ -349,34 +369,37 @@ export default function PostJobScreen() {
         </ScrollView>
 
         {/* Bottom action */}
-        <View className="px-5 py-4 bg-white border-t border-border">
+        <View style={s.bottomBar}>
           {step < 3 ? (
             <TouchableOpacity
-              onPress={() => setStep((s) => (s + 1) as Step)}
+              onPress={() => setStep((st) => (st + 1) as Step)}
               disabled={!canAdvance()}
-              className={`flex-row items-center justify-center py-3.5 rounded-xl ${
-                canAdvance() ? "bg-brand-600" : "bg-gray-200"
-              }`}
+              style={[
+                s.primaryBtn,
+                { backgroundColor: canAdvance() ? BRAND.colors.primary : "#E5E7EB" },
+              ]}
               activeOpacity={0.7}
             >
-              <Text className={`text-base font-semibold mr-2 ${canAdvance() ? "text-white" : "text-gray-400"}`}>
+              <Text style={{ fontSize: 15, fontWeight: "600", marginRight: 8, color: canAdvance() ? "#FFFFFF" : "#9CA3AF" }}>
                 Continue
               </Text>
-              <ArrowRight size={18} color={canAdvance() ? "#fff" : "#9CA3AF"} />
+              <ArrowRight size={18} color={canAdvance() ? "#FFFFFF" : "#9CA3AF"} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={submitting}
-              className="flex-row items-center justify-center py-3.5 rounded-xl bg-brand-600"
+              style={[s.primaryBtn, { backgroundColor: BRAND.colors.primary }]}
               activeOpacity={0.7}
             >
               {submitting ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <>
-                  <Check size={18} color="#fff" />
-                  <Text className="text-white text-base font-semibold ml-2">Post Job</Text>
+                  <Check size={18} color="#FFFFFF" />
+                  <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "600", marginLeft: 8 }}>
+                    Post Job
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -386,3 +409,121 @@ export default function PostJobScreen() {
     </SafeAreaView>
   );
 }
+
+const s = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: BRAND.colors.border,
+  },
+  progressTrack: {
+    height: 4,
+    backgroundColor: "#E5E7EB",
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderRadius: 0,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: BRAND.colors.primary,
+    borderRadius: 0,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: BRAND.colors.textPrimary,
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: BRAND.colors.textPrimary,
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 0,
+  },
+  chipActive: {
+    backgroundColor: BRAND.colors.dark,
+  },
+  chipInactive: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+  },
+  photoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 0,
+    overflow: "hidden",
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+  },
+  photoRemoveBtn: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  photoAddBtn: {
+    width: 80,
+    height: 80,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: BRAND.colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  errorBox: {
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    borderRadius: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  bottomBar: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: BRAND.colors.border,
+  },
+  primaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 0,
+  },
+});

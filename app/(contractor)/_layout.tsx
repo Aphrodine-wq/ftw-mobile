@@ -1,4 +1,4 @@
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, usePathname } from "expo-router";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageCircle, Bell } from "lucide-react-native";
@@ -8,14 +8,20 @@ import { BRAND } from "@src/lib/constants";
 const UNREAD_MESSAGES = 3;
 const UNREAD_NOTIFICATIONS = 5;
 
+// Screens where floating buttons should hide (they have their own headers)
+const HIDE_FLOATING_ON = ["/estimates", "/milestones", "/projects/", "/settings", "/clients", "/invoices", "/records", "/reviews", "/notifications", "/messages", "/ai-agent", "/pro"];
+
 export default function ContractorLayout() {
   const router = useRouter();
+  const pathname = usePathname();
   const insets = useSafeAreaInsets();
+
+  const showFloating = !HIDE_FLOATING_ON.some((p) => pathname.includes(p));
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Top floating buttons */}
-      <View style={[styles.topBar, { top: insets.top }]}>
+      {/* Top floating buttons — hidden on screens with their own headers */}
+      {showFloating && <View style={[styles.topBar, { top: insets.top }]}>
         <TouchableOpacity
           style={styles.topButton}
           onPress={() => router.push("/(contractor)/(messages)" as any)}
@@ -40,7 +46,7 @@ export default function ContractorLayout() {
             </View>
           )}
         </TouchableOpacity>
-      </View>
+      </View>}
 
       <Stack
         screenOptions={{
@@ -60,6 +66,9 @@ export default function ContractorLayout() {
         <Stack.Screen name="notifications" />
         <Stack.Screen name="records" />
         <Stack.Screen name="reviews" />
+        <Stack.Screen name="milestones" />
+        <Stack.Screen name="ai-agent" />
+        <Stack.Screen name="pro" />
       </Stack>
       <CustomTabBar />
     </View>
@@ -69,20 +78,17 @@ export default function ContractorLayout() {
 const styles = StyleSheet.create({
   topBar: {
     position: "absolute",
-    right: 12,
+    right: 16,
     zIndex: 100,
     flexDirection: "row",
-    gap: 6,
+    gap: 8,
   },
   topButton: {
     width: 38,
     height: 38,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: BRAND.colors.border,
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 0,
   },
   badge: {
     position: "absolute",

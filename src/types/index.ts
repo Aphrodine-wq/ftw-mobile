@@ -57,7 +57,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: "homeowner" | "contractor";
+  role: "homeowner" | "contractor" | "subcontractor";
 }
 
 export interface FairRecord {
@@ -103,9 +103,45 @@ export interface Review {
   date: string;
 }
 
+export interface ProjectMilestone {
+  id: string;
+  title: string;
+  amount: number;
+  status: "pending" | "in_progress" | "completed" | "paid";
+  dueDate: string;
+  completedDate?: string;
+}
+
+export interface ProjectTask {
+  id: string;
+  title: string;
+  status: "todo" | "in_progress" | "done";
+  assignee?: string;
+  dueDate?: string;
+}
+
+export interface ProjectDocument {
+  id: string;
+  name: string;
+  type: "contract" | "permit" | "photo" | "invoice" | "change_order" | "inspection";
+  date: string;
+  size?: string;
+}
+
+export interface ProjectActivity {
+  id: string;
+  type: "milestone" | "payment" | "message" | "document" | "status" | "task";
+  description: string;
+  date: string;
+  actor: string;
+}
+
 export interface Project {
   id: string;
   name: string;
+  description: string;
+  category: string;
+  thumbnail: string;
   status: "planning" | "active" | "completed" | "cancelled";
   budget: number;
   spent: number;
@@ -113,6 +149,11 @@ export interface Project {
   endDate: string | null;
   contractorName: string;
   homeownerName: string;
+  address: string;
+  milestones: ProjectMilestone[];
+  tasks: ProjectTask[];
+  documents: ProjectDocument[];
+  activity: ProjectActivity[];
 }
 
 export interface Invoice {

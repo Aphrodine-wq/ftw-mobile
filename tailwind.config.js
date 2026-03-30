@@ -9,6 +9,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        gray: {
+          50: "#F0EEEB",
+          100: "#E2DFDB",
+          200: "#C8C3BC",
+          300: "#A8A29E",
+          400: "#87807A",
+          500: "#6B6560",
+          600: "#524D49",
+          700: "#3D3935",
+          800: "#292624",
+          900: "#1A1816",
+        },
         brand: {
           50: "#FDF2F3",
           100: "#FCE4E6",
@@ -23,12 +35,12 @@ module.exports = {
           950: "#410812",
         },
         dark: "#0F1419",
-        surface: "#FDFBF8",
+        surface: "#F5F3F0",
         card: "#FFFFFF",
         "text-primary": "#111318",
-        "text-secondary": "#4B5563",
-        "text-muted": "#9CA3AF",
-        border: "#E5E1DB",
+        "text-secondary": "#2D3239",
+        "text-muted": "#5C6370",
+        border: "#C8C3BC",
       },
       fontFamily: {
         sans: ["System"],

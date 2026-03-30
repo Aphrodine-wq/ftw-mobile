@@ -30,6 +30,8 @@ function AuthGate() {
       if (data?.type === "bid_received" || data?.type === "bid_accepted") {
         if (user?.role === "homeowner") {
           router.push("/(homeowner)/notifications" as any);
+        } else if (user?.role === "subcontractor") {
+          router.push("/(subcontractor)/(dashboard)" as any);
         } else {
           router.push("/(contractor)/notifications" as any);
         }

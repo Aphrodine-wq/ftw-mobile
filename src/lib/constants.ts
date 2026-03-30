@@ -7,12 +7,12 @@ export const BRAND = {
     primary: "#C41E3A",
     primaryHover: "#A5182F",
     dark: "#0F1419",
-    bgSoft: "#FDFBF8",
+    bgSoft: "#F5F3F0",
     bgCard: "#FFFFFF",
     textPrimary: "#111318",
-    textSecondary: "#4B5563",
-    textMuted: "#9CA3AF",
-    border: "#E5E1DB",
+    textSecondary: "#2D3239",
+    textMuted: "#5C6370",
+    border: "#C8C3BC",
   },
 } as const;
 

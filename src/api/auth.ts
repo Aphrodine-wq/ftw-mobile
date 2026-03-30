@@ -15,7 +15,7 @@ export async function registerApi(attrs: {
   email: string;
   password: string;
   name: string;
-  role: "homeowner" | "contractor";
+  role: "homeowner" | "contractor" | "subcontractor";
   location?: string;
 }): Promise<AuthResponse> {
   return apiFetch("/api/auth/register", {

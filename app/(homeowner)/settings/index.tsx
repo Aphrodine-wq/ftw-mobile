@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   User,
@@ -6,6 +6,7 @@ import {
   MapPin,
   Home,
   Bell,
+  Palette,
   ChevronRight,
   ChevronLeft,
   LogOut,
@@ -64,6 +65,11 @@ const SECTIONS: SettingsSection[] = [
         icon: Bell,
         description: "Push, email, and SMS alerts",
       },
+      {
+        label: "Appearance",
+        icon: Palette,
+        description: "Theme and display settings",
+      },
     ],
   },
 ];
@@ -76,7 +82,7 @@ export default function HomeownerSettings() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: 90 }}
       >
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-2">
@@ -87,39 +93,38 @@ export default function HomeownerSettings() {
           >
             <ChevronLeft size={24} color={BRAND.colors.dark} />
           </TouchableOpacity>
-          <Text className="text-2xl font-bold text-dark">Settings</Text>
+          <Text style={{ fontSize: 24, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+            Settings
+          </Text>
         </View>
 
         {/* Sections */}
         {SECTIONS.map((section) => (
           <View key={section.title} className="mt-5">
-            <Text className="text-text-secondary text-sm font-semibold uppercase tracking-wide px-5 mb-2">
-              {section.title}
-            </Text>
-            <View className="bg-white rounded-2xl mx-5 overflow-hidden">
+            <Text style={s.sectionTitle}>{section.title}</Text>
+            <View style={s.sectionCard}>
               {section.items.map((item, i) => {
                 const IconComponent = item.icon;
                 return (
                   <TouchableOpacity
                     key={item.label}
-                    className={`flex-row items-center px-4 py-4 ${
-                      i < section.items.length - 1
-                        ? "border-b border-border"
-                        : ""
-                    }`}
+                    style={[
+                      s.menuItem,
+                      i < section.items.length - 1 && s.menuItemBorder,
+                    ]}
                     activeOpacity={0.7}
                   >
-                    <View className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center mr-3">
+                    <View style={s.iconBox}>
                       <IconComponent
                         size={18}
                         color={BRAND.colors.textSecondary}
                       />
                     </View>
-                    <View className="flex-1">
-                      <Text className="text-dark font-medium text-base">
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: BRAND.colors.textPrimary, fontWeight: "500", fontSize: 15 }}>
                         {item.label}
                       </Text>
-                      <Text className="text-text-muted text-sm mt-0.5">
+                      <Text style={{ color: BRAND.colors.textMuted, fontSize: 13, marginTop: 2 }}>
                         {item.description}
                       </Text>
                     </View>
@@ -132,16 +137,16 @@ export default function HomeownerSettings() {
         ))}
 
         {/* Sign Out */}
-        <View className="mx-5 mt-6">
+        <View style={{ marginHorizontal: 20, marginTop: 24 }}>
           <TouchableOpacity
             onPress={logout}
-            className="bg-white rounded-2xl flex-row items-center px-4 py-4"
+            style={s.logoutBtn}
             activeOpacity={0.7}
           >
-            <View className="w-9 h-9 rounded-xl bg-red-50 items-center justify-center mr-3">
+            <View style={[s.iconBox, { backgroundColor: "#FEF2F2" }]}>
               <LogOut size={18} color="#EF4444" />
             </View>
-            <Text className="text-red-500 font-medium text-base">
+            <Text style={{ color: "#EF4444", fontWeight: "500", fontSize: 15 }}>
               Sign Out
             </Text>
           </TouchableOpacity>
@@ -150,3 +155,52 @@ export default function HomeownerSettings() {
     </SafeAreaView>
   );
 }
+
+const s = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: BRAND.colors.textSecondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  sectionCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    marginHorizontal: 20,
+    overflow: "hidden",
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  menuItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: BRAND.colors.border,
+  },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 0,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  logoutBtn: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+});

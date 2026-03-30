@@ -36,5 +36,9 @@ export default function Index() {
     return <Redirect href="/(homeowner)/(dashboard)" />;
   }
 
+  if (user?.role === "subcontractor") {
+    return <Redirect href="/(subcontractor)/(dashboard)" />;
+  }
+
   return <Redirect href="/(contractor)/(dashboard)" />;
 }

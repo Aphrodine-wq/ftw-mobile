@@ -7,12 +7,14 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Send } from "lucide-react-native";
 import { mockConversations, mockMessages } from "@src/lib/mock-data";
 import type { MockConversation, MockMessage } from "@src/lib/mock-data";
 import { BRAND } from "@src/lib/constants";
+import { getInitials } from "@src/lib/utils";
 import { useRealtimeChat } from "@src/realtime/hooks";
 
 function ConversationRow({
@@ -24,34 +26,34 @@ function ConversationRow({
 }) {
   return (
     <TouchableOpacity
-      className="bg-white rounded-2xl p-4 mb-3 flex-row items-center"
+      style={s.conversationCard}
       activeOpacity={0.7}
       onPress={onPress}
     >
-      <View className="w-12 h-12 rounded-full bg-brand-600 items-center justify-center mr-3">
-        <Text className="text-white text-sm font-bold">
+      <View style={s.avatar}>
+        <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>
           {conversation.avatar}
         </Text>
       </View>
-      <View className="flex-1 mr-3">
+      <View style={{ flex: 1, marginRight: 12 }}>
         <View className="flex-row items-center justify-between mb-0.5">
-          <Text className="text-base font-semibold text-dark">
+          <Text style={{ fontSize: 15, fontWeight: "600", color: BRAND.colors.textPrimary }}>
             {conversation.name}
           </Text>
-          <Text className="text-text-muted text-xs">
+          <Text style={{ fontSize: 12, color: BRAND.colors.textMuted }}>
             {conversation.lastMessageTime}
           </Text>
         </View>
         <Text
-          className="text-text-secondary text-sm"
+          style={{ fontSize: 13, color: BRAND.colors.textSecondary }}
           numberOfLines={1}
         >
           {conversation.lastMessage}
         </Text>
       </View>
       {conversation.unread > 0 && (
-        <View className="w-5 h-5 rounded-full bg-brand-600 items-center justify-center">
-          <Text className="text-white text-xs font-bold">
+        <View style={s.unreadBadge}>
+          <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>
             {conversation.unread}
           </Text>
         </View>
@@ -64,23 +66,26 @@ function ChatBubble({ message }: { message: MockMessage }) {
   const isMe = message.sender === "me";
   return (
     <View
-      className={`mb-2.5 max-w-[80%] ${isMe ? "self-end" : "self-start"}`}
+      style={[
+        s.bubbleWrapper,
+        { alignSelf: isMe ? "flex-end" : "flex-start" },
+      ]}
     >
       <View
-        className={`rounded-2xl px-4 py-2.5 ${
-          isMe ? "bg-brand-600 rounded-br-sm" : "bg-white rounded-bl-sm"
-        }`}
+        style={[
+          s.bubble,
+          isMe ? s.bubbleMe : s.bubbleThem,
+        ]}
       >
-        <Text
-          className={`text-sm ${isMe ? "text-white" : "text-dark"}`}
-        >
+        <Text style={{ fontSize: 14, color: isMe ? "#FFFFFF" : BRAND.colors.textPrimary }}>
           {message.text}
         </Text>
       </View>
       <Text
-        className={`text-xs text-text-muted mt-0.5 ${
-          isMe ? "text-right" : "text-left"
-        }`}
+        style={[
+          s.bubbleTime,
+          { textAlign: isMe ? "right" : "left" },
+        ]}
       >
         {message.time}
       </Text>
@@ -133,20 +138,20 @@ function ChatView({
   return (
     <SafeAreaView className="flex-1 bg-surface">
       {/* Chat Header */}
-      <View className="flex-row items-center px-5 py-3 bg-white border-b border-border">
+      <View style={s.chatHeader}>
         <TouchableOpacity
           onPress={onBack}
           activeOpacity={0.7}
-          className="mr-3"
+          style={{ marginRight: 12 }}
         >
           <ArrowLeft size={24} color={BRAND.colors.dark} />
         </TouchableOpacity>
-        <View className="w-9 h-9 rounded-full bg-brand-600 items-center justify-center mr-3">
-          <Text className="text-white text-xs font-bold">
+        <View style={s.chatAvatar}>
+          <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>
             {conversation.avatar}
           </Text>
         </View>
-        <Text className="text-lg font-semibold text-dark">
+        <Text style={{ fontSize: 17, fontWeight: "600", color: BRAND.colors.textPrimary }}>
           {conversation.name}
         </Text>
       </View>
@@ -170,7 +175,7 @@ function ChatView({
           renderItem={({ item }) => <ChatBubble message={item} />}
           ListEmptyComponent={
             <View className="items-center py-12">
-              <Text className="text-text-muted text-sm">
+              <Text style={{ color: BRAND.colors.textMuted, fontSize: 14 }}>
                 No messages yet. Start the conversation.
               </Text>
             </View>
@@ -181,9 +186,9 @@ function ChatView({
         />
 
         {/* Input */}
-        <View className="flex-row items-center px-5 py-3 bg-white border-t border-border">
+        <View style={s.inputBar}>
           <TextInput
-            className="flex-1 bg-surface rounded-xl px-4 py-2.5 text-dark text-sm mr-2"
+            style={s.textInput}
             placeholder="Type a message..."
             placeholderTextColor={BRAND.colors.textMuted}
             value={text}
@@ -192,16 +197,14 @@ function ChatView({
             returnKeyType="send"
           />
           <TouchableOpacity
-            className={`w-10 h-10 rounded-full items-center justify-center ${
-              text.trim() ? "bg-brand-600" : "bg-gray-200"
-            }`}
+            style={[s.sendBtn, { backgroundColor: text.trim() ? BRAND.colors.primary : "#E5E7EB" }]}
             activeOpacity={0.7}
             onPress={handleSend}
             disabled={!text.trim()}
           >
             <Send
               size={18}
-              color={text.trim() ? "white" : BRAND.colors.textMuted}
+              color={text.trim() ? "#FFFFFF" : BRAND.colors.textMuted}
             />
           </TouchableOpacity>
         </View>
@@ -227,8 +230,10 @@ export default function HomeownerMessages() {
     <SafeAreaView className="flex-1 bg-surface">
       {/* Header */}
       <View className="px-5 pt-4">
-        <Text className="text-2xl font-bold text-dark">Messages</Text>
-        <Text className="text-text-secondary mt-1">
+        <Text style={{ fontSize: 24, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+          Messages
+        </Text>
+        <Text style={{ fontSize: 14, color: BRAND.colors.textSecondary, marginTop: 4 }}>
           Chat with your contractors
         </Text>
       </View>
@@ -240,7 +245,7 @@ export default function HomeownerMessages() {
         contentContainerStyle={{
           paddingHorizontal: 20,
           paddingTop: 16,
-          paddingBottom: 24,
+          paddingBottom: 90,
         }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
@@ -251,7 +256,7 @@ export default function HomeownerMessages() {
         )}
         ListEmptyComponent={
           <View className="items-center py-12">
-            <Text className="text-text-secondary text-base">
+            <Text style={{ color: BRAND.colors.textSecondary, fontSize: 15 }}>
               No conversations yet.
             </Text>
           </View>
@@ -260,3 +265,99 @@ export default function HomeownerMessages() {
     </SafeAreaView>
   );
 }
+
+const s = StyleSheet.create({
+  conversationCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 0,
+    backgroundColor: BRAND.colors.dark,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  unreadBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 0,
+    backgroundColor: BRAND.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bubbleWrapper: {
+    marginBottom: 10,
+    maxWidth: "80%",
+  },
+  bubble: {
+    borderRadius: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  bubbleMe: {
+    backgroundColor: BRAND.colors.primary,
+  },
+  bubbleThem: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+  },
+  bubbleTime: {
+    fontSize: 11,
+    color: BRAND.colors.textMuted,
+    marginTop: 2,
+  },
+  chatHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: BRAND.colors.border,
+  },
+  chatAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 0,
+    backgroundColor: BRAND.colors.dark,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  inputBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: BRAND.colors.border,
+  },
+  textInput: {
+    flex: 1,
+    backgroundColor: BRAND.colors.bgSoft,
+    borderRadius: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    color: BRAND.colors.textPrimary,
+    fontSize: 14,
+    marginRight: 8,
+  },
+  sendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

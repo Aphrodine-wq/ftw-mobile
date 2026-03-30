@@ -117,6 +117,7 @@ export default function ContractorSettings() {
                 return (
                   <TouchableOpacity
                     key={item.label}
+                    onPress={() => router.push(`/(contractor)/settings/${item.label.toLowerCase()}` as any)}
                     className={`flex-row items-center px-4 py-4 ${
                       i < section.items.length - 1
                         ? "border-b border-border"

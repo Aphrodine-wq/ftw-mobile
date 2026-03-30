@@ -5,37 +5,36 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Star, Clock, ChevronDown, ChevronUp } from "lucide-react-native";
+import {
+  Star,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  MapPin,
+} from "lucide-react-native";
 import { mockJobs, mockBids } from "@src/lib/mock-data";
 import type { MockJob, MockBid } from "@src/lib/mock-data";
 import { fetchJobs } from "@src/api/data";
-import { formatCurrency } from "@src/lib/utils";
+import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
+import { Badge } from "@src/components/ui/badge";
+import { router } from "expo-router";
 
 type Filter = "active" | "completed" | "all";
+type BadgeVariant = "default" | "success" | "warning" | "danger" | "neutral";
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  open: { bg: "bg-green-100", text: "text-green-700" },
-  bidding: { bg: "bg-blue-100", text: "text-blue-700" },
-  awarded: { bg: "bg-purple-100", text: "text-purple-700" },
-  in_progress: { bg: "bg-amber-100", text: "text-amber-700" },
-  completed: { bg: "bg-gray-100", text: "text-gray-600" },
-  cancelled: { bg: "bg-red-100", text: "text-red-700" },
+const STATUS_BADGE: Record<string, { label: string; variant: BadgeVariant }> = {
+  open: { label: "Open", variant: "success" },
+  bidding: { label: "Bidding", variant: "default" },
+  awarded: { label: "Awarded", variant: "warning" },
+  in_progress: { label: "In Progress", variant: "warning" },
+  completed: { label: "Completed", variant: "neutral" },
+  cancelled: { label: "Cancelled", variant: "danger" },
 };
-
-function StatusBadge({ status }: { status: string }) {
-  const colors = STATUS_COLORS[status] || STATUS_COLORS.open;
-  const label = status.replace("_", " ");
-  return (
-    <View className={`${colors.bg} rounded-full px-2.5 py-0.5`}>
-      <Text className={`${colors.text} text-xs font-semibold capitalize`}>
-        {label}
-      </Text>
-    </View>
-  );
-}
 
 function RatingStars({ rating }: { rating: number }) {
   const full = Math.floor(rating);
@@ -45,11 +44,11 @@ function RatingStars({ rating }: { rating: number }) {
         <Star
           key={i}
           size={12}
-          color={i < full ? BRAND.colors.primary : "#D1D5DB"}
+          color={i < full ? BRAND.colors.primary : BRAND.colors.border}
           fill={i < full ? BRAND.colors.primary : "transparent"}
         />
       ))}
-      <Text className="text-xs font-medium text-dark ml-1">
+      <Text style={{ fontSize: 12, fontWeight: "500", color: BRAND.colors.textPrimary, marginLeft: 4 }}>
         {rating.toFixed(1)}
       </Text>
     </View>
@@ -66,24 +65,24 @@ function BidRow({
   onDecline: () => void;
 }) {
   return (
-    <View className="bg-surface rounded-xl p-3 mb-2">
+    <View style={s.bidCard}>
       <View className="flex-row items-center justify-between mb-1.5">
-        <Text className="text-sm font-semibold text-dark">
+        <Text style={{ fontSize: 14, fontWeight: "600", color: BRAND.colors.textPrimary }}>
           {bid.contractor.name}
         </Text>
-        <Text className="text-brand-600 font-bold text-sm">
+        <Text style={{ fontSize: 14, fontWeight: "700", color: BRAND.colors.primary }}>
           {formatCurrency(bid.amount)}
         </Text>
       </View>
       <RatingStars rating={bid.contractor.rating} />
       <View className="flex-row items-center mt-1.5">
         <Clock size={12} color={BRAND.colors.textSecondary} />
-        <Text className="text-text-secondary text-xs ml-1">
+        <Text style={{ fontSize: 12, color: BRAND.colors.textSecondary, marginLeft: 4 }}>
           {bid.timeline}
         </Text>
       </View>
       <Text
-        className="text-text-secondary text-xs mt-1.5"
+        style={{ fontSize: 12, color: BRAND.colors.textSecondary, marginTop: 6 }}
         numberOfLines={2}
       >
         {bid.message}
@@ -91,18 +90,18 @@ function BidRow({
       {bid.status === "pending" && (
         <View className="flex-row gap-2 mt-3">
           <TouchableOpacity
-            className="flex-1 bg-brand-600 rounded-xl py-2.5 items-center"
+            style={s.acceptBtn}
             activeOpacity={0.8}
             onPress={onAccept}
           >
-            <Text className="text-white text-sm font-semibold">Accept</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "600" }}>Accept</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 border border-border rounded-xl py-2.5 items-center"
+            style={s.declineBtn}
             activeOpacity={0.7}
             onPress={onDecline}
           >
-            <Text className="text-dark text-sm font-medium">Decline</Text>
+            <Text style={{ color: BRAND.colors.textPrimary, fontSize: 13, fontWeight: "500" }}>Decline</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -115,6 +114,7 @@ function JobRow({ job }: { job: MockJob }) {
   const [bids, setBids] = useState<MockBid[]>(
     mockBids.filter((b) => b.jobId === job.id)
   );
+  const badge = STATUS_BADGE[job.status] || STATUS_BADGE.open;
 
   const handleAccept = (bid: MockBid) => {
     Alert.alert(
@@ -150,42 +150,59 @@ function JobRow({ job }: { job: MockJob }) {
   };
 
   return (
-    <View className="bg-white rounded-2xl mb-3 overflow-hidden">
+    <View style={s.jobCard}>
       <TouchableOpacity
-        className="p-4"
+        style={{ padding: 16 }}
         activeOpacity={0.7}
         onPress={() => setExpanded(!expanded)}
       >
         <View className="flex-row items-start justify-between mb-1.5">
-          <Text className="text-base font-semibold text-dark flex-1 mr-2">
+          <Text
+            style={{ fontSize: 16, fontWeight: "600", color: BRAND.colors.textPrimary, flex: 1, marginRight: 8 }}
+            numberOfLines={1}
+          >
             {job.title}
           </Text>
-          <StatusBadge status={job.status} />
+          <Badge label={badge.label} variant={badge.variant} square />
         </View>
-        <Text className="text-text-secondary text-sm mb-2">
-          {job.category}
-        </Text>
-        <View className="flex-row items-center justify-between">
-          <Text className="text-dark font-medium text-sm">
-            {formatCurrency(job.budget.min)} - {formatCurrency(job.budget.max)}
+
+        {/* Category tag */}
+        <View style={s.categoryTag}>
+          <Text style={{ fontSize: 11, fontWeight: "600", color: BRAND.colors.textSecondary }}>
+            {job.category}
           </Text>
-          <View className="flex-row items-center">
-            <Text className="text-text-secondary text-sm mr-1.5">
-              {job.bidCount} {job.bidCount === 1 ? "bid" : "bids"}
-            </Text>
-            {expanded ? (
-              <ChevronUp size={16} color={BRAND.colors.textSecondary} />
-            ) : (
-              <ChevronDown size={16} color={BRAND.colors.textSecondary} />
-            )}
-          </View>
+        </View>
+
+        {/* Budget */}
+        <Text style={{ fontSize: 15, fontWeight: "600", color: BRAND.colors.textPrimary, marginTop: 8 }}>
+          {formatCurrency(job.budget.min)} - {formatCurrency(job.budget.max)}
+        </Text>
+
+        {/* Location */}
+        <View className="flex-row items-center mt-2">
+          <MapPin size={13} color={BRAND.colors.textMuted} />
+          <Text style={{ fontSize: 13, color: BRAND.colors.textMuted, marginLeft: 4 }}>
+            {job.location}
+          </Text>
+        </View>
+
+        {/* Bottom row */}
+        <View className="flex-row items-center justify-between mt-3">
+          <Text style={{ fontSize: 12, color: BRAND.colors.textMuted }}>
+            {job.bidCount} {job.bidCount === 1 ? "bid" : "bids"} -- Posted {formatDate(job.postedDate)}
+          </Text>
+          {expanded ? (
+            <ChevronUp size={16} color={BRAND.colors.textSecondary} />
+          ) : (
+            <ChevronDown size={16} color={BRAND.colors.textSecondary} />
+          )}
         </View>
       </TouchableOpacity>
 
       {expanded && (
-        <View className="px-4 pb-4 border-t border-border pt-3">
+        <View style={s.bidsContainer}>
           {bids.length === 0 ? (
-            <Text className="text-text-secondary text-sm text-center py-3">
+            <Text style={{ color: BRAND.colors.textMuted, fontSize: 14, textAlign: "center", paddingVertical: 12 }}>
               No bids yet. Contractors are reviewing your job.
             </Text>
           ) : (
@@ -231,28 +248,37 @@ export default function HomeownerJobs() {
   return (
     <SafeAreaView className="flex-1 bg-surface">
       {/* Header */}
-      <View className="px-5 pt-4">
-        <Text className="text-2xl font-bold text-dark">My Jobs</Text>
-        <Text className="text-text-secondary mt-1">
-          Track your posted jobs and review bids
+      <View className="flex-row items-center px-5 pt-4 pb-2">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="mr-3"
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={24} color={BRAND.colors.dark} />
+        </TouchableOpacity>
+        <Text style={{ fontSize: 24, fontWeight: "700", color: BRAND.colors.textPrimary }}>
+          My Jobs
         </Text>
       </View>
 
       {/* Filter Tabs */}
-      <View className="flex-row px-5 mt-4 mb-2 gap-2">
+      <View className="flex-row px-5 mt-3 mb-2 gap-2">
         {filters.map((f) => (
           <TouchableOpacity
             key={f.key}
-            className={`px-4 py-2 rounded-full ${
-              filter === f.key ? "bg-dark" : "bg-white border border-border"
-            }`}
+            style={[
+              s.filterPill,
+              filter === f.key ? s.filterPillActive : s.filterPillInactive,
+            ]}
             activeOpacity={0.7}
             onPress={() => setFilter(f.key)}
           >
             <Text
-              className={`text-sm font-semibold ${
-                filter === f.key ? "text-white" : "text-text-secondary"
-              }`}
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: filter === f.key ? "#FFFFFF" : BRAND.colors.textSecondary,
+              }}
             >
               {f.label}
             </Text>
@@ -264,12 +290,12 @@ export default function HomeownerJobs() {
       <FlatList
         data={filteredJobs}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => <JobRow job={item} />}
         ListEmptyComponent={
           <View className="items-center justify-center py-12">
-            <Text className="text-text-secondary text-base">
+            <Text style={{ color: BRAND.colors.textMuted, fontSize: 15 }}>
               No jobs found.
             </Text>
           </View>
@@ -278,3 +304,62 @@ export default function HomeownerJobs() {
     </SafeAreaView>
   );
 }
+
+const s = StyleSheet.create({
+  jobCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  categoryTag: {
+    alignSelf: "flex-start",
+    backgroundColor: BRAND.colors.bgSoft,
+    borderRadius: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginTop: 4,
+  },
+  bidsContainer: {
+    borderTopWidth: 1,
+    borderTopColor: BRAND.colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  bidCard: {
+    backgroundColor: BRAND.colors.bgSoft,
+    borderRadius: 0,
+    padding: 12,
+    marginBottom: 8,
+  },
+  acceptBtn: {
+    flex: 1,
+    backgroundColor: BRAND.colors.primary,
+    borderRadius: 0,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  declineBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+    borderRadius: 0,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 0,
+  },
+  filterPillActive: {
+    backgroundColor: BRAND.colors.dark,
+  },
+  filterPillInactive: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
+  },
+});
