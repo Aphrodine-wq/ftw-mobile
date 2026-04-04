@@ -34,6 +34,7 @@ import {
 } from "lucide-react-native";
 import { BRAND } from "@src/lib/constants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 
 const TABS = [
   {
@@ -136,6 +137,7 @@ export default function CustomTabBar() {
   }, [pathname]);
 
   const openMenu = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setOpen(true);
     progress.value = withTiming(1, { duration: 450, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
     rotation.value = withTiming(1, { duration: 400, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
@@ -276,6 +278,7 @@ export default function CustomTabBar() {
                 style={styles.tab}
                 onPress={() => {
                   if (active && !open) return;
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (open) closeMenu(() => router.push(tab.route));
                   else router.push(tab.route);
                 }}

@@ -7,6 +7,7 @@ import {
   registerForPushNotifications,
   addNotificationResponseListener,
 } from "@src/lib/push-notifications";
+import { ToastProvider } from "@src/components/ui/toast";
 import "../global.css";
 
 function AuthGate() {
@@ -53,7 +54,9 @@ function AuthGate() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthGate />
+      <ToastProvider>
+        <AuthGate />
+      </ToastProvider>
       <StatusBar style="dark" />
     </GestureHandlerRootView>
   );

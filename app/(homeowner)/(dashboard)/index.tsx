@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -56,10 +58,19 @@ export default function HomeownerDashboard() {
   const user = useAuthStore((s) => s.user);
   const firstName = user?.name?.split(" ")[0] || "there";
   const [jobs, setJobs] = useState(mockJobs);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     fetchJobs().then(setJobs);
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+    setTimeout(() => setRefreshing(false), 800);
+  }, [loadData]);
 
   const activeJobs = useMemo(() => jobs.filter(
     (j) => j.status === "in_progress" || j.status === "awarded"
@@ -75,13 +86,19 @@ export default function HomeownerDashboard() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C41E3A" />
+        }
+      >
         {/* Date Header */}
-        <View className="px-5 pt-4 pb-2">
+        <Animated.View entering={FadeInDown.duration(400).delay(50)} className="px-5 pt-4 pb-2">
           <Text style={{ fontSize: 28, fontWeight: "700", color: BRAND.colors.textPrimary }}>
             {today}
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Active Jobs Section */}
         {activeJobs.length > 0 && (
@@ -140,7 +157,7 @@ export default function HomeownerDashboard() {
         )}
 
         {/* Stats Row */}
-        <View className="flex-row px-5 mt-5 gap-3">
+        <Animated.View entering={FadeInDown.duration(400).delay(150)} className="flex-row px-5 mt-5 gap-3">
           {[
             { icon: DollarSign, label: "TOTAL SPENT", value: formatCurrency(homeownerStats.totalSpent), color: "#16A34A", bg: "#F0FDF4" },
             { icon: Briefcase, label: "ACTIVE PROJECTS", value: String(homeownerStats.activeJobs), color: "#2563EB", bg: "#EFF6FF" },
@@ -157,7 +174,7 @@ export default function HomeownerDashboard() {
               </View>
             );
           })}
-        </View>
+        </Animated.View>
 
         {/* Recent Bids Section */}
         <View className="px-5 mt-6">

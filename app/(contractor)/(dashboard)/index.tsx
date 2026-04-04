@@ -8,7 +8,9 @@ import {
   FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  RefreshControl,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -77,10 +79,19 @@ export default function ContractorDashboard() {
 
   const [estimates, setEstimates] = useState(mockEstimates);
   const [activeJobIdx, setActiveJobIdx] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     fetchEstimates().then(setEstimates);
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+    setTimeout(() => setRefreshing(false), 800);
+  }, [loadData]);
 
   const onJobScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
@@ -91,14 +102,20 @@ export default function ContractorDashboard() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C41E3A" />
+        }
+      >
         {/* Header */}
-        <View className="px-4 pt-3 pb-4">
+        <Animated.View entering={FadeInDown.duration(400).delay(50)} className="px-4 pt-3 pb-4">
           <Text className="font-bold text-dark" style={{ fontSize: 28 }}>{dateStr}</Text>
-        </View>
+        </Animated.View>
 
         {/* Job Feed — Horizontal Carousel */}
-        <View className="mb-4">
+        <Animated.View entering={FadeInDown.duration(400).delay(100)} className="mb-4">
           <View className="flex-row items-center justify-between px-4 mb-2">
             <Text className="text-lg font-bold text-dark">New Jobs</Text>
             <TouchableOpacity
@@ -182,10 +199,10 @@ export default function ContractorDashboard() {
               />
             ))}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Stats Row */}
-        <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(200)} className="flex-row px-4 mb-4" style={{ gap: 8 }}>
           <View className="flex-1 bg-white border border-border rounded p-4">
             <View className="flex-row items-center mb-2">
               <DollarSign size={16} color={BRAND.colors.primary} />
@@ -209,7 +226,7 @@ export default function ContractorDashboard() {
             </View>
             <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{contractorStats.winRate}%</Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Active Projects */}
         {activeProjects.length > 0 && (
