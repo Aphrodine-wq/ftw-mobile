@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import {
   View,
   Text,
@@ -36,7 +36,9 @@ const STATUS_BADGE: Record<string, { label: string; variant: BadgeVariant }> = {
   cancelled: { label: "Cancelled", variant: "danger" },
 };
 
-function RatingStars({ rating }: { rating: number }) {
+const jobKeyExtractor = (item: MockJob) => item.id;
+
+const RatingStars = memo(function RatingStars({ rating }: { rating: number }) {
   const full = Math.floor(rating);
   return (
     <View className="flex-row items-center">
@@ -53,9 +55,9 @@ function RatingStars({ rating }: { rating: number }) {
       </Text>
     </View>
   );
-}
+});
 
-function BidRow({
+const BidRow = memo(function BidRow({
   bid,
   onAccept,
   onDecline,
@@ -107,7 +109,7 @@ function BidRow({
       )}
     </View>
   );
-}
+});
 
 function JobRow({ job }: { job: MockJob }) {
   const [expanded, setExpanded] = useState(false);
@@ -229,7 +231,7 @@ export default function HomeownerJobs() {
     fetchJobs().then(setAllJobs);
   }, []);
 
-  const filteredJobs = allJobs.filter((job) => {
+  const filteredJobs = useMemo(() => allJobs.filter((job) => {
     if (filter === "active") {
       return ["open", "bidding", "awarded", "in_progress"].includes(job.status);
     }
@@ -237,7 +239,7 @@ export default function HomeownerJobs() {
       return job.status === "completed";
     }
     return true;
-  });
+  }), [allJobs, filter]);
 
   const filters: { key: Filter; label: string }[] = [
     { key: "active", label: "Active" },
@@ -289,9 +291,13 @@ export default function HomeownerJobs() {
       {/* Job List */}
       <FlatList
         data={filteredJobs}
-        keyExtractor={(item) => item.id}
+        keyExtractor={jobKeyExtractor}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={7}
         renderItem={({ item }) => <JobRow job={item} />}
         ListEmptyComponent={
           <View className="items-center justify-center py-12">

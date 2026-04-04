@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo, useMemo } from "react";
 import {
   View,
   TouchableOpacity,
@@ -116,9 +116,14 @@ export default function SubContractorTabBar() {
   const item4 = useSharedValue(0);
   const itemProgress = [item0, item1, item2, item3, item4];
 
-  const isActive = (tab: (typeof TABS)[number]) => {
-    return tab.match.some((m) => pathname.startsWith(m.replace("/(subcontractor)", "")));
-  };
+  const activeTabKey = useMemo(() => {
+    for (const tab of TABS) {
+      if (tab.match.some((m) => pathname.startsWith(m.replace("/(subcontractor)", "")))) {
+        return tab.key;
+      }
+    }
+    return null;
+  }, [pathname]);
 
   const openMenu = useCallback(() => {
     setOpen(true);
@@ -232,7 +237,7 @@ export default function SubContractorTabBar() {
       <View style={[styles.container, { paddingBottom: insets.bottom }]}>
         <View style={styles.tabRow}>
           {TABS.map((tab) => {
-            const active = isActive(tab);
+            const active = activeTabKey === tab.key;
             const Icon = tab.icon;
 
             if ("isCenter" in tab && tab.isCenter) {

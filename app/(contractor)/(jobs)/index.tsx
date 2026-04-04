@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo, memo } from "react";
 import {
   View,
   Text,
@@ -8,8 +8,8 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Image,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search, MapPin, Users, DollarSign, Clock, Send } from "lucide-react-native";
 import { mockJobs, type MockJob } from "@src/lib/mock-data";
@@ -132,6 +132,8 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
   );
 }
 
+const jobKeyExtractor = (item: MockJob) => item.id;
+
 export default function ContractorJobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -147,7 +149,7 @@ export default function ContractorJobs() {
     if (realtimeJobs.length > 0) setJobs(realtimeJobs as MockJob[]);
   }, [realtimeJobs]);
 
-  const filteredJobs = jobs.filter((job) => {
+  const filteredJobs = useMemo(() => jobs.filter((job) => {
     const matchesSearch =
       !searchQuery ||
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -158,7 +160,7 @@ export default function ContractorJobs() {
       !activeCategory || job.category === activeCategory;
 
     return matchesSearch && matchesCategory;
-  });
+  }), [jobs, searchQuery, activeCategory]);
 
   const toggleExpand = useCallback((jobId: string) => {
     setExpandedJob((prev) => (prev === jobId ? null : jobId));
@@ -179,7 +181,9 @@ export default function ContractorJobs() {
           <Image
             source={{ uri: item.thumbnail }}
             style={{ width: "100%", height: 140, borderRadius: 4 }}
-            resizeMode="cover"
+            contentFit="cover"
+            recyclingKey={item.id}
+            transition={200}
           />
 
           {/* Content */}
@@ -344,9 +348,13 @@ export default function ContractorJobs() {
       <FlatList
         data={filteredJobs}
         renderItem={renderJob}
-        keyExtractor={(item) => item.id}
+        keyExtractor={jobKeyExtractor}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 4, paddingBottom: 20 }}
+        removeClippedSubviews
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={7}
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-6">
             <Text className="text-lg font-semibold text-dark mb-2">

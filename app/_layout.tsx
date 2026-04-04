@@ -11,7 +11,10 @@ import "../global.css";
 
 function AuthGate() {
   const router = useRouter();
-  const { isAuthenticated, isHydrated, user, hydrate } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const userRole = useAuthStore((s) => s.user?.role);
+  const hydrate = useAuthStore((s) => s.hydrate);
   const pushRegistered = useRef(false);
 
   useEffect(() => {
@@ -28,9 +31,9 @@ function AuthGate() {
     const subscription = addNotificationResponseListener((response) => {
       const data = response.notification.request.content.data;
       if (data?.type === "bid_received" || data?.type === "bid_accepted") {
-        if (user?.role === "homeowner") {
+        if (userRole === "homeowner") {
           router.push("/(homeowner)/notifications" as any);
-        } else if (user?.role === "subcontractor") {
+        } else if (userRole === "subcontractor") {
           router.push("/(subcontractor)/(dashboard)" as any);
         } else {
           router.push("/(contractor)/notifications" as any);
@@ -41,7 +44,7 @@ function AuthGate() {
     return () => {
       subscription.remove();
     };
-  }, [isHydrated, isAuthenticated, user, router]);
+  }, [isHydrated, isAuthenticated, userRole, router]);
 
   // No navigation here — index.tsx handles all redirects via <Redirect>
   return <Slot />;

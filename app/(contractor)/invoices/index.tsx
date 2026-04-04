@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -85,11 +85,14 @@ export default function InvoicesScreen() {
     setRefreshing(false);
   }, [loadData]);
 
-  const filtered = activeFilter === "all" ? invoices : invoices.filter((inv) => inv.status === activeFilter);
+  const filtered = useMemo(
+    () => activeFilter === "all" ? invoices : invoices.filter((inv) => inv.status === activeFilter),
+    [invoices, activeFilter],
+  );
 
-  const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.amount, 0);
-  const totalPaid = invoices.filter((inv) => inv.status === "paid").reduce((sum, inv) => sum + inv.amount, 0);
-  const outstanding = invoices.filter((inv) => inv.status === "sent" || inv.status === "overdue").reduce((sum, inv) => sum + inv.amount, 0);
+  const totalInvoiced = useMemo(() => invoices.reduce((sum, inv) => sum + inv.amount, 0), [invoices]);
+  const totalPaid = useMemo(() => invoices.filter((inv) => inv.status === "paid").reduce((sum, inv) => sum + inv.amount, 0), [invoices]);
+  const outstanding = useMemo(() => invoices.filter((inv) => inv.status === "sent" || inv.status === "overdue").reduce((sum, inv) => sum + inv.amount, 0), [invoices]);
 
   const activeProjects = (mockProjects as Project[]).filter((p) => p.status === "active" || p.status === "completed");
   const unpaidMilestones = selectedProject?.milestones.filter((m) => m.status !== "paid") || [];
@@ -203,6 +206,9 @@ export default function InvoicesScreen() {
         ListHeaderComponentStyle={{ paddingBottom: 8 }}
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-5">

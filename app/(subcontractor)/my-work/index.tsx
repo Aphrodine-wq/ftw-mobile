@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -38,16 +38,16 @@ export default function MyWorkScreen() {
   const [activeTab, setActiveTab] = useState<FilterTab>("active");
 
   // Only show sub jobs the user has accepted bids on, or in_progress/completed
-  const mySubJobs = mockSubJobs.filter((sj) => {
+  const mySubJobs = useMemo(() => mockSubJobs.filter((sj) => {
     const hasBid = mockSubBids.some((b) => b.subJobId === sj.id && (b.status === "accepted" || b.status === "pending"));
     return hasBid || sj.status === "in_progress" || sj.status === "completed";
-  });
+  }), []);
 
-  const filtered = mySubJobs.filter((sj) => {
+  const filtered = useMemo(() => mySubJobs.filter((sj) => {
     if (activeTab === "active") return sj.status === "in_progress" || sj.status === "open";
     if (activeTab === "completed") return sj.status === "completed";
     return true;
-  });
+  }), [mySubJobs, activeTab]);
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: "active", label: "Active" },

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,9 @@ import {
 } from "@src/lib/mock-data";
 import { BRAND } from "@src/lib/constants";
 import { useRealtimeChat } from "@src/realtime/hooks";
+
+const convoKeyExtractor = (item: MockConversation) => item.id;
+const messageKeyExtractor = (item: MockMessage) => item.id;
 
 export default function ContractorMessages() {
   const [selectedConvo, setSelectedConvo] = useState<string | null>(null);
@@ -41,6 +44,10 @@ export default function ContractorMessages() {
     ? mockConversations.find((c) => c.id === selectedConvo)
     : null;
   const messages = selectedConvo ? localMessages[selectedConvo] || [] : [];
+
+  const handleContentSizeChange = useCallback(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, []);
 
   const handleSend = () => {
     const trimmed = messageText.trim();
@@ -87,9 +94,12 @@ export default function ContractorMessages() {
 
         <FlatList
           data={mockConversations}
-          keyExtractor={(item) => item.id}
+          keyExtractor={convoKeyExtractor}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
+          removeClippedSubviews
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
           renderItem={({ item }: { item: MockConversation }) => (
             <TouchableOpacity
               className="flex-row items-center px-5 py-3 bg-white border-b border-border"
@@ -186,12 +196,14 @@ export default function ContractorMessages() {
         <FlatList
           ref={flatListRef}
           data={messages}
-          keyExtractor={(item) => item.id}
+          keyExtractor={messageKeyExtractor}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
+          removeClippedSubviews
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={11}
+          onContentSizeChange={handleContentSizeChange}
           renderItem={({ item }: { item: MockMessage }) => {
             const isMe = item.sender === "me";
             return (

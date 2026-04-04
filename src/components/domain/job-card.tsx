@@ -23,7 +23,7 @@ const urgencyLabel: Record<MockJob["urgency"], string> = {
   low: "Flexible",
 };
 
-export function JobCard({ job, onPress }: JobCardProps) {
+export const JobCard = React.memo(function JobCard({ job, onPress }: JobCardProps) {
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
       <Card>
@@ -68,4 +68,4 @@ export function JobCard({ job, onPress }: JobCardProps) {
       </Card>
     </TouchableOpacity>
   );
-}
+});

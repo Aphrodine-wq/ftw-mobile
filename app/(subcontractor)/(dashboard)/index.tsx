@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import {
   View,
   Text,
@@ -53,21 +53,25 @@ function getPaymentPathLabel(path: string): string {
   return path === "contractor_escrow" ? "GC Escrow" : "Pass-through";
 }
 
+const SubJobSeparator = memo(() => <View style={{ width: 12 }} />);
+
 export default function SubContractorDashboard() {
   const router = useRouter();
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const today = new Date();
-  const dateStr = today.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  const dateStr = useMemo(() => {
+    const today = new Date();
+    return today.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+  }, []);
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
     setActiveIdx(idx);
-  };
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -148,11 +152,15 @@ export default function SubContractorDashboard() {
             horizontal
             showsHorizontalScrollIndicator={false}
             onScroll={onScroll}
-            scrollEventThrottle={16}
+            scrollEventThrottle={32}
             contentContainerStyle={{ paddingHorizontal: 16 }}
-            ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+            ItemSeparatorComponent={SubJobSeparator}
             snapToInterval={CARD_WIDTH + 12}
             decelerationRate="fast"
+            removeClippedSubviews
+            initialNumToRender={2}
+            maxToRenderPerBatch={2}
+            windowSize={3}
             renderItem={({ item: sj }) => {
               const days = daysUntil(sj.deadline);
               return (

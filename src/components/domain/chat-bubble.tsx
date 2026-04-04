@@ -7,7 +7,7 @@ interface ChatBubbleProps {
   time: string;
 }
 
-export function ChatBubble({ text, sender, time }: ChatBubbleProps) {
+export const ChatBubble = React.memo(function ChatBubble({ text, sender, time }: ChatBubbleProps) {
   const isMe = sender === "me";
 
   return (
@@ -28,4 +28,4 @@ export function ChatBubble({ text, sender, time }: ChatBubbleProps) {
       <Text className="text-xs text-text-muted mt-1 px-1">{time}</Text>
     </View>
   );
-}
+});

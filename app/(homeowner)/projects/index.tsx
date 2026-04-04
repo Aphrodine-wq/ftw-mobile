@@ -118,6 +118,9 @@ export default function HomeownerProjects() {
         keyExtractor={(item) => item.id}
         renderItem={renderProject}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 90 }}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">
