@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -29,7 +29,7 @@ interface OnboardingPage {
   content: React.ReactNode;
 }
 
-function StepItem({
+const StepItem = memo(function StepItem({
   number,
   icon: Icon,
   title,
@@ -41,28 +41,28 @@ function StepItem({
   description: string;
 }) {
   return (
-    <View className="flex-row items-center mb-5">
+    <View className="flex-row items-center mb-6">
       <View
-        className="w-14 h-14 items-center justify-center mr-4"
+        className="w-16 h-16 items-center justify-center mr-4"
         style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
       >
-        <Icon size={24} color="#FFFFFF" />
+        <Icon size={28} color="#FFFFFF" />
       </View>
       <View className="flex-1">
         <Text
-          className="text-xs font-bold tracking-widest mb-1"
+          className="text-sm font-bold tracking-widest mb-1"
           style={{ color: BRAND.colors.textMuted }}
         >
           STEP {number}
         </Text>
         <Text
-          className="font-bold text-base"
+          className="font-bold text-lg"
           style={{ color: BRAND.colors.textPrimary }}
         >
           {title}
         </Text>
         <Text
-          className="text-sm mt-0.5"
+          className="text-base mt-0.5"
           style={{ color: BRAND.colors.textSecondary }}
         >
           {description}
@@ -70,7 +70,7 @@ function StepItem({
       </View>
     </View>
   );
-}
+});
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -100,19 +100,19 @@ export default function WelcomeScreen() {
           style={{ width: SCREEN_WIDTH }}
         >
           <View
-            className="w-28 h-28 items-center justify-center mb-10"
+            className="w-32 h-32 items-center justify-center mb-10"
             style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
           >
-            <Text className="text-white text-4xl font-bold">FTW</Text>
+            <Text className="text-white text-5xl font-bold">FTW</Text>
           </View>
           <Text
-            className="text-3xl font-bold text-center mb-4"
+            className="text-4xl font-bold text-center mb-4"
             style={{ color: BRAND.colors.textPrimary }}
           >
             The Fair Way to Build
           </Text>
           <Text
-            className="text-base text-center leading-6 px-4"
+            className="text-lg text-center leading-7 px-4"
             style={{ color: BRAND.colors.textSecondary }}
           >
             No lead fees. No middlemen. Just homeowners and contractors
@@ -130,13 +130,13 @@ export default function WelcomeScreen() {
           style={{ width: SCREEN_WIDTH }}
         >
           <Text
-            className="text-xs font-bold tracking-widest mb-2"
+            className="text-sm font-bold tracking-widest mb-2"
             style={{ color: BRAND.colors.primary }}
           >
             FOR HOMEOWNERS
           </Text>
           <Text
-            className="text-2xl font-bold mb-8"
+            className="text-3xl font-bold mb-8"
             style={{ color: BRAND.colors.textPrimary }}
           >
             Hire contractors you can trust
@@ -178,13 +178,13 @@ export default function WelcomeScreen() {
           style={{ width: SCREEN_WIDTH }}
         >
           <Text
-            className="text-xs font-bold tracking-widest mb-2"
+            className="text-sm font-bold tracking-widest mb-2"
             style={{ color: BRAND.colors.primary }}
           >
             FOR CONTRACTORS
           </Text>
           <Text
-            className="text-2xl font-bold mb-8"
+            className="text-3xl font-bold mb-8"
             style={{ color: BRAND.colors.textPrimary }}
           >
             Win more work. Get paid fair.
@@ -226,19 +226,19 @@ export default function WelcomeScreen() {
           style={{ width: SCREEN_WIDTH }}
         >
           <View
-            className="w-20 h-20 items-center justify-center mb-8"
+            className="w-24 h-24 items-center justify-center mb-8"
             style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
           >
-            <ArrowRight size={36} color="#FFFFFF" />
+            <ArrowRight size={42} color="#FFFFFF" />
           </View>
           <Text
-            className="text-3xl font-bold text-center mb-4"
+            className="text-4xl font-bold text-center mb-4"
             style={{ color: BRAND.colors.textPrimary }}
           >
             Ready to build fair?
           </Text>
           <Text
-            className="text-base text-center leading-6 px-4"
+            className="text-lg text-center leading-7 px-4"
             style={{ color: BRAND.colors.textSecondary }}
           >
             Whether you're hiring or building, FairTradeWorker puts fairness
@@ -250,6 +250,11 @@ export default function WelcomeScreen() {
   ];
 
   const isLastPage = currentPage === pages.length - 1;
+
+  const renderItem = useCallback(
+    ({ item }: { item: OnboardingPage }) => item.content,
+    []
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor: BRAND.colors.bgSoft }}>
@@ -263,12 +268,16 @@ export default function WelcomeScreen() {
         bounces={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        renderItem={({ item }) => item.content}
+        renderItem={renderItem}
         getItemLayout={(_, index) => ({
           length: SCREEN_WIDTH,
           offset: SCREEN_WIDTH * index,
           index,
         })}
+        removeClippedSubviews
+        maxToRenderPerBatch={1}
+        windowSize={3}
+        initialNumToRender={1}
       />
 
       {/* Bottom section */}
@@ -299,7 +308,7 @@ export default function WelcomeScreen() {
               style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
               activeOpacity={0.8}
             >
-              <Text className="text-white font-bold text-base">
+              <Text className="text-white font-bold text-lg">
                 Create Account
               </Text>
             </TouchableOpacity>
@@ -314,7 +323,7 @@ export default function WelcomeScreen() {
               activeOpacity={0.8}
             >
               <Text
-                className="font-bold text-base"
+                className="font-bold text-lg"
                 style={{ color: BRAND.colors.textPrimary }}
               >
                 Sign In
@@ -334,7 +343,7 @@ export default function WelcomeScreen() {
               activeOpacity={0.8}
             >
               <Text
-                className="font-bold text-sm"
+                className="font-bold text-base"
                 style={{ color: BRAND.colors.textMuted }}
               >
                 Skip
@@ -352,7 +361,7 @@ export default function WelcomeScreen() {
               activeOpacity={0.8}
             >
               <View className="flex-row items-center" style={{ gap: 6 }}>
-                <Text className="text-white font-bold text-base">Next</Text>
+                <Text className="text-white font-bold text-lg">Next</Text>
                 <ChevronRight size={18} color="#FFFFFF" />
               </View>
             </TouchableOpacity>
