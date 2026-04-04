@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -33,12 +33,14 @@ export default function ContractorClients() {
     fetchClients().then((data) => setClients(data as Client[]));
   }, []);
 
-  const sorted = [...clients].sort((a, b) => a.name.localeCompare(b.name));
-  const filtered = sorted.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = useMemo(() => {
+    const sorted = [...clients].sort((a, b) => a.name.localeCompare(b.name));
+    return sorted.filter(
+      (c) =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.email.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [clients, search]);
 
   const renderClient = useCallback(
     ({ item }: { item: Client }) => (
@@ -123,6 +125,9 @@ export default function ContractorClients() {
         renderItem={renderClient}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">
             <Text className="text-text-secondary text-base">No clients found.</Text>

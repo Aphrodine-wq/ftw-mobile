@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   Dimensions,
   FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronRight,
@@ -61,15 +61,19 @@ const MILESTONES = [
 const openJobs = mockJobs.filter((j) => j.status === "open" || j.status === "bidding").slice(0, 5);
 const activeProjects = (mockProjects as Project[]).filter((p) => p.status === "active");
 
+const JobCardSeparator = memo(() => <View style={{ width: 12 }} />);
+
 export default function ContractorDashboard() {
   const router = useRouter();
 
-  const today = new Date();
-  const dateStr = today.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  const dateStr = useMemo(() => {
+    const today = new Date();
+    return today.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+  }, []);
 
   const [estimates, setEstimates] = useState(mockEstimates);
   const [activeJobIdx, setActiveJobIdx] = useState(0);
@@ -78,12 +82,12 @@ export default function ContractorDashboard() {
     fetchEstimates().then(setEstimates);
   }, []);
 
-  const onJobScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const onJobScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
     setActiveJobIdx(idx);
-  };
+  }, []);
 
-  const pendingBids = mockBids.filter((b) => b.status === "pending");
+  const pendingBids = useMemo(() => mockBids.filter((b) => b.status === "pending"), []);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -111,11 +115,15 @@ export default function ContractorDashboard() {
             horizontal
             showsHorizontalScrollIndicator={false}
             onScroll={onJobScroll}
-            scrollEventThrottle={16}
+            scrollEventThrottle={32}
             contentContainerStyle={{ paddingHorizontal: 16 }}
-            ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+            ItemSeparatorComponent={JobCardSeparator}
             snapToInterval={CARD_WIDTH + 12}
             decelerationRate="fast"
+            removeClippedSubviews
+            initialNumToRender={2}
+            maxToRenderPerBatch={2}
+            windowSize={3}
             renderItem={({ item: job }) => (
               <View
                 className="bg-white border border-border rounded overflow-hidden"
@@ -124,7 +132,9 @@ export default function ContractorDashboard() {
                 <Image
                   source={{ uri: job.thumbnail }}
                   style={{ width: "100%", height: 160 }}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  recyclingKey={job.id}
+                  transition={200}
                 />
                 {job.urgency === "high" && (
                   <View className="absolute top-3 left-3 bg-white border border-border rounded flex-row items-center px-2 py-1">

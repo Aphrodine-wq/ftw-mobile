@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import {
   View,
   Text,
@@ -61,17 +61,17 @@ export default function HomeownerDashboard() {
     fetchJobs().then(setJobs);
   }, []);
 
-  const activeJobs = jobs.filter(
+  const activeJobs = useMemo(() => jobs.filter(
     (j) => j.status === "in_progress" || j.status === "awarded"
-  );
-  const recentBids = mockBids.filter((b) => b.status === "pending").slice(0, 4);
-  const activeProjects = mockProjects.filter((p) => p.status === "active");
+  ), [jobs]);
+  const recentBids = useMemo(() => mockBids.filter((b) => b.status === "pending").slice(0, 4), []);
+  const activeProjects = useMemo(() => mockProjects.filter((p) => p.status === "active"), []);
 
-  const today = new Date().toLocaleDateString("en-US", {
+  const today = useMemo(() => new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
-  });
+  }), []);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">

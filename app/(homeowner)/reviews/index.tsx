@@ -112,6 +112,9 @@ export default function HomeownerReviews() {
         keyExtractor={(item) => item.id}
         renderItem={renderReview}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 90 }}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -71,16 +71,23 @@ export default function ReviewsScreen() {
 
   // Compute stats
   const totalReviews = reviews.length;
-  const avgRating =
-    totalReviews > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-      : 0;
+  const avgRating = useMemo(
+    () =>
+      totalReviews > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+        : 0,
+    [reviews, totalReviews],
+  );
 
   // Rating breakdown
-  const breakdown = [5, 4, 3, 2, 1].map((stars) => ({
-    stars,
-    count: reviews.filter((r) => r.rating === stars).length,
-  }));
+  const breakdown = useMemo(
+    () =>
+      [5, 4, 3, 2, 1].map((stars) => ({
+        stars,
+        count: reviews.filter((r) => r.rating === stars).length,
+      })),
+    [reviews],
+  );
 
   const renderHeader = () => (
     <View>
@@ -165,6 +172,9 @@ export default function ReviewsScreen() {
         ListHeaderComponent={renderHeader}
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

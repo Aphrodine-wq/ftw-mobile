@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -17,7 +17,10 @@ import { BRAND } from "@src/lib/constants";
 import { getInitials } from "@src/lib/utils";
 import { useRealtimeChat } from "@src/realtime/hooks";
 
-function ConversationRow({
+const convoKeyExtractor = (item: MockConversation) => item.id;
+const messageKeyExtractor = (item: MockMessage) => item.id;
+
+const ConversationRow = memo(function ConversationRow({
   conversation,
   onPress,
 }: {
@@ -60,9 +63,9 @@ function ConversationRow({
       )}
     </TouchableOpacity>
   );
-}
+});
 
-function ChatBubble({ message }: { message: MockMessage }) {
+const ChatBubble = memo(function ChatBubble({ message }: { message: MockMessage }) {
   const isMe = message.sender === "me";
   return (
     <View
@@ -91,7 +94,7 @@ function ChatBubble({ message }: { message: MockMessage }) {
       </Text>
     </View>
   );
-}
+});
 
 function ChatView({
   conversation,
@@ -165,13 +168,17 @@ function ChatView({
         <FlatList
           ref={flatListRef}
           data={messages}
-          keyExtractor={(item) => item.id}
+          keyExtractor={messageKeyExtractor}
           contentContainerStyle={{
             paddingHorizontal: 20,
             paddingTop: 16,
             paddingBottom: 8,
           }}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={11}
           renderItem={({ item }) => <ChatBubble message={item} />}
           ListEmptyComponent={
             <View className="items-center py-12">
@@ -241,13 +248,16 @@ export default function HomeownerMessages() {
       {/* Conversation List */}
       <FlatList
         data={mockConversations}
-        keyExtractor={(item) => item.id}
+        keyExtractor={convoKeyExtractor}
         contentContainerStyle={{
           paddingHorizontal: 20,
           paddingTop: 16,
           paddingBottom: 90,
         }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
         renderItem={({ item }) => (
           <ConversationRow
             conversation={item}

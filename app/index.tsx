@@ -4,15 +4,14 @@ import { View, ActivityIndicator, Text } from "react-native";
 import { useEffect, useState } from "react";
 
 export default function Index() {
-  const { isAuthenticated, isHydrated, user, hydrate } = useAuthStore();
+  const { isAuthenticated, isHydrated, user } = useAuthStore();
   const [timedOut, setTimedOut] = useState(false);
 
-  // Force hydration and set a timeout fallback
+  // hydrate() is called in _layout.tsx AuthGate; only set a timeout fallback here
   useEffect(() => {
-    hydrate();
     const timer = setTimeout(() => setTimedOut(true), 4000);
     return () => clearTimeout(timer);
-  }, [hydrate]);
+  }, []);
 
   // If hydration is stuck, force to login
   if (timedOut && !isHydrated) {

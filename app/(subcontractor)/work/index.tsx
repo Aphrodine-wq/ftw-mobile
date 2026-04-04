@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -35,11 +35,11 @@ export default function BrowseSubJobsScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
-  const filtered = mockSubJobs.filter((sj) => {
+  const filtered = useMemo(() => mockSubJobs.filter((sj) => {
     if (activeTab === "open") return sj.status === "open";
     if (activeTab === "urgent") return sj.urgency === "high" && sj.status === "open";
     return true;
-  });
+  }), [activeTab]);
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: "all", label: "All" },

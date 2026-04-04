@@ -11,7 +11,7 @@ interface StatCardProps {
   trend?: "up" | "down" | null;
 }
 
-export function StatCard({ label, value, prefix, suffix, trend }: StatCardProps) {
+export const StatCard = React.memo(function StatCard({ label, value, prefix, suffix, trend }: StatCardProps) {
   return (
     <Card>
       <View className="flex-row items-center justify-between">
@@ -36,4 +36,4 @@ export function StatCard({ label, value, prefix, suffix, trend }: StatCardProps)
       </View>
     </Card>
   );
-}
+});

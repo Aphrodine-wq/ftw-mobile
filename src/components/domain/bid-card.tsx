@@ -23,7 +23,7 @@ const statusLabel: Record<MockBid["status"], string> = {
   rejected: "Rejected",
 };
 
-export function BidCard({ bid }: BidCardProps) {
+export const BidCard = React.memo(function BidCard({ bid }: BidCardProps) {
   return (
     <Card>
       {/* Contractor header */}
@@ -65,4 +65,4 @@ export function BidCard({ bid }: BidCardProps) {
       </View>
     </Card>
   );
-}
+});

@@ -165,6 +165,9 @@ export default function ContractorNotifications() {
         renderItem={renderNotification}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">
             <Bell size={40} color={BRAND.colors.textMuted} />

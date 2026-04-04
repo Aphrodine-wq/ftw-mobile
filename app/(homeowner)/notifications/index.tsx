@@ -157,6 +157,10 @@ export default function HomeownerNotifications() {
         keyExtractor={(item) => item.id}
         renderItem={renderNotification}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={7}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 90 }}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">
