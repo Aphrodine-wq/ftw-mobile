@@ -26,8 +26,14 @@ import {
   FileCheck,
   X,
   Check,
+  Hash,
+  Building2,
+  Phone,
+  Mail,
+  Calendar,
+  Shield,
 } from "lucide-react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { fetchEstimates } from "@src/api/data";
 import {
   mockEstimates,
@@ -806,114 +812,214 @@ function LiveEstimatePreview({
   validDate.setDate(validDate.getDate() + (parseInt(validDays) || 30));
 
   const filledItems = lineItems.filter((li) => li.description && parseFloat(li.total) > 0);
+  const estimateNumber = `EST-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}-001`;
+
+  // Subtotal, tax placeholder, total
+  const subtotal = estimateTotal;
+  const taxRate = 0;
+  const taxAmount = Math.round(subtotal * taxRate);
+  const grandTotal = subtotal + taxAmount;
 
   return (
-    <View className="bg-white border-2 border-dark mt-4" style={{ borderRadius: 4 }}>
-      {/* Header Bar */}
-      <View className="bg-dark px-4 py-3 flex-row items-center justify-between">
-        <Text className="text-white text-xs font-bold uppercase tracking-widest">Estimate</Text>
-        <Text className="text-white text-xs opacity-60">Live Preview</Text>
+    <View className="bg-white mt-4 overflow-hidden" style={{ borderRadius: 4, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 6 }}>
+      {/* Top accent stripe */}
+      <View style={{ height: 4, backgroundColor: BRAND.colors.primary }} />
+
+      {/* Header: Brand + Estimate badge */}
+      <View className="px-5 pt-5 pb-4">
+        <View className="flex-row items-start justify-between">
+          <View className="flex-1">
+            <View className="flex-row items-center mb-1">
+              <View style={{ width: 28, height: 28, backgroundColor: BRAND.colors.primary, alignItems: "center", justifyContent: "center", borderRadius: 2, marginRight: 8 }}>
+                <Building2 size={16} color="#FFFFFF" />
+              </View>
+              <View>
+                <Text className="text-base font-bold text-dark" style={{ letterSpacing: -0.3 }}>Johnson & Sons</Text>
+                <Text className="text-[10px] text-text-muted" style={{ letterSpacing: 0.5 }}>CONSTRUCTION</Text>
+              </View>
+            </View>
+            <Text className="text-[10px] text-text-secondary mt-1">License #R21909 | Bonded & Insured</Text>
+          </View>
+          <View style={{ backgroundColor: BRAND.colors.primary, paddingHorizontal: 12, paddingVertical: 6 }}>
+            <Text className="text-white text-[10px] font-bold uppercase" style={{ letterSpacing: 1.5 }}>Estimate</Text>
+          </View>
+        </View>
       </View>
 
-      <View className="p-4">
-        {/* Contractor + Client Row */}
-        <View className="flex-row justify-between mb-4 pb-4 border-b border-border">
-          <View className="flex-1 mr-3">
-            <Text className="text-xs text-text-muted uppercase tracking-wide mb-1">From</Text>
-            <Text className="text-sm font-bold text-dark">Marcus Johnson</Text>
-            <Text className="text-xs text-text-secondary">Johnson & Sons Construction</Text>
-            <Text className="text-xs text-text-secondary">License #R21909</Text>
+      {/* Divider */}
+      <View style={{ height: 1, backgroundColor: "#E8E5E1", marginHorizontal: 20 }} />
+
+      {/* Meta info row: Estimate #, Date, Valid Through */}
+      <View className="flex-row px-5 py-3">
+        <View className="flex-1">
+          <View className="flex-row items-center mb-0.5">
+            <Hash size={10} color={BRAND.colors.textMuted} />
+            <Text className="text-[10px] text-text-muted ml-1 uppercase" style={{ letterSpacing: 0.5 }}>Estimate No.</Text>
           </View>
-          <View className="flex-1">
-            <Text className="text-xs text-text-muted uppercase tracking-wide mb-1">Prepared For</Text>
-            <Text className="text-sm font-bold text-dark">{clientName || "Client Name"}</Text>
-            {clientEmail ? <Text className="text-xs text-text-secondary">{clientEmail}</Text> : null}
-            {clientPhone ? <Text className="text-xs text-text-secondary">{clientPhone}</Text> : null}
+          <Text className="text-xs font-bold text-dark">{estimateNumber}</Text>
+        </View>
+        <View className="flex-1">
+          <View className="flex-row items-center mb-0.5">
+            <Calendar size={10} color={BRAND.colors.textMuted} />
+            <Text className="text-[10px] text-text-muted ml-1 uppercase" style={{ letterSpacing: 0.5 }}>Date</Text>
+          </View>
+          <Text className="text-xs font-bold text-dark">{formatDate(today.toISOString())}</Text>
+        </View>
+        <View className="flex-1">
+          <View className="flex-row items-center mb-0.5">
+            <Shield size={10} color={BRAND.colors.textMuted} />
+            <Text className="text-[10px] text-text-muted ml-1 uppercase" style={{ letterSpacing: 0.5 }}>Valid Until</Text>
+          </View>
+          <Text className="text-xs font-bold text-dark">{formatDate(validDate.toISOString())}</Text>
+        </View>
+      </View>
+
+      {/* Divider */}
+      <View style={{ height: 1, backgroundColor: "#E8E5E1", marginHorizontal: 20 }} />
+
+      {/* From / To cards */}
+      <View className="flex-row px-5 py-4" style={{ gap: 12 }}>
+        <View className="flex-1 bg-gray-50 p-3" style={{ borderRadius: 2, borderLeftWidth: 3, borderLeftColor: BRAND.colors.primary }}>
+          <Text className="text-[9px] text-text-muted uppercase font-bold mb-1.5" style={{ letterSpacing: 1 }}>From</Text>
+          <Text className="text-xs font-bold text-dark">Marcus Johnson</Text>
+          <Text className="text-[10px] text-text-secondary mt-0.5">Johnson & Sons Construction</Text>
+          <View className="flex-row items-center mt-1">
+            <Phone size={8} color={BRAND.colors.textMuted} />
+            <Text className="text-[10px] text-text-secondary ml-1">(512) 555-0199</Text>
+          </View>
+          <View className="flex-row items-center mt-0.5">
+            <Mail size={8} color={BRAND.colors.textMuted} />
+            <Text className="text-[10px] text-text-secondary ml-1">marcus@johnsoncons.com</Text>
           </View>
         </View>
-
-        {/* Job Info */}
-        <View className="mb-4 pb-4 border-b border-border">
-          <Text className="text-base font-bold text-dark">{jobTitle || "Job Title"}</Text>
-          <Text className="text-xs text-text-muted mt-0.5">{jobCategory}</Text>
-          {jobDescription ? (
-            <Text className="text-xs text-text-secondary mt-1" numberOfLines={2}>{jobDescription}</Text>
+        <View className="flex-1 bg-gray-50 p-3" style={{ borderRadius: 2, borderLeftWidth: 3, borderLeftColor: BRAND.colors.dark }}>
+          <Text className="text-[9px] text-text-muted uppercase font-bold mb-1.5" style={{ letterSpacing: 1 }}>Prepared For</Text>
+          <Text className="text-xs font-bold text-dark">{clientName || "Client Name"}</Text>
+          {clientEmail ? (
+            <View className="flex-row items-center mt-1">
+              <Mail size={8} color={BRAND.colors.textMuted} />
+              <Text className="text-[10px] text-text-secondary ml-1">{clientEmail}</Text>
+            </View>
           ) : null}
-          <View className="flex-row mt-2">
-            <Text className="text-xs text-text-muted">
-              Date: {formatDate(today.toISOString())}
-            </Text>
-            <Text className="text-xs text-text-muted ml-4">
-              Valid through: {formatDate(validDate.toISOString())}
-            </Text>
-          </View>
+          {clientPhone ? (
+            <View className="flex-row items-center mt-0.5">
+              <Phone size={8} color={BRAND.colors.textMuted} />
+              <Text className="text-[10px] text-text-secondary ml-1">{clientPhone}</Text>
+            </View>
+          ) : null}
+          {!clientEmail && !clientPhone && (
+            <Text className="text-[10px] text-text-muted mt-0.5 italic">Contact details will appear here</Text>
+          )}
         </View>
+      </View>
 
-        {/* Line Items Table */}
-        {filledItems.length > 0 && (
-          <View className="mb-4">
+      {/* Project details */}
+      <View className="px-5 pb-3">
+        <View className="bg-gray-50 p-3" style={{ borderRadius: 2 }}>
+          <Text className="text-[9px] text-text-muted uppercase font-bold mb-1" style={{ letterSpacing: 1 }}>Project</Text>
+          <Text className="text-sm font-bold text-dark">{jobTitle || "Job Title"}</Text>
+          <View className="flex-row items-center mt-1">
+            <View style={{ backgroundColor: `${BRAND.colors.primary}15`, paddingHorizontal: 6, paddingVertical: 1 }}>
+              <Text className="text-[9px] font-bold" style={{ color: BRAND.colors.primary }}>{jobCategory}</Text>
+            </View>
+          </View>
+          {jobDescription ? (
+            <Text className="text-[10px] text-text-secondary mt-1.5 leading-3.5" numberOfLines={3}>{jobDescription}</Text>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Line Items Table */}
+      <View className="px-5 pb-3">
+        {filledItems.length > 0 ? (
+          <View>
             {/* Table Header */}
-            <View className="flex-row bg-dark py-2 px-2">
-              <Text className="flex-1 text-white text-[10px] font-bold uppercase">Description</Text>
-              <Text className="w-10 text-white text-[10px] font-bold uppercase text-center">Qty</Text>
-              <Text className="w-10 text-white text-[10px] font-bold uppercase text-center">Unit</Text>
-              <Text className="w-16 text-white text-[10px] font-bold uppercase text-right">Rate</Text>
-              <Text className="w-16 text-white text-[10px] font-bold uppercase text-right">Amount</Text>
+            <View className="flex-row py-2 px-2.5" style={{ backgroundColor: BRAND.colors.dark }}>
+              <Text className="flex-1 text-white text-[9px] font-bold uppercase" style={{ letterSpacing: 0.8 }}>Description</Text>
+              <Text className="w-8 text-white text-[9px] font-bold uppercase text-center" style={{ letterSpacing: 0.5 }}>Qty</Text>
+              <Text className="w-10 text-white text-[9px] font-bold uppercase text-center" style={{ letterSpacing: 0.5 }}>Unit</Text>
+              <Text className="w-14 text-white text-[9px] font-bold uppercase text-right" style={{ letterSpacing: 0.5 }}>Rate</Text>
+              <Text className="w-16 text-white text-[9px] font-bold uppercase text-right" style={{ letterSpacing: 0.5 }}>Amount</Text>
             </View>
             {/* Rows */}
             {filledItems.map((li, i) => (
               <View
                 key={i}
-                className={`flex-row py-2 px-2 ${i % 2 === 0 ? "bg-gray-50" : "bg-white"}`}
+                className="flex-row py-2 px-2.5 items-center"
+                style={{ backgroundColor: i % 2 === 0 ? "#FAFAF8" : "#FFFFFF", borderBottomWidth: 1, borderBottomColor: "#F0EEEB" }}
               >
-                <Text className="flex-1 text-dark text-xs" numberOfLines={1}>{li.description}</Text>
-                <Text className="w-10 text-dark text-xs text-center">{li.quantity}</Text>
-                <Text className="w-10 text-text-muted text-xs text-center">{li.unit}</Text>
-                <Text className="w-16 text-dark text-xs text-right">{formatCurrency(parseFloat(li.unitCost) || 0)}</Text>
-                <Text className="w-16 text-dark text-xs font-bold text-right">{formatCurrency(parseFloat(li.total) || 0)}</Text>
+                <Text className="flex-1 text-dark text-[11px]" numberOfLines={1}>{li.description}</Text>
+                <Text className="w-8 text-dark text-[11px] text-center">{li.quantity}</Text>
+                <Text className="w-10 text-text-muted text-[10px] text-center">{li.unit}</Text>
+                <Text className="w-14 text-dark text-[11px] text-right">{formatCurrency(parseFloat(li.unitCost) || 0)}</Text>
+                <Text className="w-16 text-dark text-[11px] font-semibold text-right">{formatCurrency(parseFloat(li.total) || 0)}</Text>
               </View>
             ))}
-            {/* Total Row */}
-            <View className="flex-row bg-dark py-2.5 px-2 mt-px">
-              <Text className="flex-1 text-white text-sm font-bold">Total</Text>
-              <Text className="text-white text-sm font-bold">{formatCurrency(estimateTotal)}</Text>
+
+            {/* Totals section */}
+            <View style={{ borderTopWidth: 2, borderTopColor: BRAND.colors.dark }}>
+              <View className="flex-row justify-between py-1.5 px-2.5">
+                <Text className="text-text-secondary text-[10px]">Subtotal</Text>
+                <Text className="text-dark text-[11px] font-medium">{formatCurrency(subtotal)}</Text>
+              </View>
+              {taxRate > 0 && (
+                <View className="flex-row justify-between py-1 px-2.5">
+                  <Text className="text-text-secondary text-[10px]">Tax ({(taxRate * 100).toFixed(1)}%)</Text>
+                  <Text className="text-dark text-[11px] font-medium">{formatCurrency(taxAmount)}</Text>
+                </View>
+              )}
+              <View className="flex-row justify-between items-center py-2.5 px-2.5" style={{ backgroundColor: BRAND.colors.dark }}>
+                <Text className="text-white text-xs font-bold uppercase" style={{ letterSpacing: 0.5 }}>Total Due</Text>
+                <Text className="text-white text-base font-bold">{formatCurrency(grandTotal)}</Text>
+              </View>
             </View>
           </View>
-        )}
-
-        {filledItems.length === 0 && (
-          <View className="py-6 items-center mb-4 border border-border border-dashed">
-            <Text className="text-text-muted text-sm">Line items will appear here</Text>
+        ) : (
+          <View className="py-8 items-center" style={{ borderWidth: 1, borderColor: "#E8E5E1", borderStyle: "dashed" }}>
+            <ListOrdered size={20} color={BRAND.colors.textMuted} />
+            <Text className="text-text-muted text-xs mt-2">Add line items to see them here</Text>
           </View>
         )}
+      </View>
 
-        {/* Terms */}
-        {terms ? (
-          <View className="bg-gray-50 border border-border p-3 mb-4">
-            <Text className="text-xs text-text-muted uppercase tracking-wide font-bold mb-1">Terms & Conditions</Text>
-            <Text className="text-xs text-text-secondary leading-4">{terms}</Text>
-          </View>
-        ) : null}
-
-        {/* Signature Lines */}
-        <View className="flex-row mt-2">
-          <View className="flex-1 mr-4">
-            <View className="border-b border-dark h-8" />
-            <Text className="text-[10px] text-text-muted mt-1">Contractor Signature</Text>
-          </View>
-          <View className="flex-1 mr-4">
-            <View className="border-b border-dark h-8" />
-            <Text className="text-[10px] text-text-muted mt-1">Client Signature</Text>
-          </View>
-          <View className="w-20">
-            <View className="border-b border-dark h-8" />
-            <Text className="text-[10px] text-text-muted mt-1">Date</Text>
+      {/* Terms */}
+      {terms ? (
+        <View className="px-5 pb-3">
+          <View className="p-3" style={{ backgroundColor: "#FAFAF8", borderRadius: 2, borderWidth: 1, borderColor: "#E8E5E1" }}>
+            <Text className="text-[9px] text-text-muted uppercase font-bold mb-1.5" style={{ letterSpacing: 1 }}>Terms & Conditions</Text>
+            <Text className="text-[10px] text-text-secondary" style={{ lineHeight: 15 }}>{terms}</Text>
           </View>
         </View>
+      ) : null}
 
-        {/* Footer */}
-        <View className="mt-4 pt-3 border-t border-border items-center">
-          <Text className="text-[9px] text-text-muted">Powered by FairTradeWorker</Text>
+      {/* Signature section */}
+      <View className="px-5 pb-4 pt-2">
+        <View className="flex-row" style={{ gap: 16 }}>
+          <View className="flex-1">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: BRAND.colors.dark, height: 32 }} />
+            <Text className="text-[9px] text-text-muted mt-1.5 font-medium">Contractor Signature</Text>
+            <Text className="text-[8px] text-text-muted mt-0.5">Marcus Johnson</Text>
+          </View>
+          <View className="flex-1">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: BRAND.colors.dark, height: 32 }} />
+            <Text className="text-[9px] text-text-muted mt-1.5 font-medium">Client Signature</Text>
+            <Text className="text-[8px] text-text-muted mt-0.5">{clientName || "Client Name"}</Text>
+          </View>
+          <View style={{ width: 70 }}>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: BRAND.colors.dark, height: 32 }} />
+            <Text className="text-[9px] text-text-muted mt-1.5 font-medium">Date</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Footer */}
+      <View style={{ backgroundColor: "#FAFAF8", borderTopWidth: 1, borderTopColor: "#E8E5E1" }} className="px-5 py-3 flex-row items-center justify-between">
+        <Text className="text-[8px] text-text-muted">This estimate is valid for {validDays || "30"} days from the date of issue.</Text>
+        <View className="flex-row items-center">
+          <View style={{ width: 10, height: 10, backgroundColor: BRAND.colors.primary, alignItems: "center", justifyContent: "center", borderRadius: 1, marginRight: 3 }}>
+            <Building2 size={6} color="#FFFFFF" />
+          </View>
+          <Text className="text-[8px] text-text-muted font-bold">FairTradeWorker</Text>
         </View>
       </View>
     </View>
@@ -1194,7 +1300,10 @@ function BreakdownRow({
 
 export default function EstimatesScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabId>("my-estimates");
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<TabId>(
+    tab === "new-estimate" || tab === "calculator" ? tab : "my-estimates"
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
