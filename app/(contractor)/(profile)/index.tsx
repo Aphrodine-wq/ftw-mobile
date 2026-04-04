@@ -47,7 +47,7 @@ export default function ContractorProfile() {
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         {/* Profile header */}
-        <View className="bg-white rounded-2xl mx-5 mt-4 p-5 items-center">
+        <View className="bg-white rounded mx-5 mt-4 p-5 items-center">
           <View className="w-20 h-20 rounded-full bg-brand-600 items-center justify-center mb-3">
             <Text className="text-white text-2xl font-bold">
               {user ? getInitials(user.name) : "?"}
@@ -61,7 +61,7 @@ export default function ContractorProfile() {
         </View>
 
         {/* Stats row */}
-        <View className="flex-row mx-5 mt-3 bg-white rounded-2xl overflow-hidden">
+        <View className="flex-row mx-5 mt-3 bg-white rounded overflow-hidden">
           {STATS.map((stat, i) => (
             <View
               key={stat.label}
@@ -76,7 +76,7 @@ export default function ContractorProfile() {
         </View>
 
         {/* Menu items */}
-        <View className="bg-white rounded-2xl mx-5 mt-4 overflow-hidden">
+        <View className="bg-white rounded mx-5 mt-4 overflow-hidden">
           {MENU_ITEMS.map((item, i) => (
             <TouchableOpacity
               key={item.label}
@@ -96,7 +96,7 @@ export default function ContractorProfile() {
         {/* Logout */}
         <TouchableOpacity
           onPress={logout}
-          className="bg-white rounded-2xl mx-5 mt-4 flex-row items-center px-5 py-4"
+          className="bg-white rounded mx-5 mt-4 flex-row items-center px-5 py-4"
           activeOpacity={0.7}
         >
           <LogOut size={20} color="#EF4444" />

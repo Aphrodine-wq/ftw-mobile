@@ -118,7 +118,7 @@ export default function ContractorDashboard() {
             decelerationRate="fast"
             renderItem={({ item: job }) => (
               <View
-                className="bg-white border border-border overflow-hidden"
+                className="bg-white border border-border rounded overflow-hidden"
                 style={{ width: CARD_WIDTH }}
               >
                 <Image
@@ -127,7 +127,7 @@ export default function ContractorDashboard() {
                   resizeMode="cover"
                 />
                 {job.urgency === "high" && (
-                  <View className="absolute top-3 left-3 bg-white border border-border flex-row items-center px-2 py-1">
+                  <View className="absolute top-3 left-3 bg-white border border-border rounded flex-row items-center px-2 py-1">
                     <AlertCircle size={12} color={BRAND.colors.primary} />
                     <Text className="text-[10px] font-bold text-brand-600 ml-1 uppercase">Urgent</Text>
                   </View>
@@ -176,7 +176,7 @@ export default function ContractorDashboard() {
 
         {/* Stats Row */}
         <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
-          <View className="flex-1 bg-white border border-border p-4">
+          <View className="flex-1 bg-white border border-border rounded p-4">
             <View className="flex-row items-center mb-2">
               <DollarSign size={16} color={BRAND.colors.primary} />
               <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Revenue</Text>
@@ -185,14 +185,14 @@ export default function ContractorDashboard() {
               {formatCurrency(contractorStats.monthlyRevenue)}
             </Text>
           </View>
-          <View className="flex-1 bg-white border border-border p-4 items-center">
+          <View className="flex-1 bg-white border border-border rounded p-4 items-center">
             <View className="flex-row items-center mb-2">
               <Star size={16} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
               <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Rating</Text>
             </View>
             <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{contractorStats.avgRating}</Text>
           </View>
-          <View className="flex-1 bg-white border border-border p-4 items-center">
+          <View className="flex-1 bg-white border border-border rounded p-4 items-center">
             <View className="flex-row items-center mb-2">
               <TrendingUp size={16} color={BRAND.colors.primary} />
               <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Win Rate</Text>
@@ -221,7 +221,7 @@ export default function ContractorDashboard() {
                 return (
                   <TouchableOpacity
                     key={proj.id}
-                    className="bg-white border border-border p-4"
+                    className="bg-white border border-border rounded p-4"
                     activeOpacity={0.7}
                     onPress={() => router.push(`/(contractor)/projects/${proj.id}` as any)}
                   >
@@ -262,7 +262,7 @@ export default function ContractorDashboard() {
           </View>
           <View className="px-4" style={{ gap: 6 }}>
             {MILESTONES.map((ms) => (
-              <View key={ms.id} className="bg-white border border-border flex-row items-center px-3 py-3">
+              <View key={ms.id} className="bg-white border border-border rounded flex-row items-center px-3 py-3">
                 <View className="mr-3">
                   {ms.status === "done" ? (
                     <CheckCircle2 size={20} color={BRAND.colors.primary} />
@@ -292,7 +292,7 @@ export default function ContractorDashboard() {
         {/* Estimates + Quick Stats Row */}
         <View className="px-4 mb-4" style={{ flexDirection: "row", gap: 8 }}>
           {/* Estimates */}
-          <View className="flex-1 bg-white border border-border">
+          <View className="flex-1 bg-white border border-border rounded">
             <View className="flex-row items-center justify-between px-3 pt-3 pb-1">
               <Text className="text-base font-bold text-dark">Estimates</Text>
               <TouchableOpacity
@@ -326,7 +326,7 @@ export default function ContractorDashboard() {
           </View>
 
           {/* Quick Stats */}
-          <View className="bg-white border border-border" style={{ width: 130 }}>
+          <View className="bg-white border border-border rounded" style={{ width: 130 }}>
             <View className="px-3 pt-3 pb-2">
               <Text className="text-base font-bold text-dark">Quick Stats</Text>
             </View>
@@ -355,7 +355,7 @@ export default function ContractorDashboard() {
               {pendingBids.slice(0, 3).map((bid) => {
                 const job = mockJobs.find((j) => j.id === bid.jobId);
                 return (
-                  <View key={bid.id} className="bg-white border border-border flex-row items-center p-3">
+                  <View key={bid.id} className="bg-white border border-border rounded flex-row items-center p-3">
                     <View className="flex-1">
                       <Text className="text-sm font-bold text-dark" numberOfLines={1}>{job?.title || "Job"}</Text>
                       <Text className="text-xs text-text-muted mt-0.5">{job?.location} — {bid.timeline}</Text>

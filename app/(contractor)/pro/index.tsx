@@ -106,8 +106,8 @@ export default function ProScreen() {
             {PRO_FEATURES.map((feat) => {
               const Icon = feat.icon;
               return (
-                <View key={feat.title} className="bg-white border border-border p-4 flex-row" style={{ borderRadius: 0 }}>
-                  <View className="w-10 h-10 bg-dark items-center justify-center mr-3" style={{ borderRadius: 0 }}>
+                <View key={feat.title} className="bg-white border border-border rounded p-4 flex-row" style={{ borderRadius: 4 }}>
+                  <View className="w-10 h-10 bg-dark items-center justify-center mr-3" style={{ borderRadius: 4 }}>
                     <Icon size={20} color={BRAND.colors.primary} />
                   </View>
                   <View className="flex-1">
@@ -128,10 +128,10 @@ export default function ProScreen() {
               <View
                 key={plan.id}
                 className={`bg-white border-2 p-5 ${plan.popular ? "border-brand-600" : "border-border"}`}
-                style={{ borderRadius: 0 }}
+                style={{ borderRadius: 4 }}
               >
                 {plan.popular && (
-                  <View className="bg-brand-600 self-start px-3 py-1 mb-3" style={{ borderRadius: 0 }}>
+                  <View className="bg-brand-600 self-start px-3 py-1 mb-3" style={{ borderRadius: 4 }}>
                     <Text className="text-white text-xs font-bold">MOST POPULAR</Text>
                   </View>
                 )}
@@ -151,7 +151,7 @@ export default function ProScreen() {
 
                 <TouchableOpacity
                   className={`py-3.5 items-center mt-4 ${plan.popular ? "bg-brand-600" : "bg-dark"}`}
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                   activeOpacity={0.8}
                 >
                   <Text className="text-white font-bold text-base">
@@ -166,15 +166,15 @@ export default function ProScreen() {
         {/* FAQ */}
         <View className="px-5 mb-6">
           <Text className="text-dark font-bold text-lg mb-4">Common Questions</Text>
-          <View className="bg-white border border-border p-4 mb-2" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded p-4 mb-2" style={{ borderRadius: 4 }}>
             <Text className="text-dark font-bold text-sm">Can I try before I buy?</Text>
             <Text className="text-text-secondary text-sm mt-1">Yes. Every Pro plan includes a 14-day free trial. Cancel anytime.</Text>
           </View>
-          <View className="bg-white border border-border p-4 mb-2" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded p-4 mb-2" style={{ borderRadius: 4 }}>
             <Text className="text-dark font-bold text-sm">What happens to my estimates if I cancel?</Text>
             <Text className="text-text-secondary text-sm mt-1">You keep everything. All saved estimates, PDFs, and client data stay in your account.</Text>
           </View>
-          <View className="bg-white border border-border p-4 mb-2" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded p-4 mb-2" style={{ borderRadius: 4 }}>
             <Text className="text-dark font-bold text-sm">Do I need Pro to use FairTradeWorker?</Text>
             <Text className="text-text-secondary text-sm mt-1">No. Job browsing, manual estimates, direct messaging, and escrow payments are all free.</Text>
           </View>

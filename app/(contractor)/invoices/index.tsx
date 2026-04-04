@@ -132,12 +132,12 @@ export default function InvoicesScreen() {
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-dark">Invoices</Text>
         </View>
-        <TouchableOpacity onPress={openModal} className="bg-brand-600 p-2.5" style={{ borderRadius: 0 }} activeOpacity={0.7}>
+        <TouchableOpacity onPress={openModal} className="bg-brand-600 p-2.5" style={{ borderRadius: 4 }} activeOpacity={0.7}>
           <Plus size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
-      <View className="flex-row mx-5 mt-4 bg-white border border-border overflow-hidden" style={{ borderRadius: 0 }}>
+      <View className="flex-row mx-5 mt-4 bg-white border border-border rounded overflow-hidden" style={{ borderRadius: 4 }}>
         <View className="flex-1 items-center py-4 border-r border-border">
           <Text className="text-xl font-bold text-dark">{formatCurrency(totalInvoiced)}</Text>
           <Text className="text-text-secondary text-sm mt-0.5">Invoiced</Text>
@@ -159,8 +159,8 @@ export default function InvoicesScreen() {
             <TouchableOpacity
               key={filter.key}
               onPress={() => setActiveFilter(filter.key)}
-              className={`px-4 py-2 ${isActive ? "bg-dark" : "bg-white border border-border"}`}
-              style={{ borderRadius: 0 }}
+              className={`px-4 py-2 ${isActive ? "bg-dark" : "bg-white border border-border rounded"}`}
+              style={{ borderRadius: 4 }}
               activeOpacity={0.7}
             >
               <Text className={`text-sm font-semibold ${isActive ? "text-white" : "text-text-secondary"}`}>
@@ -174,8 +174,8 @@ export default function InvoicesScreen() {
   );
 
   const renderInvoice = ({ item }: { item: Invoice }) => (
-    <TouchableOpacity className="bg-white border border-border mx-5 mb-3 p-4 flex-row items-center" style={{ borderRadius: 0 }} activeOpacity={0.7}>
-      <View className="w-10 h-10 bg-gray-100 items-center justify-center mr-3" style={{ borderRadius: 0 }}>
+    <TouchableOpacity className="bg-white border border-border rounded mx-5 mb-3 p-4 flex-row items-center" style={{ borderRadius: 4 }} activeOpacity={0.7}>
+      <View className="w-10 h-10 bg-gray-100 items-center justify-center mr-3" style={{ borderRadius: 4 }}>
         <Receipt size={20} color={BRAND.colors.textSecondary} />
       </View>
       <View className="flex-1">
@@ -263,8 +263,8 @@ export default function InvoicesScreen() {
                       <TouchableOpacity
                         key={proj.id}
                         onPress={() => selectProject(proj)}
-                        className="bg-white border border-border mb-3"
-                        style={{ borderRadius: 0 }}
+                        className="bg-white border border-border rounded mb-3"
+                        style={{ borderRadius: 4 }}
                         activeOpacity={0.7}
                       >
                         {/* Project Header */}
@@ -317,7 +317,7 @@ export default function InvoicesScreen() {
               {modalStep === "milestone" && selectedProject && (
                 <View className="px-5 pt-4">
                   {/* Project context */}
-                  <View className="bg-white border border-border p-4 mb-4" style={{ borderRadius: 0 }}>
+                  <View className="bg-white border border-border rounded p-4 mb-4" style={{ borderRadius: 4 }}>
                     <Text className="text-dark font-bold text-base">{selectedProject.name}</Text>
                     <Text className="text-text-secondary text-sm mt-0.5">{selectedProject.homeownerName}</Text>
                     <View className="flex-row mt-3 pt-3 border-t border-border">
@@ -345,8 +345,8 @@ export default function InvoicesScreen() {
                       <TouchableOpacity
                         key={ms.id}
                         onPress={() => selectMilestone(ms)}
-                        className="bg-white border border-border mb-3"
-                        style={{ borderRadius: 0 }}
+                        className="bg-white border border-border rounded mb-3"
+                        style={{ borderRadius: 4 }}
                         activeOpacity={0.7}
                       >
                         <View className="p-4 flex-row items-start">
@@ -379,7 +379,7 @@ export default function InvoicesScreen() {
               {modalStep === "details" && selectedProject && selectedMilestone && (
                 <View className="px-5 pt-4">
                   {/* Summary Card */}
-                  <View className="bg-dark p-4 mb-4" style={{ borderRadius: 0 }}>
+                  <View className="bg-dark p-4 mb-4" style={{ borderRadius: 4 }}>
                     <View className="flex-row items-center justify-between mb-2">
                       <Text className="text-white/60 text-xs uppercase tracking-wide">Invoice Amount</Text>
                       <Text className="text-white text-2xl font-bold">{formatCurrency(selectedMilestone.amount)}</Text>
@@ -391,14 +391,14 @@ export default function InvoicesScreen() {
                   </View>
 
                   {/* Bill To */}
-                  <View className="bg-white border border-border p-4 mb-3" style={{ borderRadius: 0 }}>
+                  <View className="bg-white border border-border rounded p-4 mb-3" style={{ borderRadius: 4 }}>
                     <Text className="text-text-muted text-xs uppercase tracking-wide font-bold mb-2">Bill To</Text>
                     <Text className="text-dark font-bold text-base">{selectedProject.homeownerName}</Text>
                     <Text className="text-text-secondary text-sm mt-0.5">{selectedProject.address}</Text>
                   </View>
 
                   {/* Line Items */}
-                  <View className="bg-white border border-border mb-3" style={{ borderRadius: 0 }}>
+                  <View className="bg-white border border-border rounded mb-3" style={{ borderRadius: 4 }}>
                     <View className="flex-row bg-dark px-4 py-2">
                       <Text className="flex-1 text-white text-xs font-bold">Description</Text>
                       <Text className="text-white text-xs font-bold">Amount</Text>
@@ -425,7 +425,7 @@ export default function InvoicesScreen() {
                           key={d}
                           onPress={() => setDueInDays(d)}
                           className={`flex-1 py-2.5 items-center border ${d === dueInDays ? "bg-brand-600 border-brand-600" : "bg-white border-border"}`}
-                          style={{ borderRadius: 0 }}
+                          style={{ borderRadius: 4 }}
                           activeOpacity={0.7}
                         >
                           <Text className={`text-sm font-bold ${d === dueInDays ? "text-white" : "text-dark"}`}>{d}</Text>
@@ -438,8 +438,8 @@ export default function InvoicesScreen() {
                   <View className="mb-4">
                     <Text className="text-text-secondary text-sm font-bold mb-1.5">Note (optional)</Text>
                     <TextInput
-                      className="bg-white border border-border p-3 text-dark text-sm min-h-[60px]"
-                      style={{ borderRadius: 0, textAlignVertical: "top" }}
+                      className="bg-white border border-border rounded p-3 text-dark text-sm min-h-[60px]"
+                      style={{ borderRadius: 4, textAlignVertical: "top" }}
                       value={invoiceNote}
                       onChangeText={setInvoiceNote}
                       placeholder="Add a note to the invoice..."
@@ -452,7 +452,7 @@ export default function InvoicesScreen() {
                   <TouchableOpacity
                     onPress={createInvoice}
                     className="bg-brand-600 py-4 items-center"
-                    style={{ borderRadius: 0 }}
+                    style={{ borderRadius: 4 }}
                     activeOpacity={0.8}
                   >
                     <Text className="text-white font-bold text-base">Send Invoice — {formatCurrency(selectedMilestone.amount)}</Text>

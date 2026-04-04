@@ -271,7 +271,7 @@ const s = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: BRAND.colors.border,
-    borderRadius: 0,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 12,
     flexDirection: "row",
@@ -280,7 +280,7 @@ const s = StyleSheet.create({
   avatar: {
     width: 48,
     height: 48,
-    borderRadius: 0,
+    borderRadius: 4,
     backgroundColor: BRAND.colors.dark,
     alignItems: "center",
     justifyContent: "center",
@@ -289,7 +289,7 @@ const s = StyleSheet.create({
   unreadBadge: {
     width: 20,
     height: 20,
-    borderRadius: 0,
+    borderRadius: 4,
     backgroundColor: BRAND.colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -299,7 +299,7 @@ const s = StyleSheet.create({
     maxWidth: "80%",
   },
   bubble: {
-    borderRadius: 0,
+    borderRadius: 4,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
@@ -328,7 +328,7 @@ const s = StyleSheet.create({
   chatAvatar: {
     width: 36,
     height: 36,
-    borderRadius: 0,
+    borderRadius: 4,
     backgroundColor: BRAND.colors.dark,
     alignItems: "center",
     justifyContent: "center",
@@ -346,7 +346,7 @@ const s = StyleSheet.create({
   textInput: {
     flex: 1,
     backgroundColor: BRAND.colors.bgSoft,
-    borderRadius: 0,
+    borderRadius: 4,
     paddingHorizontal: 16,
     paddingVertical: 10,
     color: BRAND.colors.textPrimary,
@@ -356,7 +356,7 @@ const s = StyleSheet.create({
   sendBtn: {
     width: 40,
     height: 40,
-    borderRadius: 0,
+    borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
   },

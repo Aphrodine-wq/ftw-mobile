@@ -1,21 +1,29 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   Text,
   Pressable,
-  Animated,
-  Dimensions,
+  ViewStyle,
 } from "react-native";
 import { usePathname, useRouter } from "expo-router";
+import Animated, {
+  SharedValue,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withDelay,
+  interpolate,
+  Easing,
+} from "react-native-reanimated";
 import {
   LayoutDashboard,
   FolderOpen,
   Plus,
   Users,
   Settings,
-  X,
   FileText,
   Briefcase,
   Receipt,
@@ -26,8 +34,6 @@ import {
 } from "lucide-react-native";
 import { BRAND } from "@src/lib/constants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const TABS = [
   {
@@ -81,101 +87,122 @@ const QUICK_ACTIONS = [
   { key: "milestones", label: "Milestones", icon: Flag, route: "/(contractor)/milestones", pro: false },
 ] as const;
 
+const SPRING_CONFIG = { damping: 20, stiffness: 300 };
+
+// Extracted component so useAnimatedStyle is called at component top level
+const AnimatedItem = memo(function AnimatedItem({
+  sv,
+  style,
+  children,
+}: {
+  sv: SharedValue<number>;
+  style?: ViewStyle;
+  children: React.ReactNode;
+}) {
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: sv.value,
+    transform: [{ scale: interpolate(sv.value, [0, 1], [0.96, 1]) }],
+  }));
+  return <Animated.View style={[style, animStyle]}>{children}</Animated.View>;
+});
+
+const TOTAL_ITEMS = FEATURED_ACTIONS.length + QUICK_ACTIONS.length;
+
 export default function CustomTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
 
-  const overlayAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const itemAnims = useRef([...FEATURED_ACTIONS, ...QUICK_ACTIONS].map(() => new Animated.Value(0))).current;
+  const progress = useSharedValue(0);
+  const rotation = useSharedValue(0);
+  // Fixed count — always 7 shared values, same every render
+  const item0 = useSharedValue(0);
+  const item1 = useSharedValue(0);
+  const item2 = useSharedValue(0);
+  const item3 = useSharedValue(0);
+  const item4 = useSharedValue(0);
+  const item5 = useSharedValue(0);
+  const item6 = useSharedValue(0);
+  const itemProgress = [item0, item1, item2, item3, item4, item5, item6];
 
   const isActive = (tab: (typeof TABS)[number]) => {
     return tab.match.some((m) => pathname.startsWith(m.replace("/(contractor)", "")));
   };
 
-  const openMenu = () => {
+  const openMenu = useCallback(() => {
     setOpen(true);
-    Animated.parallel([
-      Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 65, useNativeDriver: true }),
-      Animated.timing(rotateAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
-    // Stagger items
-    itemAnims.forEach((anim, i) => {
-      anim.setValue(0);
-      Animated.spring(anim, {
-        toValue: 1,
-        friction: 7,
-        tension: 60,
-        delay: 40 * i,
-        useNativeDriver: true,
-      }).start();
+    progress.value = withTiming(1, { duration: 450, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+    rotation.value = withTiming(1, { duration: 400, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+    itemProgress.forEach((sv) => {
+      sv.value = 0;
+      sv.value = withTiming(1, { duration: 450, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
     });
-  };
+  }, []);
 
-  const closeMenu = (cb?: () => void) => {
-    Animated.parallel([
-      Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(scaleAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-      Animated.timing(rotateAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => {
+  const closeMenu = useCallback((cb?: () => void) => {
+    progress.value = withTiming(0, { duration: 350, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+    rotation.value = withTiming(0, { duration: 350, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+    itemProgress.forEach((sv) => {
+      sv.value = withTiming(0, { duration: 300, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+    });
+    setTimeout(() => {
       setOpen(false);
       cb?.();
-    });
-  };
+    }, 370);
+  }, []);
 
-  const handleAction = (route: string | null) => {
+  const handleAction = useCallback((route: string | null) => {
     closeMenu(() => {
       if (route) router.push(route as any);
     });
-  };
+  }, [closeMenu, router]);
 
-  const rotation = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "45deg"],
-  });
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+  }));
+
+  const menuStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+  }));
+
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ scale: interpolate(progress.value, [0, 1], [0.96, 1]) }],
+  }));
+
+  const rotateStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(rotation.value, [0, 1], [0, 45])}deg` }],
+  }));
 
   return (
     <>
-      {/* Overlay + Menu */}
       {open && (
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
           <Pressable style={StyleSheet.absoluteFill} onPress={() => closeMenu()}>
-            <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.5)", opacity: overlayAnim }]} />
+            <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.5)" }, overlayStyle]} />
           </Pressable>
 
-          {/* Action items fanning up from center */}
           <Animated.View
             style={[
               styles.menuContainer,
-              { bottom: 56 + insets.bottom + 10, opacity: scaleAnim },
+              { bottom: 56 + insets.bottom + 10 },
+              menuStyle,
             ]}
             pointerEvents="box-none"
           >
-            {/* Title */}
-            <Animated.View style={{
-              transform: [{ scale: scaleAnim }, { translateY: scaleAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-              marginBottom: 20,
-            }}>
+            <Animated.View style={[{ marginBottom: 20 }, titleStyle]}>
               <Text style={styles.menuTitle}>Quick Actions</Text>
             </Animated.View>
 
-            {/* Featured Actions */}
             {FEATURED_ACTIONS.map((fa, fi) => {
               const FaIcon = fa.icon;
               return (
-                <Animated.View key={fa.key} style={{
-                  width: "100%",
-                  transform: [
-                    { scale: itemAnims[fi] || itemAnims[0] },
-                    { translateY: (itemAnims[fi] || itemAnims[0]).interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
-                  ],
-                  opacity: itemAnims[fi] || itemAnims[0],
-                  marginBottom: fi < FEATURED_ACTIONS.length - 1 ? 8 : 16,
-                }}>
+                <AnimatedItem
+                  key={fa.key}
+                  sv={itemProgress[fi]}
+                  style={{ width: "100%", marginBottom: fi < FEATURED_ACTIONS.length - 1 ? 8 : 16 }}
+                >
                   <TouchableOpacity
                     style={styles.featuredButton}
                     onPress={() => handleAction(fa.route)}
@@ -184,26 +211,16 @@ export default function CustomTabBar() {
                     <FaIcon size={24} color="#FFFFFF" />
                     <Text style={styles.featuredButtonText}>{fa.label}</Text>
                   </TouchableOpacity>
-                </Animated.View>
+                </AnimatedItem>
               );
             })}
 
-            {/* Grid */}
             <View style={styles.grid}>
               {QUICK_ACTIONS.map((action, i) => {
                 const Icon = action.icon;
                 const animIdx = i + FEATURED_ACTIONS.length;
                 return (
-                  <Animated.View
-                    key={action.key}
-                    style={{
-                      transform: [
-                        { scale: itemAnims[animIdx] || itemAnims[0] },
-                        { translateY: (itemAnims[animIdx] || itemAnims[0]).interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
-                      ],
-                      opacity: itemAnims[animIdx] || itemAnims[0],
-                    }}
-                  >
+                  <AnimatedItem key={action.key} sv={itemProgress[animIdx]}>
                     <TouchableOpacity
                       style={styles.actionItem}
                       onPress={() => handleAction(action.route)}
@@ -219,7 +236,7 @@ export default function CustomTabBar() {
                       </View>
                       <Text style={styles.actionLabel}>{action.label}</Text>
                     </TouchableOpacity>
-                  </Animated.View>
+                  </AnimatedItem>
                 );
               })}
             </View>
@@ -227,7 +244,6 @@ export default function CustomTabBar() {
         </View>
       )}
 
-      {/* Tab Bar */}
       <View style={[styles.container, { paddingBottom: insets.bottom }]}>
         <View style={styles.tabRow}>
           {TABS.map((tab) => {
@@ -242,7 +258,7 @@ export default function CustomTabBar() {
                   onPress={open ? () => closeMenu() : openMenu}
                   activeOpacity={0.8}
                 >
-                  <Animated.View style={[styles.centerCircle, { transform: [{ rotate: rotation }] }]}>
+                  <Animated.View style={[styles.centerCircle, rotateStyle]}>
                     <Plus size={30} color="#FFFFFF" strokeWidth={2.5} />
                   </Animated.View>
                 </TouchableOpacity>

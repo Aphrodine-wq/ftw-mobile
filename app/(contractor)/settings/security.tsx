@@ -12,7 +12,7 @@ function PasswordField({ label, value, onChangeText }: {
   return (
     <View className="mb-4">
       <Text className="text-text-secondary text-sm font-medium mb-1.5">{label}</Text>
-      <View className="bg-white border border-border flex-row items-center px-4" style={{ borderRadius: 0 }}>
+      <View className="bg-white border border-border rounded flex-row items-center px-4" style={{ borderRadius: 4 }}>
         <TextInput
           className="flex-1 py-3 text-dark text-base"
           value={value}
@@ -65,8 +65,8 @@ export default function SecuritySettings() {
           <Text className="text-dark text-sm font-bold uppercase tracking-wide mb-3">
             Two-Factor Authentication
           </Text>
-          <View className="bg-white border border-border px-4 py-4 flex-row items-center justify-between"
-            style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded px-4 py-4 flex-row items-center justify-between"
+            style={{ borderRadius: 4 }}>
             <View className="flex-1 mr-4">
               <Text className="text-dark font-medium text-base">Enable 2FA</Text>
               <Text className="text-text-muted text-sm mt-0.5">
@@ -85,7 +85,7 @@ export default function SecuritySettings() {
         <View className="px-5 mt-6">
           <TouchableOpacity
             className="py-4 items-center"
-            style={{ borderRadius: 0, backgroundColor: BRAND.colors.primary }}
+            style={{ borderRadius: 4, backgroundColor: BRAND.colors.primary }}
             activeOpacity={0.7}
           >
             <Text className="text-white font-bold text-base">Update Password</Text>

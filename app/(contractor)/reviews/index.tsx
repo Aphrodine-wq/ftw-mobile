@@ -38,10 +38,10 @@ function RatingBar({ stars, count, total }: { stars: number; count: number; tota
     <View className="flex-row items-center mb-1.5">
       <Text className="text-text-secondary text-sm w-4 text-right">{stars}</Text>
       <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={0} />
-      <View className="flex-1 h-2 bg-gray-100 mx-2 overflow-hidden" style={{ borderRadius: 0 }}>
+      <View className="flex-1 h-2 bg-gray-100 mx-2 overflow-hidden" style={{ borderRadius: 4 }}>
         <View
           className="h-full bg-gray-400"
-          style={{ width: `${pct}%`, borderRadius: 0 }}
+          style={{ width: `${pct}%`, borderRadius: 4 }}
         />
       </View>
       <Text className="text-text-muted text-xs w-6">{count}</Text>
@@ -98,8 +98,8 @@ export default function ReviewsScreen() {
 
       {/* Rating Summary */}
       <View
-        className="bg-white border border-border mx-5 mt-4 p-5"
-        style={{ borderRadius: 0 }}
+        className="bg-white border border-border rounded mx-5 mt-4 p-5"
+        style={{ borderRadius: 4 }}
       >
         <View className="flex-row">
           {/* Left: big number */}
@@ -136,8 +136,8 @@ export default function ReviewsScreen() {
 
   const renderReview = ({ item }: { item: Review }) => (
     <View
-      className="bg-white border border-border mx-5 mb-3 p-4"
-      style={{ borderRadius: 0 }}
+      className="bg-white border border-border rounded mx-5 mb-3 p-4"
+      style={{ borderRadius: 4 }}
     >
       {/* Reviewer row */}
       <View className="flex-row items-center mb-3">

@@ -79,8 +79,8 @@ export function AiEstimateCard({
 
   return (
     <View
-      className="bg-white border border-border overflow-hidden"
-      style={{ borderRadius: 0 }}
+      className="bg-white border border-border rounded overflow-hidden"
+      style={{ borderRadius: 4 }}
     >
       {/* Header */}
       <View className="px-4 py-3 bg-gray-50 flex-row items-center justify-between border-b border-border">
@@ -92,7 +92,7 @@ export function AiEstimateCard({
         </View>
         <View
           className={`px-2.5 py-0.5 ${conf.bg}`}
-          style={{ borderRadius: 0 }}
+          style={{ borderRadius: 4 }}
         >
           <Text className={`text-xs font-semibold ${conf.text}`}>
             {conf.label} ({Math.round(estimate.confidence * 100)}%)
@@ -138,7 +138,7 @@ export function AiEstimateCard({
       {/* Cost breakdown row */}
       <View
         className="flex-row mx-4 mb-3 border border-border overflow-hidden"
-        style={{ borderRadius: 0 }}
+        style={{ borderRadius: 4 }}
       >
         <View className="flex-1 items-center py-2.5 border-r border-border">
           <Text className="text-dark font-bold text-sm">

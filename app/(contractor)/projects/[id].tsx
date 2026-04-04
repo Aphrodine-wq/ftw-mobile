@@ -277,7 +277,7 @@ export default function ProjectDetailScreen() {
               const { icon: Icon, color } = getMilestoneIcon(ms.status);
               const statusLabel = ms.status === "paid" ? "Paid" : ms.status === "completed" ? "Complete" : ms.status === "in_progress" ? "In Progress" : "Pending";
               return (
-                <View key={ms.id} className="bg-white border border-border p-4">
+                <View key={ms.id} className="bg-white border border-border rounded p-4">
                   <View className="flex-row items-start">
                     <View className="mt-0.5 mr-3">
                       <Icon size={20} color={color} />
@@ -306,7 +306,7 @@ export default function ProjectDetailScreen() {
             })}
 
             {/* Milestone Summary */}
-            <View className="bg-white border border-border p-4 mt-2">
+            <View className="bg-white border border-border rounded p-4 mt-2">
               <Text className="text-base font-bold text-dark mb-3">Payment Summary</Text>
               <View className="flex-row justify-between mb-2">
                 <Text className="text-sm text-text-secondary">Total Contract</Text>
@@ -327,7 +327,7 @@ export default function ProjectDetailScreen() {
         {activeTab === "tasks" && (
           <View className="p-4">
             {/* Task Progress */}
-            <View className="bg-white border border-border p-4 mb-3">
+            <View className="bg-white border border-border rounded p-4 mb-3">
               <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-base font-bold text-dark">Progress</Text>
                 <Text className="text-sm text-text-muted">{doneTasks} / {totalTasks}</Text>
@@ -350,7 +350,7 @@ export default function ProjectDetailScreen() {
                 {project.tasks.filter((t) => t.status === "in_progress").map((task) => {
                   const { icon: Icon, color } = getTaskIcon(task.status);
                   return (
-                    <View key={task.id} className="bg-white border border-border p-3 mb-2 flex-row items-center">
+                    <View key={task.id} className="bg-white border border-border rounded p-3 mb-2 flex-row items-center">
                       <Icon size={18} color={color} />
                       <View className="flex-1 ml-3">
                         <Text className="text-sm font-bold text-dark">{task.title}</Text>
@@ -369,7 +369,7 @@ export default function ProjectDetailScreen() {
                 {project.tasks.filter((t) => t.status === "todo").map((task) => {
                   const { icon: Icon, color } = getTaskIcon(task.status);
                   return (
-                    <View key={task.id} className="bg-white border border-border p-3 mb-2 flex-row items-center">
+                    <View key={task.id} className="bg-white border border-border rounded p-3 mb-2 flex-row items-center">
                       <Icon size={18} color={color} />
                       <View className="flex-1 ml-3">
                         <Text className="text-sm font-bold text-dark">{task.title}</Text>
@@ -388,7 +388,7 @@ export default function ProjectDetailScreen() {
                 {project.tasks.filter((t) => t.status === "done").map((task) => {
                   const { icon: Icon, color } = getTaskIcon(task.status);
                   return (
-                    <View key={task.id} className="bg-white border border-border p-3 mb-2 flex-row items-center">
+                    <View key={task.id} className="bg-white border border-border rounded p-3 mb-2 flex-row items-center">
                       <Icon size={18} color={color} />
                       <View className="flex-1 ml-3">
                         <Text className="text-sm font-bold text-dark text-text-muted line-through">{task.title}</Text>
@@ -407,7 +407,7 @@ export default function ProjectDetailScreen() {
             {project.documents.map((doc) => {
               const DocIcon = getDocIcon(doc.type);
               return (
-                <TouchableOpacity key={doc.id} className="bg-white border border-border p-4 flex-row items-center" activeOpacity={0.7}>
+                <TouchableOpacity key={doc.id} className="bg-white border border-border rounded p-4 flex-row items-center" activeOpacity={0.7}>
                   <View className="bg-gray-100 p-2 mr-3">
                     <DocIcon size={20} color={BRAND.colors.textSecondary} />
                   </View>
@@ -434,7 +434,7 @@ export default function ProjectDetailScreen() {
                 <View key={act.id} className="flex-row items-start mb-0">
                   {/* Timeline line */}
                   <View className="items-center" style={{ width: 32 }}>
-                    <View className="bg-white border border-border p-1.5">
+                    <View className="bg-white border border-border rounded p-1.5">
                       <Icon size={14} color={BRAND.colors.textSecondary} />
                     </View>
                     {i < project.activity.length - 1 && (

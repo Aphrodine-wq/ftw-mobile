@@ -125,7 +125,7 @@ function MilestoneRow({
       <View className={`flex-1 pb-4 ${!isFirst ? "pt-1" : ""}`}>
         <TouchableOpacity
           className={`bg-white border ${isActive ? "border-brand-600 border-l-4" : "border-border"} p-4`}
-          style={{ borderRadius: 0 }}
+          style={{ borderRadius: 4 }}
           activeOpacity={0.7}
           onPress={() => setExpanded(!expanded)}
         >
@@ -184,7 +184,7 @@ function MilestoneRow({
 
         {/* Expanded content */}
         {expanded && (
-          <View className="bg-white border border-border border-t-0 px-4 pb-4" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded border-t-0 px-4 pb-4" style={{ borderRadius: 4 }}>
             {/* Tasks */}
             {tasks.length > 0 && (
               <View className="mb-3">
@@ -209,7 +209,7 @@ function MilestoneRow({
             )}
 
             {/* Payment Info */}
-            <View className="bg-gray-50 border border-border p-3 mb-3" style={{ borderRadius: 0 }}>
+            <View className="bg-gray-50 border border-border p-3 mb-3" style={{ borderRadius: 4 }}>
               <View className="flex-row items-center justify-between">
                 <Text className="text-xs text-text-muted">Milestone Payment</Text>
                 <Text className="text-sm font-bold text-dark">{formatCurrency(milestone.amount)}</Text>
@@ -224,8 +224,8 @@ function MilestoneRow({
             {isActive && (
               <View className="flex-row" style={{ gap: 8 }}>
                 <TouchableOpacity
-                  className="flex-1 bg-white border border-border py-3 flex-row items-center justify-center"
-                  style={{ borderRadius: 0 }}
+                  className="flex-1 bg-white border border-border rounded py-3 flex-row items-center justify-center"
+                  style={{ borderRadius: 4 }}
                   activeOpacity={0.7}
                   onPress={handleMarkComplete}
                 >
@@ -233,8 +233,8 @@ function MilestoneRow({
                   <Text className="text-dark font-bold text-xs ml-1.5">Mark Complete</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 bg-white border border-border py-3 flex-row items-center justify-center"
-                  style={{ borderRadius: 0 }}
+                  className="flex-1 bg-white border border-border rounded py-3 flex-row items-center justify-center"
+                  style={{ borderRadius: 4 }}
                   activeOpacity={0.7}
                 >
                   <Camera size={16} color={BRAND.colors.dark} />
@@ -245,7 +245,7 @@ function MilestoneRow({
             {isDone && (
               <TouchableOpacity
                 className="bg-brand-600 py-3 flex-row items-center justify-center"
-                style={{ borderRadius: 0 }}
+                style={{ borderRadius: 4 }}
                 activeOpacity={0.7}
                 onPress={handleSendInvoice}
               >
@@ -270,7 +270,7 @@ function ProjectSection({ project }: { project: Project }) {
   return (
     <View className="mb-6">
       {/* Project Header */}
-      <View className="mx-5 bg-white border border-border p-4 mb-3" style={{ borderRadius: 0 }}>
+      <View className="mx-5 bg-white border border-border rounded p-4 mb-3" style={{ borderRadius: 4 }}>
         <View className="flex-row items-center justify-between mb-1">
           <Text className="text-lg font-bold text-dark flex-1 mr-2" numberOfLines={1}>{project.name}</Text>
           <Badge label={project.status === "active" ? "Active" : "Completed"} variant={project.status === "active" ? "default" : "success"} />
@@ -363,7 +363,7 @@ export default function MilestonesScreen() {
         </View>
 
         {/* Summary */}
-        <View className="mx-5 mb-4 bg-dark p-4" style={{ borderRadius: 0 }}>
+        <View className="mx-5 mb-4 bg-dark p-4" style={{ borderRadius: 4 }}>
           <View className="flex-row items-center justify-between mb-3">
             <View>
               <Text className="text-white/50 text-xs uppercase tracking-wide">Total Pipeline</Text>

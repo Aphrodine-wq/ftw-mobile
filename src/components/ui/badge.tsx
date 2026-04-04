@@ -29,7 +29,7 @@ export function Badge({ label, variant = "default", square }: BadgeProps) {
   return (
     <View
       className={`self-start px-2.5 py-0.5 ${square ? "" : "rounded-full"} ${variantClasses[variant]}`}
-      style={square ? { borderRadius: 0 } : undefined}
+      style={square ? { borderRadius: 4 } : undefined}
     >
       <Text
         className={`text-xs font-medium ${variantTextClasses[variant]}`}

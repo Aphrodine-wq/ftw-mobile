@@ -68,10 +68,10 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
   };
 
   return (
-    <View className="bg-gray-50 p-4 mt-2" style={{ borderRadius: 0 }}>
+    <View className="bg-gray-50 p-4 mt-2" style={{ borderRadius: 4 }}>
       <Text className="text-sm font-bold text-dark mb-3">Your Bid</Text>
 
-      <View className="flex-row items-center bg-white border border-border px-3 py-2.5 mb-2" style={{ borderRadius: 0 }}>
+      <View className="flex-row items-center bg-white border border-border rounded px-3 py-2.5 mb-2" style={{ borderRadius: 4 }}>
         <DollarSign size={16} color={BRAND.colors.textMuted} />
         <TextInput
           value={amount}
@@ -83,7 +83,7 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
         />
       </View>
 
-      <View className="flex-row items-center bg-white border border-border px-3 py-2.5 mb-2" style={{ borderRadius: 0 }}>
+      <View className="flex-row items-center bg-white border border-border rounded px-3 py-2.5 mb-2" style={{ borderRadius: 4 }}>
         <Clock size={16} color={BRAND.colors.textMuted} />
         <TextInput
           value={timeline}
@@ -102,8 +102,8 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
         multiline
         numberOfLines={3}
         textAlignVertical="top"
-        className="bg-white border border-border px-3 py-2.5 text-dark mb-3 min-h-[70px]"
-        style={{ borderRadius: 0 }}
+        className="bg-white border border-border rounded px-3 py-2.5 text-dark mb-3 min-h-[70px]"
+        style={{ borderRadius: 4 }}
       />
 
       <View className="flex-row gap-2">
@@ -113,7 +113,7 @@ function BidForm({ jobId, budget }: { jobId: string; budget: { min: number; max:
           className={`flex-1 py-2.5 items-center flex-row justify-center ${
             amount && !submitting ? "bg-brand-600" : "bg-gray-200"
           }`}
-          style={{ borderRadius: 0 }}
+          style={{ borderRadius: 4 }}
           activeOpacity={0.7}
         >
           {submitting ? (
@@ -170,15 +170,15 @@ export default function ContractorJobs() {
 
       return (
         <TouchableOpacity
-          className="bg-white border border-border mx-5 mb-3 overflow-hidden"
-          style={{ borderRadius: 0 }}
+          className="bg-white border border-border rounded mx-5 mb-3 overflow-hidden"
+          style={{ borderRadius: 4 }}
           activeOpacity={0.7}
           onPress={() => toggleExpand(item.id)}
         >
           {/* Thumbnail */}
           <Image
             source={{ uri: item.thumbnail }}
-            style={{ width: "100%", height: 140, borderRadius: 0 }}
+            style={{ width: "100%", height: 140, borderRadius: 4 }}
             resizeMode="cover"
           />
 
@@ -205,10 +205,10 @@ export default function ContractorJobs() {
             {/* Category + Bids + Urgency row */}
             <View className="flex-row items-center mb-2">
               <Text className="text-text-secondary text-xs">{item.category}</Text>
-              <View className="w-1 h-1 bg-text-muted mx-2" style={{ borderRadius: 0.5 }} />
+              <View className="w-1 h-1 bg-text-muted mx-2" style={{ borderRadius: 4.5 }} />
               <Users size={12} color={BRAND.colors.textMuted} />
               <Text className="text-text-muted text-xs ml-1">{item.bidCount} bids</Text>
-              <View className="w-1 h-1 bg-text-muted mx-2" style={{ borderRadius: 0.5 }} />
+              <View className="w-1 h-1 bg-text-muted mx-2" style={{ borderRadius: 4.5 }} />
               <View className={`w-2 h-2 ${getUrgencyDot(item.urgency)} mr-1`} style={{ borderRadius: 1 }} />
               <Text className="text-text-muted text-xs">{getUrgencyLabel(item.urgency)}</Text>
             </View>
@@ -237,7 +237,7 @@ export default function ContractorJobs() {
                       ? "bg-amber-50"
                       : "bg-gray-100"
                   }`}
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                 >
                   <Text
                     className={`text-xs font-medium capitalize ${
@@ -275,7 +275,7 @@ export default function ContractorJobs() {
 
       {/* Search bar */}
       <View className="px-5 mt-2 mb-3">
-        <View className="bg-white flex-row items-center px-4 py-3 border border-border" style={{ borderRadius: 0 }}>
+        <View className="bg-white flex-row items-center px-4 py-3 border border-border" style={{ borderRadius: 4 }}>
           <Search size={18} color={BRAND.colors.textMuted} />
           <TextInput
             className="flex-1 ml-3 text-dark text-base"
@@ -302,7 +302,7 @@ export default function ContractorJobs() {
                 ? "bg-brand-600 border-brand-600"
                 : "bg-white border-border"
             }`}
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
             activeOpacity={0.7}
             onPress={() => setActiveCategory(null)}
           >
@@ -322,7 +322,7 @@ export default function ContractorJobs() {
                   ? "bg-brand-600 border-brand-600"
                   : "bg-white border-border"
               }`}
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
               activeOpacity={0.7}
               onPress={() =>
                 setActiveCategory(activeCategory === cat ? null : cat)

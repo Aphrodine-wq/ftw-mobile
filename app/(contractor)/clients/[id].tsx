@@ -51,14 +51,14 @@ export default function ClientDetailScreen() {
             <ArrowLeft size={24} color={BRAND.colors.dark} />
           </TouchableOpacity>
           <Text className="text-xl font-bold text-dark flex-1">Client</Text>
-          <TouchableOpacity activeOpacity={0.7} className="bg-gray-100 p-2" style={{ borderRadius: 0 }}>
+          <TouchableOpacity activeOpacity={0.7} className="bg-gray-100 p-2" style={{ borderRadius: 4 }}>
             <Edit3 size={18} color={BRAND.colors.dark} />
           </TouchableOpacity>
         </View>
 
         {/* Client Card */}
         <View className="flex-row items-center">
-          <View className="w-16 h-16 bg-dark items-center justify-center mr-4" style={{ borderRadius: 0 }}>
+          <View className="w-16 h-16 bg-dark items-center justify-center mr-4" style={{ borderRadius: 4 }}>
             <Text className="text-white font-bold text-xl">{getInitials(client.name)}</Text>
           </View>
           <View className="flex-1">
@@ -74,8 +74,8 @@ export default function ClientDetailScreen() {
         {/* Quick Actions */}
         <View className="flex-row px-5 mt-4" style={{ gap: 8 }}>
           <TouchableOpacity
-            className="flex-1 bg-white border border-border py-3 items-center flex-row justify-center"
-            style={{ borderRadius: 0 }}
+            className="flex-1 bg-white border border-border rounded py-3 items-center flex-row justify-center"
+            style={{ borderRadius: 4 }}
             activeOpacity={0.7}
             onPress={() => Linking.openURL(`tel:${client.phone}`)}
           >
@@ -83,8 +83,8 @@ export default function ClientDetailScreen() {
             <Text className="text-dark font-bold text-sm ml-2">Call</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 bg-white border border-border py-3 items-center flex-row justify-center"
-            style={{ borderRadius: 0 }}
+            className="flex-1 bg-white border border-border rounded py-3 items-center flex-row justify-center"
+            style={{ borderRadius: 4 }}
             activeOpacity={0.7}
             onPress={() => Linking.openURL(`mailto:${client.email}`)}
           >
@@ -92,8 +92,8 @@ export default function ClientDetailScreen() {
             <Text className="text-dark font-bold text-sm ml-2">Email</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 bg-white border border-border py-3 items-center flex-row justify-center"
-            style={{ borderRadius: 0 }}
+            className="flex-1 bg-white border border-border rounded py-3 items-center flex-row justify-center"
+            style={{ borderRadius: 4 }}
             activeOpacity={0.7}
           >
             <MessageCircle size={16} color={BRAND.colors.primary} />
@@ -102,7 +102,7 @@ export default function ClientDetailScreen() {
         </View>
 
         {/* Contact Details */}
-        <View className="mx-5 mt-4 bg-white border border-border" style={{ borderRadius: 0 }}>
+        <View className="mx-5 mt-4 bg-white border border-border rounded" style={{ borderRadius: 4 }}>
           <View className="px-4 pt-3 pb-2">
             <Text className="text-dark font-bold text-base">Contact</Text>
           </View>
@@ -118,12 +118,12 @@ export default function ClientDetailScreen() {
 
         {/* Stats */}
         <View className="flex-row px-5 mt-4" style={{ gap: 8 }}>
-          <View className="flex-1 bg-white border border-border p-4" style={{ borderRadius: 0 }}>
+          <View className="flex-1 bg-white border border-border rounded p-4" style={{ borderRadius: 4 }}>
             <FolderOpen size={18} color={BRAND.colors.primary} />
             <Text className="text-2xl font-bold text-dark mt-2">{client.projectCount}</Text>
             <Text className="text-text-muted text-xs mt-0.5">Projects</Text>
           </View>
-          <View className="flex-1 bg-white border border-border p-4" style={{ borderRadius: 0 }}>
+          <View className="flex-1 bg-white border border-border rounded p-4" style={{ borderRadius: 4 }}>
             <DollarSign size={18} color={BRAND.colors.primary} />
             <Text className="text-2xl font-bold text-dark mt-2">{formatCurrency(client.totalSpent)}</Text>
             <Text className="text-text-muted text-xs mt-0.5">Total Revenue</Text>
@@ -139,8 +139,8 @@ export default function ClientDetailScreen() {
               return (
                 <TouchableOpacity
                   key={proj.id}
-                  className="bg-white border border-border p-4 mb-2 flex-row items-center"
-                  style={{ borderRadius: 0 }}
+                  className="bg-white border border-border rounded p-4 mb-2 flex-row items-center"
+                  style={{ borderRadius: 4 }}
                   activeOpacity={0.7}
                   onPress={() => router.push(`/(contractor)/projects/${proj.id}` as any)}
                 >
@@ -164,8 +164,8 @@ export default function ClientDetailScreen() {
             {clientEstimates.map((est) => (
               <View
                 key={est.id}
-                className="bg-white border border-border p-4 mb-2 flex-row items-center"
-                style={{ borderRadius: 0 }}
+                className="bg-white border border-border rounded p-4 mb-2 flex-row items-center"
+                style={{ borderRadius: 4 }}
               >
                 <View className="flex-1">
                   <Text className="text-dark font-bold text-sm">{est.title}</Text>

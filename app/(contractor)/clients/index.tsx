@@ -43,15 +43,15 @@ export default function ContractorClients() {
   const renderClient = useCallback(
     ({ item }: { item: Client }) => (
       <TouchableOpacity
-        className="bg-white border border-border p-4 mx-5 mb-3"
-        style={{ borderRadius: 0 }}
+        className="bg-white border border-border rounded p-4 mx-5 mb-3"
+        style={{ borderRadius: 4 }}
         activeOpacity={0.7}
         onPress={() => router.push(`/(contractor)/clients/${item.id}` as any)}
       >
         <View className="flex-row items-center mb-3">
           <View
             className="w-12 h-12 bg-gray-100 items-center justify-center mr-3"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
           >
             <Text className="text-dark font-bold text-base">{getInitials(item.name)}</Text>
           </View>
@@ -95,7 +95,7 @@ export default function ContractorClients() {
         <TouchableOpacity
           onPress={() => router.push("/(contractor)/clients/add" as any)}
           className="bg-brand-600 p-2.5"
-          style={{ borderRadius: 0 }}
+          style={{ borderRadius: 4 }}
           activeOpacity={0.7}
         >
           <Plus size={20} color="#FFFFFF" />
@@ -103,7 +103,7 @@ export default function ContractorClients() {
       </View>
 
       <View className="px-5 mt-3 mb-4">
-        <View className="bg-white flex-row items-center px-4 py-3 border border-border" style={{ borderRadius: 0 }}>
+        <View className="bg-white flex-row items-center px-4 py-3 border border-border" style={{ borderRadius: 4 }}>
           <Search size={18} color={BRAND.colors.textMuted} />
           <TextInput
             className="flex-1 ml-3 text-dark text-base"

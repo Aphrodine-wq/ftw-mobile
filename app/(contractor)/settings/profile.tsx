@@ -13,8 +13,8 @@ function Field({ label, value, onChangeText, placeholder, keyboardType }: {
     <View className="mb-4">
       <Text className="text-text-secondary text-sm font-medium mb-1.5">{label}</Text>
       <TextInput
-        className="bg-white border border-border px-4 py-3 text-dark text-base"
-        style={{ borderRadius: 0 }}
+        className="bg-white border border-border rounded px-4 py-3 text-dark text-base"
+        style={{ borderRadius: 4 }}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -47,7 +47,7 @@ export default function ProfileSettings() {
 
         {/* Avatar */}
         <View className="items-center mt-6 mb-6">
-          <View className="w-24 h-24 bg-gray-200 items-center justify-center" style={{ borderRadius: 0 }}>
+          <View className="w-24 h-24 bg-gray-200 items-center justify-center" style={{ borderRadius: 4 }}>
             <Text className="text-gray-500 font-bold text-2xl">JW</Text>
           </View>
           <TouchableOpacity className="flex-row items-center mt-3" activeOpacity={0.7}>
@@ -69,7 +69,7 @@ export default function ProfileSettings() {
         <View className="px-5 mt-6">
           <TouchableOpacity
             className="py-4 items-center"
-            style={{ borderRadius: 0, backgroundColor: BRAND.colors.primary }}
+            style={{ borderRadius: 4, backgroundColor: BRAND.colors.primary }}
             activeOpacity={0.7}
           >
             <Text className="text-white font-bold text-base">Save Changes</Text>

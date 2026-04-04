@@ -260,8 +260,8 @@ function MyEstimatesTab() {
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
       {/* Summary Stats */}
       <View
-        className="flex-row mx-5 mt-4 bg-white border border-border overflow-hidden"
-        style={{ borderRadius: 0 }}
+        className="flex-row mx-5 mt-4 bg-white border border-border rounded overflow-hidden"
+        style={{ borderRadius: 4 }}
       >
         <View className="flex-1 items-center py-4 border-r border-border">
           <Text className="text-2xl font-bold text-dark">{totalEstimates}</Text>
@@ -286,13 +286,13 @@ function MyEstimatesTab() {
         {estimates.map((item) => (
           <TouchableOpacity
             key={item.id}
-            className="bg-white border border-border mx-5 mb-3 p-4 flex-row items-center"
-            style={{ borderRadius: 0 }}
+            className="bg-white border border-border rounded mx-5 mb-3 p-4 flex-row items-center"
+            style={{ borderRadius: 4 }}
             activeOpacity={0.7}
           >
             <View
               className="w-10 h-10 bg-gray-100 items-center justify-center mr-3"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <FileText size={20} color={BRAND.colors.textSecondary} />
             </View>
@@ -396,8 +396,24 @@ function NewEstimateTab() {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
+      {/* Live Estimate Preview */}
+      <View className="mx-5 mt-3 mb-3">
+        <LiveEstimatePreview
+          clientName={clientName}
+          clientEmail={clientEmail}
+          clientPhone={clientPhone}
+          jobTitle={jobTitle}
+          jobCategory={jobCategory}
+          jobDescription={jobDescription}
+          lineItems={lineItems}
+          estimateTotal={estimateTotal}
+          terms={terms}
+          validDays={validThrough}
+        />
+      </View>
+
       {/* Step indicator */}
-      <View className="flex-row mx-5 mt-4 mb-4">
+      <View className="flex-row mx-5 mb-4">
         {steps.map((s, i) => {
           const Icon = s.icon;
           const active = i === step;
@@ -411,7 +427,7 @@ function NewEstimateTab() {
             >
               <View
                 className={`w-10 h-10 items-center justify-center border ${active ? "bg-brand-600 border-brand-600" : done ? "bg-green-600 border-green-600" : "bg-gray-100 border-border"}`}
-                style={{ borderRadius: 0 }}
+                style={{ borderRadius: 4 }}
               >
                 {done ? (
                   <Check size={18} color="#FFFFFF" />
@@ -462,7 +478,7 @@ function NewEstimateTab() {
             onPress={() => setStep(1)}
             activeOpacity={0.7}
             className="bg-brand-600 py-3 mt-4 items-center"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
           >
             <Text className="text-white font-semibold">
               Next: Job Details
@@ -487,8 +503,8 @@ function NewEstimateTab() {
           <TouchableOpacity
             onPress={() => setShowCategoryPicker(!showCategoryPicker)}
             activeOpacity={0.7}
-            className="bg-white border border-border p-3 mb-3 flex-row items-center justify-between"
-            style={{ borderRadius: 0 }}
+            className="bg-white border border-border rounded p-3 mb-3 flex-row items-center justify-between"
+            style={{ borderRadius: 4 }}
           >
             <Text className="text-dark">{jobCategory}</Text>
             {showCategoryPicker ? (
@@ -499,8 +515,8 @@ function NewEstimateTab() {
           </TouchableOpacity>
           {showCategoryPicker && (
             <View
-              className="bg-white border border-border mb-3"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded mb-3"
+              style={{ borderRadius: 4 }}
             >
               {categories.map((cat) => (
                 <TouchableOpacity
@@ -533,7 +549,7 @@ function NewEstimateTab() {
               onPress={() => setStep(0)}
               activeOpacity={0.7}
               className="flex-1 border border-border py-3 mr-2 items-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-text-secondary font-semibold">Back</Text>
             </TouchableOpacity>
@@ -541,7 +557,7 @@ function NewEstimateTab() {
               onPress={() => setStep(2)}
               activeOpacity={0.7}
               className="flex-1 bg-brand-600 py-3 ml-2 items-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-white font-semibold">
                 Next: Line Items
@@ -559,7 +575,7 @@ function NewEstimateTab() {
             <TouchableOpacity onPress={addLineItem} activeOpacity={0.7}>
               <View
                 className="flex-row items-center bg-brand-50 px-3 py-1.5"
-                style={{ borderRadius: 0 }}
+                style={{ borderRadius: 4 }}
               >
                 <Plus size={14} color={BRAND.colors.primary} />
                 <Text
@@ -574,8 +590,8 @@ function NewEstimateTab() {
           {lineItems.map((li, idx) => (
             <View
               key={idx}
-              className="bg-white border border-border p-3 mb-3"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded p-3 mb-3"
+              style={{ borderRadius: 4 }}
             >
               <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-text-muted text-xs font-medium">
@@ -592,7 +608,7 @@ function NewEstimateTab() {
               </View>
               <TextInput
                 className="border border-border p-2.5 text-dark text-sm mb-2"
-                style={{ borderRadius: 0 }}
+                style={{ borderRadius: 4 }}
                 placeholder="Description"
                 placeholderTextColor={BRAND.colors.textMuted}
                 value={li.description}
@@ -601,7 +617,7 @@ function NewEstimateTab() {
               <View className="flex-row">
                 <TextInput
                   className="flex-1 border border-border p-2.5 text-dark text-sm mr-1"
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                   placeholder="Qty"
                   placeholderTextColor={BRAND.colors.textMuted}
                   keyboardType="numeric"
@@ -610,7 +626,7 @@ function NewEstimateTab() {
                 />
                 <TextInput
                   className="w-14 border border-border p-2.5 text-dark text-sm mr-1"
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                   placeholder="Unit"
                   placeholderTextColor={BRAND.colors.textMuted}
                   value={li.unit}
@@ -618,7 +634,7 @@ function NewEstimateTab() {
                 />
                 <TextInput
                   className="flex-1 border border-border p-2.5 text-dark text-sm"
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                   placeholder="Unit Cost"
                   placeholderTextColor={BRAND.colors.textMuted}
                   keyboardType="numeric"
@@ -635,7 +651,7 @@ function NewEstimateTab() {
           ))}
           <View
             className="bg-gray-50 border border-border p-3 flex-row items-center justify-between"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
           >
             <Text className="text-dark font-bold">Estimate Total</Text>
             <Text className="text-dark font-bold text-lg">
@@ -647,7 +663,7 @@ function NewEstimateTab() {
               onPress={() => setStep(1)}
               activeOpacity={0.7}
               className="flex-1 border border-border py-3 mr-2 items-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-text-secondary font-semibold">Back</Text>
             </TouchableOpacity>
@@ -655,7 +671,7 @@ function NewEstimateTab() {
               onPress={() => setStep(3)}
               activeOpacity={0.7}
               className="flex-1 bg-brand-600 py-3 ml-2 items-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-white font-semibold">Next: Terms</Text>
             </TouchableOpacity>
@@ -681,38 +697,26 @@ function NewEstimateTab() {
             placeholder="30"
             keyboardType="numeric"
           />
-          {/* Live Estimate Preview */}
-          <LiveEstimatePreview
-            clientName={clientName}
-            clientEmail={clientEmail}
-            clientPhone={clientPhone}
-            jobTitle={jobTitle}
-            jobCategory={jobCategory}
-            jobDescription={jobDescription}
-            lineItems={lineItems}
-            estimateTotal={estimateTotal}
-            terms={terms}
-            validDays={validThrough}
-          />
           <View className="flex-row mt-4">
             <TouchableOpacity
               onPress={() => setStep(2)}
               activeOpacity={0.7}
               className="flex-1 border border-border py-3 mr-2 items-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-text-secondary font-semibold">Back</Text>
             </TouchableOpacity>
             <TouchableOpacity
               activeOpacity={0.7}
               className="flex-1 bg-brand-600 py-3 ml-2 items-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-white font-semibold">Save Estimate</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
+
     </ScrollView>
   );
 }
@@ -738,8 +742,8 @@ function FormField({
         {label}
       </Text>
       <TextInput
-        className={`bg-white border border-border p-3 text-dark text-sm ${multiline ? "min-h-[80px]" : ""}`}
-        style={{ borderRadius: 0, textAlignVertical: multiline ? "top" : "center" }}
+        className={`bg-white border border-border rounded p-3 text-dark text-sm ${multiline ? "min-h-[80px]" : ""}`}
+        style={{ borderRadius: 4, textAlignVertical: multiline ? "top" : "center" }}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -804,7 +808,7 @@ function LiveEstimatePreview({
   const filledItems = lineItems.filter((li) => li.description && parseFloat(li.total) > 0);
 
   return (
-    <View className="bg-white border-2 border-dark mt-4" style={{ borderRadius: 0 }}>
+    <View className="bg-white border-2 border-dark mt-4" style={{ borderRadius: 4 }}>
       {/* Header Bar */}
       <View className="bg-dark px-4 py-3 flex-row items-center justify-between">
         <Text className="text-white text-xs font-bold uppercase tracking-widest">Estimate</Text>
@@ -967,8 +971,8 @@ function CalculatorTab() {
         <TouchableOpacity
           onPress={() => setShowCategoryPicker(!showCategoryPicker)}
           activeOpacity={0.7}
-          className="bg-white border border-border p-3 mb-3 flex-row items-center justify-between"
-          style={{ borderRadius: 0 }}
+          className="bg-white border border-border rounded p-3 mb-3 flex-row items-center justify-between"
+          style={{ borderRadius: 4 }}
         >
           <Text className="text-dark">{category}</Text>
           {showCategoryPicker ? (
@@ -979,8 +983,8 @@ function CalculatorTab() {
         </TouchableOpacity>
         {showCategoryPicker && (
           <View
-            className="bg-white border border-border mb-3"
-            style={{ borderRadius: 0 }}
+            className="bg-white border border-border rounded mb-3"
+            style={{ borderRadius: 4 }}
           >
             {categories.map((cat) => (
               <TouchableOpacity
@@ -1007,8 +1011,8 @@ function CalculatorTab() {
           ZIP Code
         </Text>
         <TextInput
-          className="bg-white border border-border p-3 text-dark text-sm mb-3"
-          style={{ borderRadius: 0 }}
+          className="bg-white border border-border rounded p-3 text-dark text-sm mb-3"
+          style={{ borderRadius: 4 }}
           placeholder="e.g. 78745"
           placeholderTextColor={BRAND.colors.textMuted}
           keyboardType="numeric"
@@ -1028,7 +1032,7 @@ function CalculatorTab() {
               onPress={() => setSize(s)}
               activeOpacity={0.7}
               className={`flex-1 py-2.5 items-center border ${s === size ? "bg-brand-600 border-brand-600" : "bg-white border-border"} ${s !== sizes[0] ? "ml-2" : ""}`}
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text
                 className={`text-sm font-semibold ${s === size ? "text-white" : "text-dark"}`}
@@ -1049,7 +1053,7 @@ function CalculatorTab() {
           onPress={calculate}
           activeOpacity={0.7}
           className="bg-brand-600 py-3 items-center"
-          style={{ borderRadius: 0 }}
+          style={{ borderRadius: 4 }}
         >
           <Text className="text-white font-bold text-base">
             Calculate Estimate
@@ -1061,8 +1065,8 @@ function CalculatorTab() {
           <View className="mt-4">
             {/* Price range */}
             <View
-              className="bg-white border border-border p-4"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded p-4"
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-text-muted text-xs mb-1">
                 Estimated Price Range
@@ -1094,8 +1098,8 @@ function CalculatorTab() {
 
             {/* Breakdown */}
             <View
-              className="bg-white border border-border border-t-0 p-4"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded border-t-0 p-4"
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-dark font-semibold text-sm mb-2">
                 Cost Breakdown
@@ -1119,8 +1123,8 @@ function CalculatorTab() {
 
             {/* Timeline */}
             <View
-              className="bg-white border border-border border-t-0 p-4 flex-row items-center"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded border-t-0 p-4 flex-row items-center"
+              style={{ borderRadius: 4 }}
             >
               <Clock size={16} color={BRAND.colors.textSecondary} />
               <Text className="text-dark text-sm ml-2">
@@ -1130,8 +1134,8 @@ function CalculatorTab() {
 
             {/* Region */}
             <View
-              className="bg-white border border-border border-t-0 p-4 flex-row items-center"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded border-t-0 p-4 flex-row items-center"
+              style={{ borderRadius: 4 }}
             >
               <MapPin size={16} color={BRAND.colors.textSecondary} />
               <Text className="text-dark text-sm ml-2">
@@ -1141,8 +1145,8 @@ function CalculatorTab() {
 
             {/* Tips */}
             <View
-              className="bg-white border border-border border-t-0 p-4"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded border-t-0 p-4"
+              style={{ borderRadius: 4 }}
             >
               <View className="flex-row items-center mb-2">
                 <Lightbulb size={16} color={BRAND.colors.primary} />
@@ -1209,7 +1213,7 @@ export default function EstimatesScreen() {
         <TouchableOpacity
           onPress={() => setActiveTab("new-estimate")}
           className="bg-brand-600 p-2.5"
-          style={{ borderRadius: 0 }}
+          style={{ borderRadius: 4 }}
           activeOpacity={0.7}
         >
           <Plus size={20} color="#FFFFFF" />
@@ -1217,12 +1221,12 @@ export default function EstimatesScreen() {
       </View>
 
       {/* Tab bar */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="border-b border-border"
-        contentContainerStyle={{ paddingHorizontal: 20 }}
-      >
+      <View className="border-b border-border">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20 }}
+        >
         {TABS.map((tab) => {
           const active = tab.id === activeTab;
           return (
@@ -1240,7 +1244,8 @@ export default function EstimatesScreen() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {/* Tab content */}
       {activeTab === "my-estimates" && <MyEstimatesTab />}

@@ -62,7 +62,7 @@ export default function NotificationSettings() {
         {/* Alerts Section */}
         <View className="mt-5">
           <Text className="text-dark text-sm font-bold uppercase tracking-wide px-5 mb-2">Alerts</Text>
-          <View className="bg-white border border-border mx-5" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded mx-5" style={{ borderRadius: 4 }}>
             {ALERTS.map((item) => (
               <ToggleRow key={item.key} item={item} value={values[item.key] ?? false}
                 onToggle={() => toggle(item.key)} />
@@ -73,7 +73,7 @@ export default function NotificationSettings() {
         {/* Marketing Section */}
         <View className="mt-5">
           <Text className="text-dark text-sm font-bold uppercase tracking-wide px-5 mb-2">Marketing</Text>
-          <View className="bg-white border border-border mx-5" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded mx-5" style={{ borderRadius: 4 }}>
             {MARKETING.map((item) => (
               <ToggleRow key={item.key} item={item} value={values[item.key] ?? false}
                 onToggle={() => toggle(item.key)} />
@@ -84,7 +84,7 @@ export default function NotificationSettings() {
         {/* Save */}
         <View className="px-5 mt-6">
           <TouchableOpacity className="py-4 items-center"
-            style={{ borderRadius: 0, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
+            style={{ borderRadius: 4, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
             <Text className="text-white font-bold text-base">Save Preferences</Text>
           </TouchableOpacity>
         </View>

@@ -79,7 +79,7 @@ export default function SubContractorDashboard() {
 
         {/* Stats Row */}
         <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
-          <View className="flex-1 bg-white border border-border p-4">
+          <View className="flex-1 bg-white border border-border rounded p-4">
             <View className="flex-row items-center mb-2">
               <DollarSign size={16} color={BRAND.colors.primary} />
               <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Revenue</Text>
@@ -88,14 +88,14 @@ export default function SubContractorDashboard() {
               {formatCurrency(subContractorStats.monthlyRevenue)}
             </Text>
           </View>
-          <View className="flex-1 bg-white border border-border p-4 items-center">
+          <View className="flex-1 bg-white border border-border rounded p-4 items-center">
             <View className="flex-row items-center mb-2">
               <Star size={16} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
               <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Rating</Text>
             </View>
             <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{subContractorStats.avgRating}</Text>
           </View>
-          <View className="flex-1 bg-white border border-border p-4 items-center">
+          <View className="flex-1 bg-white border border-border rounded p-4 items-center">
             <View className="flex-row items-center mb-2">
               <TrendingUp size={16} color={BRAND.colors.primary} />
               <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Win Rate</Text>
@@ -107,7 +107,7 @@ export default function SubContractorDashboard() {
         {/* Quick Glance */}
         <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
           <TouchableOpacity
-            className="flex-1 bg-white border border-border p-4 flex-row items-center"
+            className="flex-1 bg-white border border-border rounded p-4 flex-row items-center"
             onPress={() => router.push("/(subcontractor)/my-work" as any)}
             activeOpacity={0.7}
           >
@@ -118,7 +118,7 @@ export default function SubContractorDashboard() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 bg-white border border-border p-4 flex-row items-center"
+            className="flex-1 bg-white border border-border rounded p-4 flex-row items-center"
             onPress={() => router.push("/(subcontractor)/my-work" as any)}
             activeOpacity={0.7}
           >
@@ -157,7 +157,7 @@ export default function SubContractorDashboard() {
               const days = daysUntil(sj.deadline);
               return (
                 <View
-                  className="bg-white border border-border overflow-hidden"
+                  className="bg-white border border-border rounded overflow-hidden"
                   style={{ width: CARD_WIDTH }}
                 >
                   <View className="p-4">
@@ -264,7 +264,7 @@ export default function SubContractorDashboard() {
               {activeSubJobs.map((sj) => {
                 const bid = mockSubBids.find((b) => b.subJobId === sj.id && b.status === "accepted");
                 return (
-                  <View key={sj.id} className="bg-white border border-border p-4">
+                  <View key={sj.id} className="bg-white border border-border rounded p-4">
                     <View className="flex-row items-center justify-between mb-1">
                       <Text className="text-base font-bold text-dark flex-1 mr-2" numberOfLines={1}>{sj.title}</Text>
                       <Badge label="In Progress" variant="warning" square />
@@ -293,7 +293,7 @@ export default function SubContractorDashboard() {
               {pendingBids.map((bid) => {
                 const sj = mockSubJobs.find((j) => j.id === bid.subJobId);
                 return (
-                  <View key={bid.id} className="bg-white border border-border flex-row items-center p-3">
+                  <View key={bid.id} className="bg-white border border-border rounded flex-row items-center p-3">
                     <View className="flex-1">
                       <Text className="text-sm font-bold text-dark" numberOfLines={1}>{sj?.title || "Sub Job"}</Text>
                       <Text className="text-xs text-text-muted mt-0.5">{sj?.location} -- {bid.timeline}</Text>

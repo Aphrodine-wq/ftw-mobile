@@ -19,14 +19,14 @@ function PolicySection({ title, policy, onChange }: {
     <View className="mb-3">
       <Text className="text-text-secondary text-sm mb-1">{label}</Text>
       <TextInput className="border border-border px-3 py-2.5 text-dark text-base"
-        style={{ borderRadius: 0 }} value={policy[key]}
+        style={{ borderRadius: 4 }} value={policy[key]}
         onChangeText={(v) => onChange({ ...policy, [key]: v })}
         placeholder={placeholder} placeholderTextColor={BRAND.colors.textMuted} />
     </View>
   );
 
   return (
-    <View className="bg-white border border-border mx-5 mt-4 p-4" style={{ borderRadius: 0 }}>
+    <View className="bg-white border border-border rounded mx-5 mt-4 p-4" style={{ borderRadius: 4 }}>
       <Text className="text-dark font-bold text-base mb-3">{title}</Text>
       {field("Insurance Provider", "provider", "e.g. State Farm")}
       {field("Policy Number", "policyNumber", "Policy number")}
@@ -69,8 +69,8 @@ export default function InsuranceSettings() {
         <PolicySection title="Workers Compensation" policy={workersComp} onChange={setWorkersComp} />
 
         {/* Upload Toggle */}
-        <View className="bg-white border border-border mx-5 mt-4 px-4 py-4 flex-row items-center justify-between"
-          style={{ borderRadius: 0 }}>
+        <View className="bg-white border border-border rounded mx-5 mt-4 px-4 py-4 flex-row items-center justify-between"
+          style={{ borderRadius: 4 }}>
           <View className="flex-row items-center flex-1 mr-4">
             <Upload size={18} color={BRAND.colors.textSecondary} />
             <Text className="text-dark font-medium text-base ml-3">Upload Proof of Insurance</Text>
@@ -82,7 +82,7 @@ export default function InsuranceSettings() {
         {/* Save */}
         <View className="px-5 mt-6">
           <TouchableOpacity className="py-4 items-center"
-            style={{ borderRadius: 0, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
+            style={{ borderRadius: 4, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
             <Text className="text-white font-bold text-base">Save Insurance</Text>
           </TouchableOpacity>
         </View>

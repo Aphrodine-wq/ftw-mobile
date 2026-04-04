@@ -125,7 +125,7 @@ export default function ContractorMessages() {
               {item.unread > 0 && (
                 <View
                   className="bg-brand-600 w-5 h-5 items-center justify-center"
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                 >
                   <Text className="text-white text-xs font-bold">
                     {item.unread}
@@ -204,7 +204,7 @@ export default function ContractorMessages() {
                   className={`px-4 py-2.5 ${
                     isMe ? "bg-gray-900" : "bg-gray-100"
                   }`}
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                 >
                   <Text
                     className={`text-base ${
@@ -237,7 +237,7 @@ export default function ContractorMessages() {
         <View className="flex-row items-end px-4 py-3 bg-white border-t border-border">
           <TextInput
             className="flex-1 bg-surface px-4 py-3 text-dark text-base mr-3 max-h-24 border border-border"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
             placeholder="Type a message..."
             placeholderTextColor={BRAND.colors.textMuted}
             value={messageText}
@@ -249,7 +249,7 @@ export default function ContractorMessages() {
             className={`w-11 h-11 items-center justify-center ${
               messageText.trim() ? "bg-brand-600" : "bg-gray-200"
             }`}
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
             activeOpacity={0.7}
             onPress={handleSend}
             disabled={!messageText.trim()}

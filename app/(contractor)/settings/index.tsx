@@ -109,8 +109,8 @@ export default function ContractorSettings() {
               {section.title}
             </Text>
             <View
-              className="bg-white border border-border mx-5 overflow-hidden"
-              style={{ borderRadius: 0 }}
+              className="bg-white border border-border rounded mx-5 overflow-hidden"
+              style={{ borderRadius: 4 }}
             >
               {section.items.map((item, i) => {
                 const IconComponent = item.icon;
@@ -127,7 +127,7 @@ export default function ContractorSettings() {
                   >
                     <View
                       className="w-9 h-9 bg-gray-100 items-center justify-center mr-3"
-                      style={{ borderRadius: 0 }}
+                      style={{ borderRadius: 4 }}
                     >
                       <IconComponent size={18} color="#4B5563" />
                     </View>
@@ -151,13 +151,13 @@ export default function ContractorSettings() {
         <View className="mx-5 mt-6">
           <TouchableOpacity
             onPress={logout}
-            className="bg-white border border-border flex-row items-center px-4 py-4"
-            style={{ borderRadius: 0 }}
+            className="bg-white border border-border rounded flex-row items-center px-4 py-4"
+            style={{ borderRadius: 4 }}
             activeOpacity={0.7}
           >
             <View
               className="w-9 h-9 bg-gray-100 items-center justify-center mr-3"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <LogOut size={18} color="#4B5563" />
             </View>

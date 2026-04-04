@@ -50,10 +50,10 @@ export default function IntegrationsSettings() {
           const IconComponent = item.icon;
           return (
             <View key={item.id}
-              className="bg-white border border-border mx-5 mb-3 p-4 flex-row items-center"
-              style={{ borderRadius: 0 }}>
+              className="bg-white border border-border rounded mx-5 mb-3 p-4 flex-row items-center"
+              style={{ borderRadius: 4 }}>
               <View className="w-10 h-10 bg-gray-100 items-center justify-center mr-3"
-                style={{ borderRadius: 0 }}>
+                style={{ borderRadius: 4 }}>
                 <IconComponent size={20} color={BRAND.colors.textSecondary} />
               </View>
               <View className="flex-1 mr-3">
@@ -64,7 +64,7 @@ export default function IntegrationsSettings() {
                 onPress={() => toggle(item.id)}
                 className="px-4 py-2"
                 style={{
-                  borderRadius: 0,
+                  borderRadius: 4,
                   backgroundColor: item.connected ? BRAND.colors.bgSoft : BRAND.colors.primary,
                 }}
                 activeOpacity={0.7}

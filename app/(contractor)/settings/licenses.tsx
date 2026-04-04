@@ -45,16 +45,16 @@ export default function LicensesSettings() {
             <ArrowLeft size={24} color={BRAND.colors.dark} />
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-dark flex-1">Licenses</Text>
-          <TouchableOpacity onPress={addLicense} className="bg-white border border-border p-2"
-            style={{ borderRadius: 0 }} activeOpacity={0.7}>
+          <TouchableOpacity onPress={addLicense} className="bg-white border border-border rounded p-2"
+            style={{ borderRadius: 4 }} activeOpacity={0.7}>
             <Plus size={20} color={BRAND.colors.primary} />
           </TouchableOpacity>
         </View>
 
         {/* License Cards */}
         {licenses.map((lic) => (
-          <View key={lic.id} className="bg-white border border-border mx-5 mt-4 p-4"
-            style={{ borderRadius: 0 }}>
+          <View key={lic.id} className="bg-white border border-border rounded mx-5 mt-4 p-4"
+            style={{ borderRadius: 4 }}>
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-dark font-bold text-base">
                 {lic.type || "New License"}
@@ -66,14 +66,14 @@ export default function LicensesSettings() {
             <View className="mb-3">
               <Text className="text-text-secondary text-sm mb-1">Type</Text>
               <TextInput className="border border-border px-3 py-2.5 text-dark text-base"
-                style={{ borderRadius: 0 }} value={lic.type}
+                style={{ borderRadius: 4 }} value={lic.type}
                 onChangeText={(v) => update(lic.id, "type", v)}
                 placeholder="e.g. General Contractor" placeholderTextColor={BRAND.colors.textMuted} />
             </View>
             <View className="mb-3">
               <Text className="text-text-secondary text-sm mb-1">License Number</Text>
               <TextInput className="border border-border px-3 py-2.5 text-dark text-base"
-                style={{ borderRadius: 0 }} value={lic.number}
+                style={{ borderRadius: 4 }} value={lic.number}
                 onChangeText={(v) => update(lic.id, "number", v)}
                 placeholder="License number" placeholderTextColor={BRAND.colors.textMuted} />
             </View>
@@ -81,14 +81,14 @@ export default function LicensesSettings() {
               <View className="flex-1 mr-2">
                 <Text className="text-text-secondary text-sm mb-1">State</Text>
                 <TextInput className="border border-border px-3 py-2.5 text-dark text-base"
-                  style={{ borderRadius: 0 }} value={lic.state}
+                  style={{ borderRadius: 4 }} value={lic.state}
                   onChangeText={(v) => update(lic.id, "state", v)}
                   placeholder="State" placeholderTextColor={BRAND.colors.textMuted} />
               </View>
               <View className="flex-1 ml-2">
                 <Text className="text-text-secondary text-sm mb-1">Expiration</Text>
                 <TextInput className="border border-border px-3 py-2.5 text-dark text-base"
-                  style={{ borderRadius: 0 }} value={lic.expiration}
+                  style={{ borderRadius: 4 }} value={lic.expiration}
                   onChangeText={(v) => update(lic.id, "expiration", v)}
                   placeholder="YYYY-MM-DD" placeholderTextColor={BRAND.colors.textMuted} />
               </View>
@@ -99,7 +99,7 @@ export default function LicensesSettings() {
         {/* Save */}
         <View className="px-5 mt-6">
           <TouchableOpacity className="py-4 items-center"
-            style={{ borderRadius: 0, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
+            style={{ borderRadius: 4, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
             <Text className="text-white font-bold text-base">Save Licenses</Text>
           </TouchableOpacity>
         </View>

@@ -72,7 +72,7 @@ export default function LoginScreen() {
         <View className="items-center mb-10">
           <View
             className="w-16 h-16 bg-brand-600 items-center justify-center mb-4"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
           >
             <Text className="text-white text-2xl font-bold">FTW</Text>
           </View>
@@ -84,8 +84,8 @@ export default function LoginScreen() {
 
         {/* Form */}
         <View
-          className="bg-white border border-border p-6"
-          style={{ borderRadius: 0 }}
+          className="bg-white border border-border rounded p-6"
+          style={{ borderRadius: 4 }}
         >
           <Text className="text-lg font-bold text-dark mb-4">Sign In</Text>
 
@@ -101,7 +101,7 @@ export default function LoginScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               className="border border-border px-4 py-3 text-dark bg-surface"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
               placeholderTextColor="#9CA3AF"
             />
           </View>
@@ -112,7 +112,7 @@ export default function LoginScreen() {
             </Text>
             <View
               className="flex-row items-center border border-border bg-surface"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <TextInput
                 value={password}
@@ -137,7 +137,7 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={isLoading}
             className="bg-brand-600 py-3.5 items-center"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
             activeOpacity={0.8}
           >
             {isLoading ? (
@@ -160,7 +160,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={() => demoAs("contractor")}
               className="bg-dark py-3.5 items-center mb-3"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
               activeOpacity={0.8}
             >
               <Text className="text-white font-bold text-base">
@@ -171,7 +171,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={() => demoAs("homeowner")}
               className="border-2 border-dark py-3 items-center mb-3"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
               activeOpacity={0.8}
             >
               <Text className="text-dark font-bold text-base">
@@ -182,7 +182,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={() => demoAs("subcontractor")}
               className="border-2 border-dark py-3 items-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
               activeOpacity={0.8}
             >
               <Text className="text-dark font-bold text-base">

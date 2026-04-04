@@ -37,10 +37,10 @@ export default function SubContractorProfile() {
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         {/* Profile header */}
-        <View className="bg-white border border-border mx-5 mt-4 p-5 items-center">
+        <View className="bg-white border border-border rounded mx-5 mt-4 p-5 items-center">
           <View
             className="w-20 h-20 bg-dark items-center justify-center mb-3"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
           >
             <Text className="text-white text-2xl font-bold">
               {user ? getInitials(user.name) : "?"}
@@ -48,13 +48,13 @@ export default function SubContractorProfile() {
           </View>
           <Text className="text-xl font-bold text-dark">{user?.name}</Text>
           <Text className="text-text-secondary mt-0.5">{user?.email}</Text>
-          <View className="bg-brand-50 px-3 py-1 mt-2" style={{ borderRadius: 0 }}>
+          <View className="bg-brand-50 px-3 py-1 mt-2" style={{ borderRadius: 4 }}>
             <Text className="text-brand-600 text-sm font-medium">SubContractor</Text>
           </View>
         </View>
 
         {/* Stats row */}
-        <View className="flex-row mx-5 mt-3 bg-white border border-border overflow-hidden">
+        <View className="flex-row mx-5 mt-3 bg-white border border-border rounded overflow-hidden">
           {STATS.map((stat, i) => (
             <View
               key={stat.label}
@@ -69,7 +69,7 @@ export default function SubContractorProfile() {
         </View>
 
         {/* Menu items */}
-        <View className="bg-white border border-border mx-5 mt-4 overflow-hidden">
+        <View className="bg-white border border-border rounded mx-5 mt-4 overflow-hidden">
           {MENU_ITEMS.map((item, i) => (
             <TouchableOpacity
               key={item.label}
@@ -89,7 +89,7 @@ export default function SubContractorProfile() {
         {/* Logout */}
         <TouchableOpacity
           onPress={logout}
-          className="bg-white border border-border mx-5 mt-4 flex-row items-center px-5 py-4"
+          className="bg-white border border-border rounded mx-5 mt-4 flex-row items-center px-5 py-4"
           activeOpacity={0.7}
         >
           <LogOut size={20} color="#EF4444" />

@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: BRAND.colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 0,
+    borderRadius: 4,
   },
   badgeText: {
     color: "#FFFFFF",

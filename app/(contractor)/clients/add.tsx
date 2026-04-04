@@ -54,7 +54,7 @@ function Field({
   return (
     <View className="mb-4">
       <Text className="text-text-secondary text-sm font-bold mb-1.5">{label}</Text>
-      <View className="flex-row items-center bg-white border border-border" style={{ borderRadius: 0 }}>
+      <View className="flex-row items-center bg-white border border-border rounded" style={{ borderRadius: 4 }}>
         {Icon && (
           <View className="pl-3">
             <Icon size={16} color={BRAND.colors.textMuted} />
@@ -62,7 +62,7 @@ function Field({
         )}
         <TextInput
           className={`flex-1 p-3 text-dark text-sm ${multiline ? "min-h-[80px]" : ""}`}
-          style={{ borderRadius: 0, textAlignVertical: multiline ? "top" : "center" }}
+          style={{ borderRadius: 4, textAlignVertical: multiline ? "top" : "center" }}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -97,8 +97,8 @@ function Picker({
       <Text className="text-text-secondary text-sm font-bold mb-1.5">{label}</Text>
       <TouchableOpacity
         onPress={() => setOpen(!open)}
-        className="bg-white border border-border p-3 flex-row items-center justify-between"
-        style={{ borderRadius: 0 }}
+        className="bg-white border border-border rounded p-3 flex-row items-center justify-between"
+        style={{ borderRadius: 4 }}
         activeOpacity={0.7}
       >
         <Text className={`text-sm ${value ? "text-dark" : "text-text-muted"}`}>
@@ -107,7 +107,7 @@ function Picker({
         {open ? <ChevronUp size={18} color={BRAND.colors.textSecondary} /> : <ChevronDown size={18} color={BRAND.colors.textSecondary} />}
       </TouchableOpacity>
       {open && (
-        <View className="bg-white border border-border border-t-0" style={{ borderRadius: 0 }}>
+        <View className="bg-white border border-border rounded border-t-0" style={{ borderRadius: 4 }}>
           {options.map((opt) => (
             <TouchableOpacity
               key={opt}
@@ -318,7 +318,7 @@ export default function AddClientScreen() {
                   key={tag}
                   onPress={() => toggleTag(tag)}
                   className={`px-3 py-2 border ${active ? "bg-brand-600 border-brand-600" : "bg-white border-border"}`}
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 4 }}
                   activeOpacity={0.7}
                 >
                   <Text className={`text-xs font-bold ${active ? "text-white" : "text-dark"}`}>{tag}</Text>
@@ -339,14 +339,14 @@ export default function AddClientScreen() {
 
         {/* ── Options ── */}
         <View className="px-5 mt-2">
-          <View className="bg-white border border-border p-4 mb-3 flex-row items-center justify-between" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded p-4 mb-3 flex-row items-center justify-between" style={{ borderRadius: 4 }}>
             <View className="flex-1 mr-3">
               <Text className="text-dark font-bold text-sm">Send Welcome Email</Text>
               <Text className="text-text-muted text-xs mt-0.5">Introduce yourself and your services</Text>
             </View>
             <Switch value={sendWelcome} onValueChange={setSendWelcome} trackColor={{ false: BRAND.colors.border, true: BRAND.colors.primary }} />
           </View>
-          <View className="bg-white border border-border p-4 mb-3 flex-row items-center justify-between" style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded p-4 mb-3 flex-row items-center justify-between" style={{ borderRadius: 4 }}>
             <View className="flex-1 mr-3">
               <Text className="text-dark font-bold text-sm">Add to Mailing List</Text>
               <Text className="text-text-muted text-xs mt-0.5">Include in seasonal promotions and updates</Text>
@@ -360,7 +360,7 @@ export default function AddClientScreen() {
           <TouchableOpacity
             onPress={handleSave}
             className="bg-brand-600 py-4 items-center"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
             activeOpacity={0.8}
           >
             <Text className="text-white font-bold text-base">Add Client</Text>

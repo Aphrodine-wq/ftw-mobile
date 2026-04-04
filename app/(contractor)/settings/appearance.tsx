@@ -24,7 +24,7 @@ function OptionGroup<T extends string>({ label, options, selected, onSelect }: {
               onPress={() => onSelect(opt.value)}
               className="flex-1 py-3 items-center mr-2 last:mr-0"
               style={{
-                borderRadius: 0,
+                borderRadius: 4,
                 backgroundColor: active ? BRAND.colors.dark : "#FFFFFF",
                 borderWidth: 1,
                 borderColor: active ? BRAND.colors.dark : BRAND.colors.border,
@@ -88,8 +88,8 @@ export default function AppearanceSettings() {
           />
 
           {/* Compact Mode */}
-          <View className="bg-white border border-border px-4 py-4 flex-row items-center justify-between"
-            style={{ borderRadius: 0 }}>
+          <View className="bg-white border border-border rounded px-4 py-4 flex-row items-center justify-between"
+            style={{ borderRadius: 4 }}>
             <View className="flex-1 mr-4">
               <Text className="text-dark font-medium text-base">Compact Mode</Text>
               <Text className="text-text-muted text-sm mt-0.5">
@@ -104,7 +104,7 @@ export default function AppearanceSettings() {
         {/* Apply */}
         <View className="px-5 mt-6">
           <TouchableOpacity className="py-4 items-center"
-            style={{ borderRadius: 0, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
+            style={{ borderRadius: 4, backgroundColor: BRAND.colors.primary }} activeOpacity={0.7}>
             <Text className="text-white font-bold text-base">Apply Changes</Text>
           </TouchableOpacity>
         </View>

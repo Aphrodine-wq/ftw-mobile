@@ -63,7 +63,7 @@ export default function BrowseSubJobsScreen() {
           <TouchableOpacity
             key={tab.key}
             onPress={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 ${activeTab === tab.key ? "bg-dark" : "bg-white border border-border"}`}
+            className={`px-4 py-2 ${activeTab === tab.key ? "bg-dark" : "bg-white border border-border rounded"}`}
             activeOpacity={0.7}
           >
             <Text className={`text-sm font-bold ${activeTab === tab.key ? "text-white" : "text-dark"}`}>
@@ -83,7 +83,7 @@ export default function BrowseSubJobsScreen() {
             {filtered.map((sj) => {
               const days = daysUntil(sj.deadline);
               return (
-                <View key={sj.id} className="bg-white border border-border overflow-hidden">
+                <View key={sj.id} className="bg-white border border-border rounded overflow-hidden">
                   <View className="p-4">
                     {/* Top row */}
                     <View className="flex-row items-center justify-between mb-2">
@@ -157,7 +157,7 @@ export default function BrowseSubJobsScreen() {
                     {sj.status === "open" && (
                       <TouchableOpacity
                         className="bg-brand-600 py-3 items-center"
-                        style={{ borderRadius: 0 }}
+                        style={{ borderRadius: 4 }}
                         activeOpacity={0.8}
                       >
                         <Text className="text-white font-bold text-base">Place Bid</Text>

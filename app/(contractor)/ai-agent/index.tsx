@@ -119,7 +119,7 @@ export default function AiAgentScreen() {
                     </View>
                     <Text className="text-text-muted text-xs ml-2 font-bold">ConstructionAI</Text>
                   </View>
-                  <View className="bg-white border border-border p-3" style={{ borderRadius: 0 }}>
+                  <View className="bg-white border border-border rounded p-3" style={{ borderRadius: 4 }}>
                     <Text className="text-dark text-sm leading-5">{msg.text}</Text>
                   </View>
                   {msg.estimateCard && (
@@ -130,7 +130,7 @@ export default function AiAgentScreen() {
                 </View>
               ) : (
                 <View className="ml-8">
-                  <View className="bg-brand-600 p-3" style={{ borderRadius: 0 }}>
+                  <View className="bg-brand-600 p-3" style={{ borderRadius: 4 }}>
                     <Text className="text-white text-sm">{msg.text}</Text>
                   </View>
                 </View>
@@ -146,7 +146,7 @@ export default function AiAgentScreen() {
                 </View>
                 <Text className="text-text-muted text-xs ml-2 font-bold">ConstructionAI</Text>
               </View>
-              <View className="bg-white border border-border p-3" style={{ borderRadius: 0 }}>
+              <View className="bg-white border border-border rounded p-3" style={{ borderRadius: 4 }}>
                 <Text className="text-text-muted text-sm">Analyzing scope and generating estimate...</Text>
               </View>
             </View>
@@ -156,17 +156,17 @@ export default function AiAgentScreen() {
         {/* Input Bar */}
         <View className="border-t border-border bg-white px-4 py-3 flex-row items-center">
           <TouchableOpacity activeOpacity={0.7} className="relative mr-2">
-            <View className="w-11 h-11 bg-gray-100 items-center justify-center" style={{ borderRadius: 0 }}>
+            <View className="w-11 h-11 bg-gray-100 items-center justify-center" style={{ borderRadius: 4 }}>
               <Mic size={22} color={BRAND.colors.textSecondary} />
             </View>
-            <View className="absolute -top-1.5 -right-1.5 bg-brand-600 px-1 py-0.5" style={{ borderRadius: 0 }}>
+            <View className="absolute -top-1.5 -right-1.5 bg-brand-600 px-1 py-0.5" style={{ borderRadius: 4 }}>
               <Text className="text-white text-[8px] font-bold">PRO</Text>
             </View>
           </TouchableOpacity>
 
           <TextInput
             className="flex-1 bg-gray-50 border border-border p-3 text-dark text-sm"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
             placeholder="Describe a job to estimate..."
             placeholderTextColor={BRAND.colors.textMuted}
             value={input}
@@ -179,7 +179,7 @@ export default function AiAgentScreen() {
           <TouchableOpacity onPress={sendMessage} activeOpacity={0.7} className="ml-2">
             <View
               className={`w-11 h-11 items-center justify-center ${input.trim() && !loading ? "bg-brand-600" : "bg-gray-200"}`}
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Send size={20} color={input.trim() && !loading ? "#FFFFFF" : BRAND.colors.textMuted} />
             </View>

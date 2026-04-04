@@ -9,12 +9,16 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
-  Briefcase,
+  ClipboardList,
+  Users,
+  ShieldCheck,
+  CreditCard,
+  Search,
   Brain,
-  Shield,
-  Home,
-  Wrench,
-  HardHat,
+  Trophy,
+  Star,
+  ArrowRight,
+  ChevronRight,
 } from "lucide-react-native";
 import { BRAND } from "@src/lib/constants";
 
@@ -25,58 +29,45 @@ interface OnboardingPage {
   content: React.ReactNode;
 }
 
-function FeatureRow({
+function StepItem({
+  number,
   icon: Icon,
   title,
   description,
 }: {
+  number: number;
   icon: any;
   title: string;
   description: string;
 }) {
   return (
-    <View
-      className="flex-row items-center p-4 mb-3"
-      style={{ backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 0 }}
-    >
+    <View className="flex-row items-center mb-5">
       <View
-        className="w-12 h-12 items-center justify-center mr-4"
-        style={{ backgroundColor: BRAND.colors.primary, borderRadius: 0 }}
+        className="w-14 h-14 items-center justify-center mr-4"
+        style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
       >
-        <Icon size={22} color="#FFFFFF" />
+        <Icon size={24} color="#FFFFFF" />
       </View>
       <View className="flex-1">
-        <Text className="text-white font-bold text-base">{title}</Text>
-        <Text className="text-white/60 text-sm mt-0.5">{description}</Text>
-      </View>
-    </View>
-  );
-}
-
-function RoleCard({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: any;
-  title: string;
-  description: string;
-}) {
-  return (
-    <View
-      className="p-5 mb-3"
-      style={{ backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 0 }}
-    >
-      <View className="flex-row items-center mb-2">
-        <View
-          className="w-10 h-10 items-center justify-center mr-3"
-          style={{ backgroundColor: BRAND.colors.primary, borderRadius: 0 }}
+        <Text
+          className="text-xs font-bold tracking-widest mb-1"
+          style={{ color: BRAND.colors.textMuted }}
         >
-          <Icon size={20} color="#FFFFFF" />
-        </View>
-        <Text className="text-white font-bold text-lg">{title}</Text>
+          STEP {number}
+        </Text>
+        <Text
+          className="font-bold text-base"
+          style={{ color: BRAND.colors.textPrimary }}
+        >
+          {title}
+        </Text>
+        <Text
+          className="text-sm mt-0.5"
+          style={{ color: BRAND.colors.textSecondary }}
+        >
+          {description}
+        </Text>
       </View>
-      <Text className="text-white/60 text-sm">{description}</Text>
     </View>
   );
 }
@@ -95,92 +86,173 @@ export default function WelcomeScreen() {
     []
   );
 
-  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+  const viewabilityConfig = useRef({
+    viewAreaCoveragePercentThreshold: 50,
+  }).current;
 
   const pages: OnboardingPage[] = [
+    // Page 1: Brand
     {
-      id: "1",
+      id: "brand",
       content: (
         <View
           className="flex-1 justify-center items-center px-8"
           style={{ width: SCREEN_WIDTH }}
         >
           <View
-            className="w-24 h-24 items-center justify-center mb-8"
-            style={{ backgroundColor: BRAND.colors.dark, borderRadius: 0, borderWidth: 2, borderColor: "rgba(255,255,255,0.2)" }}
+            className="w-28 h-28 items-center justify-center mb-10"
+            style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
           >
-            <Text className="text-white text-3xl font-bold">FTW</Text>
+            <Text className="text-white text-4xl font-bold">FTW</Text>
           </View>
-          <Text className="text-white text-3xl font-bold text-center mb-4">
+          <Text
+            className="text-3xl font-bold text-center mb-4"
+            style={{ color: BRAND.colors.textPrimary }}
+          >
             The Fair Way to Build
           </Text>
-          <Text className="text-white/60 text-base text-center leading-6">
-            FairTradeWorker connects homeowners with verified contractors. No
-            lead fees. Fair pricing. Transparent estimates.
+          <Text
+            className="text-base text-center leading-6 px-4"
+            style={{ color: BRAND.colors.textSecondary }}
+          >
+            No lead fees. No middlemen. Just homeowners and contractors
+            connected directly, with fair pricing powered by AI.
           </Text>
         </View>
       ),
     },
+    // Page 2: How It Works — Homeowners
     {
-      id: "2",
+      id: "homeowner",
       content: (
         <View
           className="flex-1 justify-center px-8"
           style={{ width: SCREEN_WIDTH }}
         >
-          <Text className="text-white text-3xl font-bold text-center mb-8">
-            Built for the Job Site
+          <Text
+            className="text-xs font-bold tracking-widest mb-2"
+            style={{ color: BRAND.colors.primary }}
+          >
+            FOR HOMEOWNERS
           </Text>
-          <FeatureRow
-            icon={Briefcase}
-            title="Find Jobs"
-            description="Browse and bid on projects in your area"
+          <Text
+            className="text-2xl font-bold mb-8"
+            style={{ color: BRAND.colors.textPrimary }}
+          >
+            Hire contractors you can trust
+          </Text>
+
+          <StepItem
+            number={1}
+            icon={ClipboardList}
+            title="Post Your Job"
+            description="Describe what you need done. It takes 60 seconds."
           />
-          <FeatureRow
+          <StepItem
+            number={2}
+            icon={Users}
+            title="Get Fair Bids"
+            description="Verified contractors bid on your project. Compare side by side."
+          />
+          <StepItem
+            number={3}
+            icon={ShieldCheck}
+            title="Hire with Confidence"
+            description="Every contractor has a FairRecord — verified work history you can trust."
+          />
+          <StepItem
+            number={4}
+            icon={CreditCard}
+            title="Pay Fair"
+            description="Transparent pricing. No hidden fees. Pay through the app."
+          />
+        </View>
+      ),
+    },
+    // Page 3: How It Works — Contractors
+    {
+      id: "contractor",
+      content: (
+        <View
+          className="flex-1 justify-center px-8"
+          style={{ width: SCREEN_WIDTH }}
+        >
+          <Text
+            className="text-xs font-bold tracking-widest mb-2"
+            style={{ color: BRAND.colors.primary }}
+          >
+            FOR CONTRACTORS
+          </Text>
+          <Text
+            className="text-2xl font-bold mb-8"
+            style={{ color: BRAND.colors.textPrimary }}
+          >
+            Win more work. Get paid fair.
+          </Text>
+
+          <StepItem
+            number={1}
+            icon={Search}
+            title="Find Real Jobs"
+            description="Browse jobs posted by real homeowners in your area. No lead fees."
+          />
+          <StepItem
+            number={2}
             icon={Brain}
-            title="AI Estimates"
-            description="Generate detailed estimates with ConstructionAI"
+            title="AI-Powered Estimates"
+            description="ConstructionAI generates detailed estimates in seconds."
           />
-          <FeatureRow
-            icon={Shield}
-            title="FairRecord"
-            description="Build a verified track record that wins clients"
+          <StepItem
+            number={3}
+            icon={Trophy}
+            title="Win Work on Merit"
+            description="Your bids, your prices, your reputation. No pay-to-play."
+          />
+          <StepItem
+            number={4}
+            icon={Star}
+            title="Build Your FairRecord"
+            description="Every completed job builds your verified track record."
           />
         </View>
       ),
     },
+    // Page 4: Get Started
     {
-      id: "3",
+      id: "cta",
       content: (
         <View
-          className="flex-1 justify-center px-8"
+          className="flex-1 justify-center items-center px-8"
           style={{ width: SCREEN_WIDTH }}
         >
-          <Text className="text-white text-3xl font-bold text-center mb-8">
-            Three Ways to Work
+          <View
+            className="w-20 h-20 items-center justify-center mb-8"
+            style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
+          >
+            <ArrowRight size={36} color="#FFFFFF" />
+          </View>
+          <Text
+            className="text-3xl font-bold text-center mb-4"
+            style={{ color: BRAND.colors.textPrimary }}
+          >
+            Ready to build fair?
           </Text>
-          <RoleCard
-            icon={Home}
-            title="Homeowner"
-            description="Post jobs, compare bids, manage projects"
-          />
-          <RoleCard
-            icon={Wrench}
-            title="Contractor"
-            description="Find work, send estimates, grow your business"
-          />
-          <RoleCard
-            icon={HardHat}
-            title="Subcontractor"
-            description="Get assigned work, track tasks, submit progress"
-          />
+          <Text
+            className="text-base text-center leading-6 px-4"
+            style={{ color: BRAND.colors.textSecondary }}
+          >
+            Whether you're hiring or building, FairTradeWorker puts fairness
+            first.
+          </Text>
         </View>
       ),
     },
   ];
 
+  const isLastPage = currentPage === pages.length - 1;
+
   return (
-    <View className="flex-1" style={{ backgroundColor: BRAND.colors.dark }}>
+    <View className="flex-1" style={{ backgroundColor: BRAND.colors.bgSoft }}>
       <FlatList
         ref={flatListRef}
         data={pages}
@@ -209,23 +281,22 @@ export default function WelcomeScreen() {
               className="h-2"
               style={{
                 width: currentPage === i ? 24 : 8,
+                borderRadius: 4,
                 backgroundColor:
                   currentPage === i
                     ? BRAND.colors.primary
-                    : "rgba(255,255,255,0.3)",
-                borderRadius: 0,
+                    : BRAND.colors.border,
               }}
             />
           ))}
         </View>
 
-        {/* Buttons on last page */}
-        {currentPage === 2 ? (
+        {isLastPage ? (
           <View>
             <TouchableOpacity
               onPress={() => router.push("/(auth)/signup")}
               className="py-4 items-center mb-3"
-              style={{ backgroundColor: BRAND.colors.primary, borderRadius: 0 }}
+              style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
               activeOpacity={0.8}
             >
               <Text className="text-white font-bold text-base">
@@ -237,28 +308,55 @@ export default function WelcomeScreen() {
               className="py-4 items-center"
               style={{
                 borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.3)",
-                borderRadius: 0,
+                borderColor: BRAND.colors.border,
+                borderRadius: 4,
               }}
               activeOpacity={0.8}
             >
-              <Text className="text-white font-bold text-base">Sign In</Text>
+              <Text
+                className="font-bold text-base"
+                style={{ color: BRAND.colors.textPrimary }}
+              >
+                Sign In
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
-            onPress={() => {
-              flatListRef.current?.scrollToIndex({
-                index: currentPage + 1,
-                animated: true,
-              });
-            }}
-            className="py-4 items-center"
-            style={{ backgroundColor: BRAND.colors.primary, borderRadius: 0 }}
-            activeOpacity={0.8}
-          >
-            <Text className="text-white font-bold text-base">Next</Text>
-          </TouchableOpacity>
+          <View className="flex-row" style={{ gap: 12 }}>
+            <TouchableOpacity
+              onPress={() => router.push("/(auth)/login")}
+              className="py-4 items-center flex-1"
+              style={{
+                borderWidth: 1,
+                borderColor: BRAND.colors.border,
+                borderRadius: 4,
+              }}
+              activeOpacity={0.8}
+            >
+              <Text
+                className="font-bold text-sm"
+                style={{ color: BRAND.colors.textMuted }}
+              >
+                Skip
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                flatListRef.current?.scrollToIndex({
+                  index: currentPage + 1,
+                  animated: true,
+                });
+              }}
+              className="py-4 items-center flex-[2]"
+              style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
+              activeOpacity={0.8}
+            >
+              <View className="flex-row items-center" style={{ gap: 6 }}>
+                <Text className="text-white font-bold text-base">Next</Text>
+                <ChevronRight size={18} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>

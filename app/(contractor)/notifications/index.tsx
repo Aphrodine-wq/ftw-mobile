@@ -67,8 +67,8 @@ export default function ContractorNotifications() {
 
       return (
         <TouchableOpacity
-          className="bg-white border border-border p-4 mx-5 mb-3"
-          style={{ borderRadius: 0 }}
+          className="bg-white border border-border rounded p-4 mx-5 mb-3"
+          style={{ borderRadius: 4 }}
           activeOpacity={0.7}
           onPress={() => markRead(item.id)}
         >
@@ -76,7 +76,7 @@ export default function ContractorNotifications() {
             {/* Icon */}
             <View
               className={`w-10 h-10 ${config.bg} items-center justify-center mr-3`}
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <IconComponent size={18} color={config.color} />
             </View>
@@ -95,7 +95,7 @@ export default function ContractorNotifications() {
                 {!item.read && (
                   <View
                     className="w-2.5 h-2.5 bg-brand-600 ml-2"
-                    style={{ borderRadius: 0 }}
+                    style={{ borderRadius: 4 }}
                   />
                 )}
               </View>
@@ -133,7 +133,7 @@ export default function ContractorNotifications() {
         {unreadCount > 0 && (
           <View
             className="bg-brand-600 px-2.5 py-0.5"
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius: 4 }}
           >
             <Text className="text-white text-xs font-bold">
               {unreadCount}

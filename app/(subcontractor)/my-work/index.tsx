@@ -71,7 +71,7 @@ export default function MyWorkScreen() {
           <TouchableOpacity
             key={tab.key}
             onPress={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 ${activeTab === tab.key ? "bg-dark" : "bg-white border border-border"}`}
+            className={`px-4 py-2 ${activeTab === tab.key ? "bg-dark" : "bg-white border border-border rounded"}`}
             activeOpacity={0.7}
           >
             <Text className={`text-sm font-bold ${activeTab === tab.key ? "text-white" : "text-dark"}`}>
@@ -94,7 +94,7 @@ export default function MyWorkScreen() {
               const days = daysUntil(sj.deadline);
 
               return (
-                <View key={sj.id} className="bg-white border border-border p-4">
+                <View key={sj.id} className="bg-white border border-border rounded p-4">
                   <View className="flex-row items-center justify-between mb-1">
                     <Text className="text-base font-bold text-dark flex-1 mr-2" numberOfLines={1}>{sj.title}</Text>
                     <Badge label={statusBadge.label} variant={statusBadge.variant} square />

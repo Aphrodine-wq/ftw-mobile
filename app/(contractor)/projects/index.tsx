@@ -74,8 +74,8 @@ export default function ProjectsScreen() {
 
     return (
       <TouchableOpacity
-        className="bg-white border border-border mx-5 mb-3 overflow-hidden"
-        style={{ borderRadius: 0 }}
+        className="bg-white border border-border rounded mx-5 mb-3 overflow-hidden"
+        style={{ borderRadius: 4 }}
         activeOpacity={0.7}
         onPress={() => router.push(`/(contractor)/projects/${item.id}` as any)}
       >

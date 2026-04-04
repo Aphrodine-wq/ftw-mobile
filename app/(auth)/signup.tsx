@@ -70,8 +70,8 @@ function Field({
         {label}
       </Text>
       <View
-        className="flex-row items-center bg-white border border-border"
-        style={{ borderRadius: 0 }}
+        className="flex-row items-center bg-white border border-border rounded"
+        style={{ borderRadius: 4 }}
       >
         {Icon && (
           <View className="pl-3">
@@ -80,7 +80,7 @@ function Field({
         )}
         <TextInput
           className="flex-1 p-3 text-dark text-sm"
-          style={{ borderRadius: 0 }}
+          style={{ borderRadius: 4 }}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -213,19 +213,19 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <View className="bg-dark px-6 pt-16 pb-8">
+        <View className="bg-surface px-6 pt-16 pb-8">
           <View className="flex-row items-center mb-6">
             <View
               className="w-12 h-12 bg-brand-600 items-center justify-center"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
             >
               <Text className="text-white text-lg font-bold">FTW</Text>
             </View>
           </View>
-          <Text className="text-white text-2xl font-bold">
+          <Text className="text-dark text-2xl font-bold">
             {getStepTitle()}
           </Text>
-          <Text className="text-white/50 text-sm mt-1">
+          <Text className="text-text-muted text-sm mt-1">
             {getStepSubtitle()}
           </Text>
 
@@ -236,15 +236,16 @@ export default function SignupScreen() {
                 key={i}
                 className="flex-1 h-1"
                 style={{
+                  borderRadius: 4,
                   backgroundColor:
                     i < step
                       ? BRAND.colors.primary
-                      : "rgba(255,255,255,0.2)",
+                      : BRAND.colors.border,
                 }}
               />
             ))}
           </View>
-          <Text className="text-white/40 text-xs mt-2">
+          <Text className="text-text-muted text-xs mt-2">
             Step {step} of {totalSteps}
           </Text>
         </View>
@@ -268,13 +269,13 @@ export default function SignupScreen() {
                         ? "border-brand-600 bg-brand-50"
                         : "border-border bg-white"
                     }`}
-                    style={{ borderRadius: 0 }}
+                    style={{ borderRadius: 4 }}
                   >
                     <View
                       className={`w-12 h-12 items-center justify-center mr-4 ${
                         active ? "bg-brand-600" : "bg-gray-100"
                       }`}
-                      style={{ borderRadius: 0 }}
+                      style={{ borderRadius: 4 }}
                     >
                       <Icon
                         size={22}
@@ -386,7 +387,7 @@ export default function SignupScreen() {
                           ? "bg-brand-600 border-brand-600"
                           : "bg-white border-border"
                       }`}
-                      style={{ borderRadius: 0 }}
+                      style={{ borderRadius: 4 }}
                       activeOpacity={0.7}
                     >
                       <Text
@@ -413,8 +414,8 @@ export default function SignupScreen() {
                 </Text>
                 <TouchableOpacity
                   onPress={() => setShowTradePicker(!showTradePicker)}
-                  className="flex-row items-center justify-between bg-white border border-border p-3"
-                  style={{ borderRadius: 0 }}
+                  className="flex-row items-center justify-between bg-white border border-border rounded p-3"
+                  style={{ borderRadius: 4 }}
                 >
                   <Text
                     className={
@@ -436,7 +437,7 @@ export default function SignupScreen() {
                 {showTradePicker && (
                   <View
                     className="border border-t-0 border-border bg-white"
-                    style={{ borderRadius: 0 }}
+                    style={{ borderRadius: 4 }}
                   >
                     {TRADE_CATEGORIES.map((trade) => (
                       <TouchableOpacity
@@ -448,7 +449,7 @@ export default function SignupScreen() {
                         className={`px-3 py-2.5 border-b border-border ${
                           primaryTrade === trade ? "bg-brand-50" : ""
                         }`}
-                        style={{ borderRadius: 0 }}
+                        style={{ borderRadius: 4 }}
                       >
                         <Text
                           className={`text-sm ${
@@ -497,7 +498,7 @@ export default function SignupScreen() {
               <TouchableOpacity
                 onPress={() => setStep(step - 1)}
                 className="flex-row items-center justify-center border border-border py-3.5 px-6"
-                style={{ borderRadius: 0 }}
+                style={{ borderRadius: 4 }}
                 activeOpacity={0.7}
               >
                 <ArrowLeft size={18} color={BRAND.colors.dark} />
@@ -512,7 +513,7 @@ export default function SignupScreen() {
               className={`flex-1 flex-row items-center justify-center py-3.5 ${
                 canProceed() ? "bg-brand-600" : "bg-border"
               }`}
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 4 }}
               activeOpacity={0.8}
             >
               {isLoading ? (

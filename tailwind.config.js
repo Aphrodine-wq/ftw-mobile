@@ -42,6 +42,17 @@ module.exports = {
         "text-muted": "#5C6370",
         border: "#C8C3BC",
       },
+      borderRadius: {
+        none: "0px",
+        sm: "2px",
+        DEFAULT: "4px",
+        md: "6px",
+        lg: "8px",
+        xl: "12px",
+        "2xl": "16px",
+        "3xl": "24px",
+        full: "9999px",
+      },
       fontFamily: {
         sans: ["System"],
       },
