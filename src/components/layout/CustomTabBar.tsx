@@ -75,7 +75,7 @@ const TABS = [
 ] as const;
 
 const FEATURED_ACTIONS = [
-  { key: "estimate", label: "New Estimate", icon: FileText, route: "/(contractor)/estimates" },
+  { key: "estimate", label: "New Estimate", icon: FileText, route: "/(contractor)/estimates?tab=new-estimate" },
   { key: "client", label: "New Client", icon: Users, route: "/(contractor)/clients/add" },
 ] as const;
 
