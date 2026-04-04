@@ -8,7 +8,9 @@ import {
   FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  RefreshControl,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronRight,
@@ -58,6 +60,12 @@ const SubJobSeparator = memo(() => <View style={{ width: 12 }} />);
 export default function SubContractorDashboard() {
   const router = useRouter();
   const [activeIdx, setActiveIdx] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 800);
+  }, []);
 
   const dateStr = useMemo(() => {
     const today = new Date();
@@ -75,14 +83,20 @@ export default function SubContractorDashboard() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C41E3A" />
+        }
+      >
         {/* Header */}
-        <View className="px-4 pt-3 pb-4">
+        <Animated.View entering={FadeInDown.duration(400).delay(50)} className="px-4 pt-3 pb-4">
           <Text className="font-bold text-dark" style={{ fontSize: 28 }}>{dateStr}</Text>
-        </View>
+        </Animated.View>
 
         {/* Stats Row */}
-        <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(150)} className="flex-row px-4 mb-4" style={{ gap: 8 }}>
           <View className="flex-1 bg-white border border-border rounded p-4">
             <View className="flex-row items-center mb-2">
               <DollarSign size={16} color={BRAND.colors.primary} />
@@ -106,7 +120,7 @@ export default function SubContractorDashboard() {
             </View>
             <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{subContractorStats.winRate}%</Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Quick Glance */}
         <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
