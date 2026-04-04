@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useAuthStore } from "@src/stores/auth";
+import { BRAND } from "@src/lib/constants";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -69,16 +70,18 @@ export default function LoginScreen() {
     >
       <View className="flex-1 justify-center px-6">
         {/* Logo */}
-        <View className="items-center mb-10">
-          <View
-            className="w-16 h-16 bg-brand-600 items-center justify-center mb-4"
-            style={{ borderRadius: 4 }}
-          >
-            <Text className="text-white text-2xl font-bold">FTW</Text>
+        <View className="mb-8">
+          <View className="flex-row items-center mb-6">
+            <View
+              className="w-12 h-12 bg-brand-600 items-center justify-center"
+              style={{ borderRadius: 4 }}
+            >
+              <Text className="text-white text-lg font-bold">FTW</Text>
+            </View>
           </View>
-          <Text className="text-2xl font-bold text-dark">FairTradeWorker</Text>
-          <Text className="text-text-secondary mt-1">
-            The fair way to find and hire contractors
+          <Text className="text-2xl font-bold text-dark">Sign In</Text>
+          <Text className="text-text-muted text-sm mt-1">
+            {BRAND.tagline}
           </Text>
         </View>
 
@@ -87,8 +90,6 @@ export default function LoginScreen() {
           className="bg-white border border-border rounded p-6"
           style={{ borderRadius: 4 }}
         >
-          <Text className="text-lg font-bold text-dark mb-4">Sign In</Text>
-
           <View className="mb-4">
             <Text className="text-sm font-bold text-text-secondary mb-1.5">
               Email
