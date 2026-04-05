@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useMemo, memo } from "react";
 import {
   View,
   Text,
@@ -16,9 +16,9 @@ import {
   ChevronLeft,
   MapPin,
 } from "lucide-react-native";
-import { mockJobs, mockBids } from "@src/lib/mock-data";
+import { mockBids } from "@src/lib/mock-data";
 import type { MockJob, MockBid } from "@src/lib/mock-data";
-import { fetchJobs } from "@src/api/data";
+import { useJobs } from "@src/api/hooks";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
@@ -225,11 +225,7 @@ function JobRow({ job }: { job: MockJob }) {
 
 export default function HomeownerJobs() {
   const [filter, setFilter] = useState<Filter>("active");
-  const [allJobs, setAllJobs] = useState<MockJob[]>(mockJobs);
-
-  useEffect(() => {
-    fetchJobs().then(setAllJobs);
-  }, []);
+  const { data: allJobs = [] as MockJob[] } = useJobs();
 
   const filteredJobs = useMemo(() => allJobs.filter((job) => {
     if (filter === "active") {

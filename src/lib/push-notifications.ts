@@ -27,7 +27,7 @@ Notifications.setNotificationHandler({
 export async function registerForPushNotifications(): Promise<string | null> {
   // Push notifications only work on physical devices
   if (!Device.isDevice) {
-    console.log("Push notifications require a physical device");
+    if (__DEV__) console.log("Push notifications require a physical device");
     return null;
   }
 
@@ -43,7 +43,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   if (finalStatus !== "granted") {
-    console.log("Push notification permission denied");
+    if (__DEV__) console.log("Push notification permission denied");
     return null;
   }
 
@@ -76,7 +76,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
       body: JSON.stringify({ token, platform }),
     });
 
-    console.log("Push token registered:", token);
+    if (__DEV__) console.log("Push token registered:", token);
     return token;
   } catch (error) {
     console.error("Failed to register push token:", error);
@@ -102,7 +102,7 @@ export async function unregisterPushNotifications(): Promise<void> {
       body: JSON.stringify({ token: tokenData.data }),
     });
 
-    console.log("Push token unregistered");
+    if (__DEV__) console.log("Push token unregistered");
   } catch (error) {
     console.error("Failed to unregister push token:", error);
   }

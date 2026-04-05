@@ -58,6 +58,7 @@ export interface AuthUser {
   email: string;
   name: string;
   role: "homeowner" | "contractor" | "subcontractor";
+  avatar?: string;
 }
 
 export interface FairRecord {

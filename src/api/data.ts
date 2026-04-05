@@ -17,56 +17,56 @@ import {
 
 export async function fetchJobs() {
   try {
-    const jobs = await api.listJobs();
-    if (jobs.length > 0) return jobs;
+    const data = await api.listJobs();
+    if (data.jobs.length > 0) return data.jobs;
   } catch {}
   return mockJobs;
 }
 
 export async function fetchEstimates() {
   try {
-    const estimates = await api.listEstimates();
-    if (estimates.length > 0) return estimates;
+    const data = await api.listEstimates();
+    if (data.estimates.length > 0) return data.estimates;
   } catch {}
   return mockEstimates;
 }
 
 export async function fetchProjects() {
   try {
-    const projects = await api.listProjects();
-    if (projects.length > 0) return projects;
+    const data = await api.listProjects();
+    if (data.projects.length > 0) return data.projects;
   } catch {}
   return mockProjects;
 }
 
 export async function fetchInvoices() {
   try {
-    const invoices = await api.listInvoices();
-    if (invoices.length > 0) return invoices;
+    const data = await api.listInvoices();
+    if (data.invoices.length > 0) return data.invoices;
   } catch {}
   return mockInvoices;
 }
 
 export async function fetchClients() {
   try {
-    const clients = await api.listClients();
-    if (clients.length > 0) return clients;
+    const data = await api.listClients();
+    if (data.clients.length > 0) return data.clients;
   } catch {}
   return mockClients;
 }
 
 export async function fetchReviews() {
   try {
-    const reviews = await api.listReviews();
-    if (reviews.length > 0) return reviews;
+    const data = await api.listReviews();
+    if (data.reviews.length > 0) return data.reviews;
   } catch {}
   return mockReviews;
 }
 
 export async function fetchNotifications() {
   try {
-    const notifs = await api.listNotifications();
-    if (notifs.length > 0) return notifs;
+    const data = await api.listNotifications();
+    if (data.notifications.length > 0) return data.notifications;
   } catch {}
   return mockNotifications;
 }

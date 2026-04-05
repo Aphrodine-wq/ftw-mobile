@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Star, MessageSquare } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { fetchReviews } from "@src/api/data";
-import { mockReviews } from "@src/lib/mock-data";
+import { useReviews } from "@src/api/hooks";
 import { formatDate, getInitials } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Avatar } from "@src/components/ui/avatar";
@@ -51,23 +50,7 @@ function RatingBar({ stars, count, total }: { stars: number; count: number; tota
 
 export default function ReviewsScreen() {
   const router = useRouter();
-  const [reviews, setReviews] = useState<Review[]>(mockReviews);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadData = useCallback(async () => {
-    const data = await fetchReviews();
-    setReviews(data);
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
+  const { data: reviews = [] as Review[], refetch, isRefetching } = useReviews();
 
   // Compute stats
   const totalReviews = reviews.length;
@@ -176,7 +159,7 @@ export default function ReviewsScreen() {
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-5">

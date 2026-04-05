@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -34,9 +34,8 @@ import {
   Shield,
 } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { fetchEstimates } from "@src/api/data";
+import { useEstimates } from "@src/api/hooks";
 import {
-  mockEstimates,
   type MockEstimate,
 } from "@src/lib/mock-data";
 import { formatCurrency, formatDate } from "@src/lib/utils";
@@ -44,15 +43,14 @@ import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
 // ── Types ──────────────────────────────────────────────────────────────
 
-type TabId = "my-estimates" | "new-estimate" | "calculator";
+type TabId = "my-estimates" | "new-estimate";
 type EstimateStatus = MockEstimate["status"];
 
 // ── Constants ──────────────────────────────────────────────────────────
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "my-estimates", label: "My Estimates" },
   { id: "new-estimate", label: "New Estimate" },
-  { id: "calculator", label: "Calculator" },
+  { id: "my-estimates", label: "My Estimates" },
 ];
 
 const BASE_ESTIMATES: Record<
@@ -236,54 +234,31 @@ function getStatusLabel(status: EstimateStatus): string {
 // ── Tab: My Estimates ──────────────────────────────────────────────────
 
 function MyEstimatesTab() {
-  const [estimates, setEstimates] = useState<MockEstimate[]>(mockEstimates);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadData = useCallback(async () => {
-    const data = await fetchEstimates();
-    setEstimates(data);
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
+  const { data: estimates = [] as MockEstimate[] } = useEstimates();
 
   const totalEstimates = estimates.length;
-  const pendingValue = estimates
+  const pendingValue = useMemo(() => estimates
     .filter((e) => e.status === "sent" || e.status === "draft")
-    .reduce((sum, e) => sum + e.total, 0);
-  const acceptedValue = estimates
+    .reduce((sum, e) => sum + e.total, 0), [estimates]);
+  const acceptedValue = useMemo(() => estimates
     .filter((e) => e.status === "accepted")
-    .reduce((sum, e) => sum + e.total, 0);
+    .reduce((sum, e) => sum + e.total, 0), [estimates]);
 
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
       {/* Summary Stats */}
-      <View
-        className="flex-row mx-5 mt-4 bg-white border border-border rounded overflow-hidden"
-        style={{ borderRadius: 4 }}
-      >
-        <View className="flex-1 items-center py-4 border-r border-border">
-          <Text className="text-2xl font-bold text-dark">{totalEstimates}</Text>
-          <Text className="text-text-secondary text-sm mt-0.5">Total</Text>
+      <View className="flex-row mx-5 mt-4" style={{ gap: 8 }}>
+        <View className="flex-1 bg-white border border-border p-3 items-center">
+          <Text className="text-dark font-bold" style={{ fontSize: 22 }}>{totalEstimates}</Text>
+          <Text className="text-text-muted" style={{ fontSize: 11 }}>Total</Text>
         </View>
-        <View className="flex-1 items-center py-4 border-r border-border">
-          <Text className="text-2xl font-bold text-dark">
-            {formatCurrency(pendingValue)}
-          </Text>
-          <Text className="text-text-secondary text-sm mt-0.5">Pending</Text>
+        <View className="flex-1 bg-white border border-border p-3 items-center">
+          <Text className="text-dark font-bold" style={{ fontSize: 22 }}>{formatCurrency(pendingValue)}</Text>
+          <Text className="text-text-muted" style={{ fontSize: 11 }}>Pending</Text>
         </View>
-        <View className="flex-1 items-center py-4">
-          <Text className="text-2xl font-bold text-dark">
-            {formatCurrency(acceptedValue)}
-          </Text>
-          <Text className="text-text-secondary text-sm mt-0.5">Accepted</Text>
+        <View className="flex-1 bg-white border border-border p-3 items-center">
+          <Text className="text-dark font-bold" style={{ fontSize: 22 }}>{formatCurrency(acceptedValue)}</Text>
+          <Text className="text-text-muted" style={{ fontSize: 11 }}>Accepted</Text>
         </View>
       </View>
 
@@ -292,43 +267,54 @@ function MyEstimatesTab() {
         {estimates.map((item) => (
           <TouchableOpacity
             key={item.id}
-            className="bg-white border border-border rounded mx-5 mb-3 p-4 flex-row items-center"
+            className="bg-white border border-border mx-5 mb-3"
             style={{ borderRadius: 4 }}
             activeOpacity={0.7}
           >
-            <View
-              className="w-10 h-10 bg-gray-100 items-center justify-center mr-3"
-              style={{ borderRadius: 4 }}
-            >
-              <FileText size={20} color={BRAND.colors.textSecondary} />
-            </View>
-            <View className="flex-1">
-              <Text className="text-dark font-semibold" numberOfLines={1}>
-                {item.title}
-              </Text>
-              <Text className="text-text-secondary text-sm mt-0.5">
-                {item.client}
-              </Text>
-            </View>
-            <View className="items-end ml-3">
-              <Text className="text-dark font-bold">
-                {formatCurrency(item.total)}
-              </Text>
-              <View className="mt-1">
+            {/* Accent stripe */}
+            <View style={{ height: 3, backgroundColor: item.status === "accepted" ? BRAND.colors.primary : item.status === "sent" ? BRAND.colors.dark : BRAND.colors.border }} />
+
+            <View className="p-4">
+              <View className="flex-row items-center justify-between mb-2">
+                <View className="flex-row items-center flex-1 mr-3">
+                  <Text className="text-dark font-bold" style={{ fontSize: 16 }} numberOfLines={1}>{item.title}</Text>
+                </View>
                 <Badge
                   label={getStatusLabel(item.status)}
                   variant={getStatusVariant(item.status)}
+                  square
                 />
               </View>
+
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-text-muted" style={{ fontSize: 13 }}>{item.client}</Text>
+                <Text className="text-text-muted" style={{ fontSize: 12 }}>{item.date}</Text>
+              </View>
+
+              <View className="bg-surface p-3 flex-row items-center justify-between">
+                <Text className="text-text-muted font-bold" style={{ fontSize: 12 }}>Estimate Total</Text>
+                <Text className="text-dark font-bold" style={{ fontSize: 18 }}>{formatCurrency(item.total)}</Text>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View className="flex-row border-t border-border">
+              <TouchableOpacity className="flex-1 py-3 items-center border-r border-border" activeOpacity={0.7}>
+                <Text className="text-brand-600 font-bold" style={{ fontSize: 13 }}>Send</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 py-3 items-center border-r border-border" activeOpacity={0.7}>
+                <Text className="text-text-secondary font-bold" style={{ fontSize: 13 }}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 py-3 items-center" activeOpacity={0.7}>
+                <Text className="text-text-secondary font-bold" style={{ fontSize: 13 }}>PDF</Text>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
         {estimates.length === 0 && (
           <View className="items-center justify-center py-16 px-5">
             <FileText size={48} color={BRAND.colors.textMuted} />
-            <Text className="text-text-muted text-base mt-4">
-              No estimates yet
-            </Text>
+            <Text className="text-text-muted mt-4" style={{ fontSize: 15 }}>No estimates yet</Text>
           </View>
         )}
       </View>
@@ -830,7 +816,7 @@ function LiveEstimatePreview({
         <View className="flex-row items-start justify-between">
           <View className="flex-1">
             <View className="flex-row items-center mb-1">
-              <View style={{ width: 28, height: 28, backgroundColor: BRAND.colors.primary, alignItems: "center", justifyContent: "center", borderRadius: 2, marginRight: 8 }}>
+              <View style={{ width: 28, height: 28, backgroundColor: BRAND.colors.primary, alignItems: "center", justifyContent: "center", borderRadius: 4, marginRight: 8 }}>
                 <Building2 size={16} color="#FFFFFF" />
               </View>
               <View>
@@ -879,7 +865,7 @@ function LiveEstimatePreview({
 
       {/* From / To cards */}
       <View className="flex-row px-5 py-4" style={{ gap: 12 }}>
-        <View className="flex-1 bg-gray-50 p-3" style={{ borderRadius: 2, borderLeftWidth: 3, borderLeftColor: BRAND.colors.primary }}>
+        <View className="flex-1 bg-gray-50 p-3" style={{ borderRadius: 4, borderLeftWidth: 3, borderLeftColor: BRAND.colors.primary }}>
           <Text className="text-[9px] text-text-muted uppercase font-bold mb-1.5" style={{ letterSpacing: 1 }}>From</Text>
           <Text className="text-xs font-bold text-dark">Marcus Johnson</Text>
           <Text className="text-[10px] text-text-secondary mt-0.5">Johnson & Sons Construction</Text>
@@ -892,7 +878,7 @@ function LiveEstimatePreview({
             <Text className="text-[10px] text-text-secondary ml-1">marcus@johnsoncons.com</Text>
           </View>
         </View>
-        <View className="flex-1 bg-gray-50 p-3" style={{ borderRadius: 2, borderLeftWidth: 3, borderLeftColor: BRAND.colors.dark }}>
+        <View className="flex-1 bg-gray-50 p-3" style={{ borderRadius: 4, borderLeftWidth: 3, borderLeftColor: BRAND.colors.dark }}>
           <Text className="text-[9px] text-text-muted uppercase font-bold mb-1.5" style={{ letterSpacing: 1 }}>Prepared For</Text>
           <Text className="text-xs font-bold text-dark">{clientName || "Client Name"}</Text>
           {clientEmail ? (
@@ -915,7 +901,7 @@ function LiveEstimatePreview({
 
       {/* Project details */}
       <View className="px-5 pb-3">
-        <View className="bg-gray-50 p-3" style={{ borderRadius: 2 }}>
+        <View className="bg-gray-50 p-3" style={{ borderRadius: 4 }}>
           <Text className="text-[9px] text-text-muted uppercase font-bold mb-1" style={{ letterSpacing: 1 }}>Project</Text>
           <Text className="text-sm font-bold text-dark">{jobTitle || "Job Title"}</Text>
           <View className="flex-row items-center mt-1">
@@ -985,7 +971,7 @@ function LiveEstimatePreview({
       {/* Terms */}
       {terms ? (
         <View className="px-5 pb-3">
-          <View className="p-3" style={{ backgroundColor: "#FAFAF8", borderRadius: 2, borderWidth: 1, borderColor: "#E8E5E1" }}>
+          <View className="p-3" style={{ backgroundColor: "#FAFAF8", borderRadius: 4, borderWidth: 1, borderColor: "#E8E5E1" }}>
             <Text className="text-[9px] text-text-muted uppercase font-bold mb-1.5" style={{ letterSpacing: 1 }}>Terms & Conditions</Text>
             <Text className="text-[10px] text-text-secondary" style={{ lineHeight: 15 }}>{terms}</Text>
           </View>
@@ -1016,7 +1002,7 @@ function LiveEstimatePreview({
       <View style={{ backgroundColor: "#FAFAF8", borderTopWidth: 1, borderTopColor: "#E8E5E1" }} className="px-5 py-3 flex-row items-center justify-between">
         <Text className="text-[8px] text-text-muted">This estimate is valid for {validDays || "30"} days from the date of issue.</Text>
         <View className="flex-row items-center">
-          <View style={{ width: 10, height: 10, backgroundColor: BRAND.colors.primary, alignItems: "center", justifyContent: "center", borderRadius: 1, marginRight: 3 }}>
+          <View style={{ width: 10, height: 10, backgroundColor: BRAND.colors.primary, alignItems: "center", justifyContent: "center", borderRadius: 0, marginRight: 3 }}>
             <Building2 size={6} color="#FFFFFF" />
           </View>
           <Text className="text-[8px] text-text-muted font-bold">FairTradeWorker</Text>
@@ -1302,7 +1288,7 @@ export default function EstimatesScreen() {
   const router = useRouter();
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<TabId>(
-    tab === "new-estimate" || tab === "calculator" ? tab : "my-estimates"
+    tab === "my-estimates" ? tab : "new-estimate"
   );
 
   return (
@@ -1359,7 +1345,6 @@ export default function EstimatesScreen() {
       {/* Tab content */}
       {activeTab === "my-estimates" && <MyEstimatesTab />}
       {activeTab === "new-estimate" && <NewEstimateTab />}
-      {activeTab === "calculator" && <CalculatorTab />}
     </SafeAreaView>
   );
 }

@@ -1,4 +1,5 @@
-import { Stack, useRouter, usePathname } from "expo-router";
+import { Tabs, useRouter, useSegments } from "expo-router";
+import { memo, useCallback, useMemo } from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageCircle, Bell } from "lucide-react-native";
@@ -8,88 +9,101 @@ import { BRAND } from "@src/lib/constants";
 const UNREAD_MESSAGES = 1;
 const UNREAD_NOTIFICATIONS = 3;
 
-const HIDE_FLOATING_ON = ["/settings", "/notifications", "/messages"];
+const SHOW_FLOATING_ON = ["(dashboard)"];
 
-export default function SubContractorLayout() {
+const FloatingButtons = memo(function FloatingButtons({ top }: { top: number }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const insets = useSafeAreaInsets();
 
-  const showFloating = !HIDE_FLOATING_ON.some((p) => pathname.includes(p));
+  const goNotifications = useCallback(() => {
+    router.push("/(subcontractor)/(dashboard)" as any);
+  }, [router]);
+
+  const goMessages = useCallback(() => {
+    router.push("/(subcontractor)/(dashboard)" as any);
+  }, [router]);
 
   return (
-    <View style={{ flex: 1 }}>
-      {showFloating && (
-        <View style={[styles.topBar, { top: insets.top }]}>
-          <TouchableOpacity
-            style={styles.topButton}
-            onPress={() => router.push("/(subcontractor)/(dashboard)" as any)}
-            activeOpacity={0.8}
-          >
-            <MessageCircle size={18} color={BRAND.colors.primary} />
-            {UNREAD_MESSAGES > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{UNREAD_MESSAGES}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.topButton}
-            onPress={() => router.push("/(subcontractor)/(dashboard)" as any)}
-            activeOpacity={0.8}
-          >
-            <Bell size={18} color={BRAND.colors.primary} />
-            {UNREAD_NOTIFICATIONS > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{UNREAD_NOTIFICATIONS}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+    <View style={[styles.topBar, { top }]} pointerEvents="box-none">
+      <TouchableOpacity style={styles.topButton} onPress={goNotifications} activeOpacity={0.8}>
+        <Bell size={22} color={BRAND.colors.textSecondary} />
+        {UNREAD_NOTIFICATIONS > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{UNREAD_NOTIFICATIONS}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.topButton} onPress={goMessages} activeOpacity={0.8}>
+        <MessageCircle size={22} color={BRAND.colors.textSecondary} />
+        {UNREAD_MESSAGES > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{UNREAD_MESSAGES}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+});
 
-      <Stack
+export default function SubContractorLayout() {
+  const segments = useSegments();
+  const insets = useSafeAreaInsets();
+
+  const showFloating = useMemo(() => {
+    const filtered = segments.filter((s) => s !== "(subcontractor)");
+    const activeScreen = filtered[filtered.length - 1] || "";
+    return SHOW_FLOATING_ON.includes(activeScreen);
+  }, [segments]);
+
+  return (
+    <View style={styles.root}>
+      <Tabs
+        tabBar={(props) => <SubContractorTabBar {...props} />}
         screenOptions={{
           headerShown: false,
-          animation: "none",
+          lazy: false,
+          freezeOnBlur: false,
         }}
       >
-        <Stack.Screen name="(dashboard)" />
-        <Stack.Screen name="work" />
-        <Stack.Screen name="my-work" />
-        <Stack.Screen name="(profile)" />
-      </Stack>
-      <SubContractorTabBar />
+        <Tabs.Screen name="(dashboard)" options={{ title: "Home" }} />
+        <Tabs.Screen name="work" options={{ title: "Work" }} />
+        <Tabs.Screen name="my-work" options={{ title: "My Work" }} />
+        <Tabs.Screen name="(profile)" options={{ title: "Profile", href: null }} />
+      </Tabs>
+      {showFloating && <FloatingButtons top={insets.top} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   topBar: {
     position: "absolute",
     right: 16,
     zIndex: 100,
     flexDirection: "row",
-    gap: 8,
+    gap: 10,
   },
   topButton: {
-    width: 38,
-    height: 38,
-    backgroundColor: "transparent",
+    width: 46,
+    height: 46,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   badge: {
     position: "absolute",
-    top: -5,
-    right: -5,
+    top: -4,
+    right: -4,
     minWidth: 18,
     height: 18,
     paddingHorizontal: 4,
     backgroundColor: BRAND.colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 4,
   },
   badgeText: {
     color: "#FFFFFF",

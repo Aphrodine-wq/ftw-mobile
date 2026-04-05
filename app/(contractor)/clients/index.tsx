@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
   FlatList,
   TextInput,
   TouchableOpacity,
+  Linking,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Search,
@@ -15,23 +17,23 @@ import {
   ChevronLeft,
   Plus,
   ChevronRight,
+  Users,
+  DollarSign,
+  MessageCircle,
 } from "lucide-react-native";
-import { fetchClients } from "@src/api/data";
 import { mockClients } from "@src/lib/mock-data";
+import { useClients } from "@src/api/hooks";
 import { formatCurrency, getInitials } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { useRouter } from "expo-router";
+import { Badge } from "@src/components/ui/badge";
 
 type Client = (typeof mockClients)[number];
 
 export default function ContractorClients() {
   const router = useRouter();
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const { data: clients = mockClients, refetch, isRefetching } = useClients();
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    fetchClients().then((data) => setClients(data as Client[]));
-  }, []);
 
   const filtered = useMemo(() => {
     const sorted = [...clients].sort((a, b) => a.name.localeCompare(b.name));
@@ -42,58 +44,83 @@ export default function ContractorClients() {
     );
   }, [clients, search]);
 
+  const totalRevenue = useMemo(() => clients.reduce((sum, c) => sum + c.totalSpent, 0), [clients]);
+  const activeCount = useMemo(() => clients.filter((c) => c.status === "active").length, [clients]);
+
   const renderClient = useCallback(
     ({ item }: { item: Client }) => (
       <TouchableOpacity
-        className="bg-white border border-border rounded p-4 mx-5 mb-3"
+        className="bg-white border border-border mx-4 mb-3"
         style={{ borderRadius: 4 }}
         activeOpacity={0.7}
         onPress={() => router.push(`/(contractor)/clients/${item.id}` as any)}
       >
-        <View className="flex-row items-center mb-3">
-          <View
-            className="w-12 h-12 bg-gray-100 items-center justify-center mr-3"
-            style={{ borderRadius: 4 }}
-          >
-            <Text className="text-dark font-bold text-base">{getInitials(item.name)}</Text>
-          </View>
+        {/* Client Info */}
+        <View className="p-4 flex-row items-center">
+          <Image
+            source={{ uri: item.avatar }}
+            style={{ width: 48, height: 48, borderRadius: 24, marginRight: 12 }}
+            contentFit="cover"
+            recyclingKey={`client-${item.id}`}
+            transition={150}
+          />
           <View className="flex-1">
-            <Text className="text-dark font-bold text-base">{item.name}</Text>
-            <View className="flex-row items-center mt-0.5">
-              <FolderOpen size={12} color={BRAND.colors.textMuted} />
-              <Text className="text-text-secondary text-sm ml-1">
-                {item.projectCount} {item.projectCount === 1 ? "project" : "projects"}
-              </Text>
+            <View className="flex-row items-center">
+              <Text className="text-dark font-bold" style={{ fontSize: 16 }}>{item.name}</Text>
+              {item.status === "active" && (
+                <View className="ml-2">
+                  <Badge label="Active" variant="success" square />
+                </View>
+              )}
             </View>
+            <Text className="text-text-muted mt-0.5" style={{ fontSize: 13 }}>{item.lastProject}</Text>
           </View>
           <View className="items-end">
-            <Text className="text-dark font-bold text-base">{formatCurrency(item.totalSpent)}</Text>
-            <Text className="text-text-muted text-xs mt-0.5">total spent</Text>
+            <Text className="text-dark font-bold" style={{ fontSize: 16 }}>{formatCurrency(item.totalSpent)}</Text>
+            <Text className="text-text-muted" style={{ fontSize: 11 }}>{item.projectCount} {item.projectCount === 1 ? "project" : "projects"}</Text>
           </View>
         </View>
-        <View className="border-t border-border pt-3 flex-row items-center">
-          <View className="flex-row items-center flex-1">
-            <Mail size={14} color={BRAND.colors.textSecondary} />
-            <Text className="text-text-secondary text-sm ml-1.5" numberOfLines={1}>{item.email}</Text>
-          </View>
-          <View className="flex-row items-center ml-4">
+
+        {/* Quick Actions */}
+        <View className="flex-row border-t border-border">
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center py-3 border-r border-border"
+            activeOpacity={0.7}
+            onPress={() => Linking.openURL(`tel:${item.phone}`)}
+          >
             <Phone size={14} color={BRAND.colors.textSecondary} />
-            <Text className="text-text-secondary text-sm ml-1.5">{item.phone}</Text>
-          </View>
-          <ChevronRight size={16} color={BRAND.colors.textMuted} className="ml-3" />
+            <Text className="text-text-secondary font-medium ml-1.5" style={{ fontSize: 13 }}>Call</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center py-3 border-r border-border"
+            activeOpacity={0.7}
+            onPress={() => Linking.openURL(`mailto:${item.email}`)}
+          >
+            <Mail size={14} color={BRAND.colors.textSecondary} />
+            <Text className="text-text-secondary font-medium ml-1.5" style={{ fontSize: 13 }}>Email</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center py-3"
+            activeOpacity={0.7}
+            onPress={() => router.push(`/(contractor)/clients/${item.id}` as any)}
+          >
+            <ChevronRight size={14} color={BRAND.colors.textSecondary} />
+            <Text className="text-text-secondary font-medium ml-1.5" style={{ fontSize: 13 }}>Details</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     ),
-    [],
+    [router],
   );
 
-  return (
-    <SafeAreaView className="flex-1 bg-surface">
-      <View className="flex-row items-center px-5 pt-4 pb-2">
+  const renderHeader = useCallback(() => (
+    <View>
+      {/* Header */}
+      <View className="flex-row items-center px-4 pt-4 pb-2">
         <TouchableOpacity onPress={() => router.back()} className="mr-3" activeOpacity={0.7}>
           <ChevronLeft size={24} color={BRAND.colors.dark} />
         </TouchableOpacity>
-        <Text className="text-2xl font-bold text-dark flex-1">Clients</Text>
+        <Text className="text-dark font-bold flex-1" style={{ fontSize: 22 }}>Clients</Text>
         <TouchableOpacity
           onPress={() => router.push("/(contractor)/clients/add" as any)}
           className="bg-brand-600 p-2.5"
@@ -104,25 +131,17 @@ export default function ContractorClients() {
         </TouchableOpacity>
       </View>
 
-      <View className="px-5 mt-3 mb-4">
-        <View className="bg-white flex-row items-center px-4 py-3 border border-border" style={{ borderRadius: 4 }}>
-          <Search size={18} color={BRAND.colors.textMuted} />
-          <TextInput
-            className="flex-1 ml-3 text-dark text-base"
-            placeholder="Search clients..."
-            placeholderTextColor={BRAND.colors.textMuted}
-            value={search}
-            onChangeText={setSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </View>
-      </View>
+      <View style={{ height: 8 }} />
+    </View>
+  ), [clients.length, activeCount, totalRevenue, search, router]);
 
+  return (
+    <SafeAreaView className="flex-1 bg-surface">
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={renderClient}
+        ListHeaderComponent={renderHeader}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         removeClippedSubviews
@@ -130,7 +149,8 @@ export default function ContractorClients() {
         maxToRenderPerBatch={10}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">
-            <Text className="text-text-secondary text-base">No clients found.</Text>
+            <Users size={40} color={BRAND.colors.textMuted} />
+            <Text className="text-text-muted mt-3" style={{ fontSize: 15 }}>No clients found</Text>
           </View>
         }
       />

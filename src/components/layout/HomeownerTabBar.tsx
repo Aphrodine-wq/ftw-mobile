@@ -7,7 +7,7 @@ import {
   Pressable,
   ViewStyle,
 } from "react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import Animated, {
   SharedValue,
   useSharedValue,
@@ -103,8 +103,15 @@ const AnimatedItem = memo(function AnimatedItem({
   return <Animated.View style={[style, animStyle]}>{children}</Animated.View>;
 });
 
-export default function HomeownerTabBar() {
-  const pathname = usePathname();
+const HO_ROUTE_TO_KEY: Record<string, string> = {
+  "(dashboard)": "dashboard",
+  "(jobs)": "jobs",
+  settings: "settings",
+};
+
+export default function HomeownerTabBar(props: any) {
+  const tabNavigation = props?.navigation;
+  const tabState = props?.state;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
@@ -118,16 +125,15 @@ export default function HomeownerTabBar() {
   const item3 = useSharedValue(0);
   const item4 = useSharedValue(0);
   const item5 = useSharedValue(0);
-  const itemProgress = [item0, item1, item2, item3, item4, item5];
+  const itemProgress = useMemo(() => [item0, item1, item2, item3, item4, item5], [item0, item1, item2, item3, item4, item5]);
 
   const activeTabKey = useMemo(() => {
-    for (const tab of TABS) {
-      if (tab.match.some((m) => pathname.startsWith(m.replace("/(homeowner)", "")))) {
-        return tab.key;
-      }
+    if (tabState) {
+      const activeRoute = tabState.routes[tabState.index];
+      return HO_ROUTE_TO_KEY[activeRoute?.name] || null;
     }
     return null;
-  }, [pathname]);
+  }, [tabState?.index]);
 
   const openMenu = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -171,8 +177,13 @@ export default function HomeownerTabBar() {
     transform: [{ scale: interpolate(progress.value, [0, 1], [0.96, 1]) }],
   }));
 
+  const centerScale = useSharedValue(1);
+
   const rotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${interpolate(rotation.value, [0, 1], [0, 45])}deg` }],
+    transform: [
+      { scale: centerScale.value },
+      { rotate: `${interpolate(rotation.value, [0, 1], [0, 45])}deg` },
+    ],
   }));
 
   return (
@@ -208,7 +219,7 @@ export default function HomeownerTabBar() {
                     onPress={() => handleAction(fa.route)}
                     activeOpacity={0.8}
                   >
-                    <FaIcon size={24} color="#FFFFFF" />
+                    <FaIcon size={30} color="#FFFFFF" />
                     <Text style={styles.featuredButtonText}>{fa.label}</Text>
                   </TouchableOpacity>
                 </AnimatedItem>
@@ -227,7 +238,7 @@ export default function HomeownerTabBar() {
                       activeOpacity={0.7}
                     >
                       <View style={styles.actionIcon}>
-                        <Icon size={30} color={BRAND.colors.dark} />
+                        <Icon size={36} color={BRAND.colors.dark} />
                       </View>
                       <Text style={styles.actionLabel}>{action.label}</Text>
                     </TouchableOpacity>
@@ -247,16 +258,21 @@ export default function HomeownerTabBar() {
 
             if ("isCenter" in tab && tab.isCenter) {
               return (
-                <TouchableOpacity
+                <Pressable
                   key={tab.key}
                   style={styles.centerButton}
+                  onPressIn={() => {
+                    centerScale.value = withTiming(0.9, { duration: 120, easing: Easing.out(Easing.ease) });
+                  }}
+                  onPressOut={() => {
+                    centerScale.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+                  }}
                   onPress={open ? () => closeMenu() : openMenu}
-                  activeOpacity={0.8}
                 >
                   <Animated.View style={[styles.centerCircle, rotateStyle]}>
-                    <Plus size={30} color="#FFFFFF" strokeWidth={2.5} />
+                    <Plus size={38} color="#FFFFFF" strokeWidth={3} />
                   </Animated.View>
-                </TouchableOpacity>
+                </Pressable>
               );
             }
 
@@ -266,9 +282,17 @@ export default function HomeownerTabBar() {
                 style={styles.tab}
                 onPress={() => {
                   if (active && !open) return;
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (open) closeMenu(() => router.push(tab.route));
-                  else router.push(tab.route);
+                  const go = () => {
+                    if (tabNavigation) {
+                      const routeName = tab.route.replace("/(homeowner)/", "").replace("/(homeowner)", "(dashboard)");
+                      tabNavigation.navigate(routeName);
+                    } else {
+                      router.push(tab.route as any);
+                    }
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  };
+                  if (open) closeMenu(go);
+                  else go();
                 }}
                 activeOpacity={0.7}
               >
@@ -367,7 +391,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   actionLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",
     textAlign: "center",
@@ -382,7 +406,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   featuredButtonText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "700",
     color: "#FFFFFF",
   },

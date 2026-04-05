@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import {
   View,
   Text,
@@ -12,8 +12,8 @@ import {
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search, MapPin, Users, DollarSign, Clock, Send } from "lucide-react-native";
-import { mockJobs, type MockJob } from "@src/lib/mock-data";
-import { fetchJobs } from "@src/api/data";
+import { type MockJob } from "@src/lib/mock-data";
+import { useJobs } from "@src/api/hooks";
 import * as api from "@src/api/client";
 import { useRealtimeJobs } from "@src/realtime/hooks";
 import { formatCurrency } from "@src/lib/utils";
@@ -138,16 +138,9 @@ export default function ContractorJobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<MockJob[]>(mockJobs);
+  const { data: queryJobs = [] } = useJobs();
   const { jobs: realtimeJobs } = useRealtimeJobs();
-
-  useEffect(() => {
-    fetchJobs().then(setJobs);
-  }, []);
-
-  useEffect(() => {
-    if (realtimeJobs.length > 0) setJobs(realtimeJobs as MockJob[]);
-  }, [realtimeJobs]);
+  const jobs = (realtimeJobs.length > 0 ? realtimeJobs : queryJobs) as MockJob[];
 
   const filteredJobs = useMemo(() => jobs.filter((job) => {
     const matchesSearch =

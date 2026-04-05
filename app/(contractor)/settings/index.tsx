@@ -11,6 +11,8 @@ import {
   ChevronRight,
   ChevronLeft,
   LogOut,
+  Crown,
+  Check,
 } from "lucide-react-native";
 import { useAuthStore } from "@src/stores/auth";
 import { BRAND } from "@src/lib/constants";
@@ -81,7 +83,7 @@ const SECTIONS: SettingsSection[] = [
 ];
 
 export default function ContractorSettings() {
-  const { logout } = useAuthStore();
+  const logout = useAuthStore((s) => s.logout);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -101,6 +103,37 @@ export default function ContractorSettings() {
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-dark">Settings</Text>
         </View>
+
+        {/* Upgrade to Pro */}
+        <TouchableOpacity
+          onPress={() => router.push("/(contractor)/pro" as any)}
+          className="mx-5 mt-5 border-2 border-brand-600"
+          activeOpacity={0.7}
+        >
+          <View className="p-4">
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center">
+                <Crown size={20} color={BRAND.colors.primary} />
+                <Text className="text-dark font-bold ml-2" style={{ fontSize: 17 }}>Upgrade to Pro</Text>
+              </View>
+              <View className="bg-brand-600 px-2 py-0.5">
+                <Text className="text-white font-bold" style={{ fontSize: 10 }}>14 DAYS FREE</Text>
+              </View>
+            </View>
+            <Text className="text-text-muted mb-3" style={{ fontSize: 13 }}>AI estimates, voice tools, analytics, and more.</Text>
+            <View className="flex-row flex-wrap" style={{ gap: 4 }}>
+              {["ConstructionAI", "Call Agent", "Calculator", "PDF Export"].map((feat) => (
+                <View key={feat} className="flex-row items-center bg-brand-50 px-2 py-1 mr-1">
+                  <Check size={10} color={BRAND.colors.primary} strokeWidth={3} />
+                  <Text className="text-brand-600 font-medium ml-1" style={{ fontSize: 11 }}>{feat}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          <View className="bg-brand-600 py-3 items-center">
+            <Text className="text-white font-bold" style={{ fontSize: 14 }}>Start Free Trial</Text>
+          </View>
+        </TouchableOpacity>
 
         {/* Sections */}
         {SECTIONS.map((section) => (
@@ -150,7 +183,10 @@ export default function ContractorSettings() {
         {/* Sign Out */}
         <View className="mx-5 mt-6">
           <TouchableOpacity
-            onPress={logout}
+            onPress={() => {
+              logout();
+              router.replace("/(auth)/welcome" as any);
+            }}
             className="bg-white border border-border rounded flex-row items-center px-4 py-4"
             style={{ borderRadius: 4 }}
             activeOpacity={0.7}

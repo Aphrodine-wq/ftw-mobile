@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import {
   View,
   Text,
@@ -12,8 +12,8 @@ import {
   Calendar,
   FolderOpen,
 } from "lucide-react-native";
-import { fetchProjects } from "@src/api/data";
 import { mockProjects } from "@src/lib/mock-data";
+import { useProjects } from "@src/api/hooks";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
@@ -30,11 +30,7 @@ const STATUS_MAP: Record<string, { label: string; variant: BadgeVariant }> = {
 };
 
 export default function HomeownerProjects() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects as Project[]);
-
-  useEffect(() => {
-    fetchProjects().then((data) => setProjects(data as Project[]));
-  }, []);
+  const { data: projects = mockProjects as Project[] } = useProjects();
 
   const renderProject = useCallback(
     ({ item }: { item: Project }) => {

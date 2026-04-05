@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -21,8 +20,7 @@ import {
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { fetchFairRecords } from "@src/api/data";
-import { mockFairRecords } from "@src/lib/mock-data";
+import { useFairRecords } from "@src/api/hooks";
 import { formatDate } from "@src/lib/utils";
 import { BRAND, API_BASE } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
@@ -40,31 +38,7 @@ interface FairRecordData {
 
 export default function RecordsScreen() {
   const router = useRouter();
-  const [data, setData] = useState<FairRecordData>({
-    records: mockFairRecords as FairRecord[],
-    stats: {
-      total: mockFairRecords.length,
-      avg_budget_accuracy: 96.8,
-      on_time_rate: 80.0,
-      avg_rating: 4.9,
-    },
-  });
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadData = useCallback(async () => {
-    const result = await fetchFairRecords();
-    setData(result as FairRecordData);
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
+  const { data = { records: [] as FairRecord[], stats: { total: 0, avg_budget_accuracy: 0, on_time_rate: 0, avg_rating: 0 } }, refetch, isRefetching } = useFairRecords();
 
   const handleCertificate = async (record: FairRecord) => {
     const url = `${API_BASE}/api/records/${record.publicId}/certificate`;
@@ -239,7 +213,7 @@ export default function RecordsScreen() {
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-5">

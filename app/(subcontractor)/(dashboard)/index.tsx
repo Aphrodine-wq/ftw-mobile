@@ -10,7 +10,6 @@ import {
   NativeScrollEvent,
   RefreshControl,
 } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronRight,
@@ -29,33 +28,99 @@ import {
   mockSubBids,
   subContractorStats,
 } from "@src/lib/mock-data";
-import { formatCurrency, formatDate } from "@src/lib/utils";
+import { formatCurrency } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
+// Pre-computed at module level
 const openSubJobs = mockSubJobs.filter((sj) => sj.status === "open");
 const activeSubJobs = mockSubJobs.filter((sj) => sj.status === "in_progress");
 const pendingBids = mockSubBids.filter((b) => b.status === "pending");
+const subJobMap = new Map(mockSubJobs.map((sj) => [sj.id, sj]));
+const acceptedBidMap = new Map(
+  mockSubBids.filter((b) => b.status === "accepted").map((b) => [b.subJobId, b])
+);
 
 function daysUntil(deadline: string): number {
-  const diff = new Date(deadline).getTime() - new Date().getTime();
+  const diff = new Date(deadline).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
-function getUrgencyVariant(urgency: string): "danger" | "warning" | "neutral" {
-  if (urgency === "high") return "danger";
-  if (urgency === "medium") return "warning";
-  return "neutral";
 }
 
 function getPaymentPathLabel(path: string): string {
   return path === "contractor_escrow" ? "GC Escrow" : "Pass-through";
 }
 
+const SUB_JOB_ITEM_LAYOUT = (_data: any, index: number) => ({
+  length: CARD_WIDTH + 12,
+  offset: (CARD_WIDTH + 12) * index,
+  index,
+});
+
 const SubJobSeparator = memo(() => <View style={{ width: 12 }} />);
+
+const SubJobCard = memo(function SubJobCard({ sj }: { sj: typeof openSubJobs[0] }) {
+  const days = daysUntil(sj.deadline);
+  return (
+    <View className="bg-white border border-border rounded overflow-hidden" style={{ width: CARD_WIDTH }}>
+      <View className="p-4">
+        <View className="flex-row items-center justify-between mb-2">
+          <View className="bg-gray-100 px-2 py-0.5">
+            <Text className="text-[10px] font-bold text-text-secondary uppercase">{sj.category}</Text>
+          </View>
+          {sj.urgency === "high" && (
+            <View className="flex-row items-center">
+              <AlertCircle size={12} color={BRAND.colors.primary} />
+              <Text className="text-[10px] font-bold text-brand-600 ml-1 uppercase">Urgent</Text>
+            </View>
+          )}
+        </View>
+
+        <Text className="text-base font-bold text-dark mb-1" numberOfLines={1}>{sj.title}</Text>
+
+        <View className="flex-row items-center mb-2">
+          <Text className="text-sm text-text-secondary">{sj.contractorName}</Text>
+          <View className="flex-row items-center ml-2">
+            <Star size={12} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
+            <Text className="text-xs text-text-muted ml-0.5">{sj.contractorRating}</Text>
+          </View>
+        </View>
+
+        <Text className="text-lg font-bold text-dark mb-2">
+          {formatCurrency(sj.budgetMin)}-{formatCurrency(sj.budgetMax)}
+        </Text>
+
+        {/* Skills — plain View instead of ScrollView to avoid FlatList nesting */}
+        <View className="flex-row flex-wrap mb-2" style={{ gap: 6 }}>
+          {sj.skills.map((skill) => (
+            <View key={skill} className="bg-gray-100 px-2 py-0.5">
+              <Text className="text-[10px] font-bold text-text-secondary">{skill}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <MapPin size={13} color={BRAND.colors.textMuted} />
+            <Text className="text-sm text-text-muted ml-1">{sj.location}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <Clock size={13} color={days <= 3 ? BRAND.colors.primary : BRAND.colors.textMuted} />
+            <Text className={`text-sm ml-1 font-bold ${days <= 3 ? "text-brand-600" : "text-text-muted"}`}>
+              {days}d left
+            </Text>
+          </View>
+        </View>
+
+        <View className="mt-2">
+          <Badge label={getPaymentPathLabel(sj.paymentPath)} variant="neutral" square />
+        </View>
+      </View>
+    </View>
+  );
+});
 
 export default function SubContractorDashboard() {
   const router = useRouter();
@@ -64,16 +129,12 @@ export default function SubContractorDashboard() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
+    setTimeout(() => setRefreshing(false), 200);
   }, []);
 
   const dateStr = useMemo(() => {
     const today = new Date();
-    return today.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    });
+    return today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   }, []);
 
   const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -81,30 +142,39 @@ export default function SubContractorDashboard() {
     setActiveIdx(idx);
   }, []);
 
+  // Memoized nav handlers
+  const goMyWork = useCallback(() => router.navigate("/(subcontractor)/my-work" as any), [router]);
+  const goBrowse = useCallback(() => router.navigate("/(subcontractor)/work" as any), [router]);
+
+  const renderSubJobCard = useCallback(({ item }: { item: typeof openSubJobs[0] }) => (
+    <SubJobCard sj={item} />
+  ), []);
+
+  const keyExtractor = useCallback((item: { id: string }) => item.id, []);
+
   return (
     <SafeAreaView className="flex-1 bg-surface">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C41E3A" />
         }
       >
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400).delay(50)} className="px-4 pt-3 pb-4">
-          <Text className="font-bold text-dark" style={{ fontSize: 28 }}>{dateStr}</Text>
-        </Animated.View>
+        <View className="px-4 pt-3 pb-4">
+          <Text className="font-bold text-dark" style={{ fontSize: 29 }}>{dateStr}</Text>
+        </View>
 
         {/* Stats Row */}
-        <Animated.View entering={FadeInDown.duration(400).delay(150)} className="flex-row px-4 mb-4" style={{ gap: 8 }}>
+        <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
           <View className="flex-1 bg-white border border-border rounded p-4">
             <View className="flex-row items-center mb-2">
               <DollarSign size={16} color={BRAND.colors.primary} />
               <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Revenue</Text>
             </View>
-            <Text className="text-2xl font-bold text-dark">
-              {formatCurrency(subContractorStats.monthlyRevenue)}
-            </Text>
+            <Text className="text-2xl font-bold text-dark">{formatCurrency(subContractorStats.monthlyRevenue)}</Text>
           </View>
           <View className="flex-1 bg-white border border-border rounded p-4 items-center">
             <View className="flex-row items-center mb-2">
@@ -120,26 +190,18 @@ export default function SubContractorDashboard() {
             </View>
             <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{subContractorStats.winRate}%</Text>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Quick Glance */}
         <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
-          <TouchableOpacity
-            className="flex-1 bg-white border border-border rounded p-4 flex-row items-center"
-            onPress={() => router.push("/(subcontractor)/my-work" as any)}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity className="flex-1 bg-white border border-border rounded p-4 flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
             <Briefcase size={20} color={BRAND.colors.primary} />
             <View className="ml-3">
               <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{subContractorStats.activeSubJobs}</Text>
               <Text className="text-xs text-text-muted">Active Sub Jobs</Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 bg-white border border-border rounded p-4 flex-row items-center"
-            onPress={() => router.push("/(subcontractor)/my-work" as any)}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity className="flex-1 bg-white border border-border rounded p-4 flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
             <FileText size={20} color={BRAND.colors.primary} />
             <View className="ml-3">
               <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{subContractorStats.pendingBids}</Text>
@@ -151,12 +213,8 @@ export default function SubContractorDashboard() {
         {/* Available Sub Jobs Carousel */}
         <View className="mb-4">
           <View className="flex-row items-center justify-between px-4 mb-2">
-            <Text className="text-lg font-bold text-dark">Available Sub Jobs</Text>
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={() => router.push("/(subcontractor)/work" as any)}
-              activeOpacity={0.7}
-            >
+            <Text className="font-bold text-dark" style={{ fontSize: 19 }}>Available Sub Jobs</Text>
+            <TouchableOpacity className="flex-row items-center" onPress={goBrowse} activeOpacity={0.7}>
               <Text className="text-brand-600 text-sm font-bold mr-0.5">Browse All</Text>
               <ChevronRight size={16} color={BRAND.colors.primary} />
             </TouchableOpacity>
@@ -175,89 +233,14 @@ export default function SubContractorDashboard() {
             initialNumToRender={2}
             maxToRenderPerBatch={2}
             windowSize={3}
-            renderItem={({ item: sj }) => {
-              const days = daysUntil(sj.deadline);
-              return (
-                <View
-                  className="bg-white border border-border rounded overflow-hidden"
-                  style={{ width: CARD_WIDTH }}
-                >
-                  <View className="p-4">
-                    {/* Top row: category + urgency */}
-                    <View className="flex-row items-center justify-between mb-2">
-                      <View className="bg-gray-100 px-2 py-0.5">
-                        <Text className="text-[10px] font-bold text-text-secondary uppercase">{sj.category}</Text>
-                      </View>
-                      {sj.urgency === "high" && (
-                        <View className="flex-row items-center">
-                          <AlertCircle size={12} color={BRAND.colors.primary} />
-                          <Text className="text-[10px] font-bold text-brand-600 ml-1 uppercase">Urgent</Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <Text className="text-base font-bold text-dark mb-1" numberOfLines={1}>{sj.title}</Text>
-
-                    {/* GC + rating */}
-                    <View className="flex-row items-center mb-2">
-                      <Text className="text-sm text-text-secondary">{sj.contractorName}</Text>
-                      <View className="flex-row items-center ml-2">
-                        <Star size={12} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
-                        <Text className="text-xs text-text-muted ml-0.5">{sj.contractorRating}</Text>
-                      </View>
-                    </View>
-
-                    {/* Budget */}
-                    <Text className="text-lg font-bold text-dark mb-2">
-                      {formatCurrency(sj.budgetMin)}-{formatCurrency(sj.budgetMax)}
-                    </Text>
-
-                    {/* Skills */}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
-                      <View className="flex-row" style={{ gap: 6 }}>
-                        {sj.skills.map((skill) => (
-                          <View key={skill} className="bg-gray-100 px-2 py-0.5">
-                            <Text className="text-[10px] font-bold text-text-secondary">{skill}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    </ScrollView>
-
-                    {/* Bottom row */}
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-row items-center">
-                        <MapPin size={13} color={BRAND.colors.textMuted} />
-                        <Text className="text-sm text-text-muted ml-1">{sj.location}</Text>
-                      </View>
-                      <View className="flex-row items-center">
-                        <Clock size={13} color={days <= 3 ? BRAND.colors.primary : BRAND.colors.textMuted} />
-                        <Text
-                          className={`text-sm ml-1 font-bold ${days <= 3 ? "text-brand-600" : "text-text-muted"}`}
-                        >
-                          {days}d left
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Payment path */}
-                    <View className="mt-2">
-                      <Badge
-                        label={getPaymentPathLabel(sj.paymentPath)}
-                        variant="neutral"
-                        square
-                      />
-                    </View>
-                  </View>
-                </View>
-              );
-            }}
-            keyExtractor={(item) => item.id}
+            getItemLayout={SUB_JOB_ITEM_LAYOUT}
+            renderItem={renderSubJobCard}
+            keyExtractor={keyExtractor}
           />
-          {/* Pagination Dots */}
           <View className="flex-row items-center justify-center mt-3" style={{ gap: 6 }}>
-            {openSubJobs.map((_, i) => (
+            {openSubJobs.map((sj, i) => (
               <View
-                key={i}
+                key={sj.id}
                 style={{
                   width: i === activeIdx ? 20 : 6,
                   height: 6,
@@ -272,21 +255,17 @@ export default function SubContractorDashboard() {
         {activeSubJobs.length > 0 && (
           <View className="mb-4">
             <View className="flex-row items-center justify-between px-4 mb-2">
-              <Text className="text-lg font-bold text-dark">My Active Work</Text>
-              <TouchableOpacity
-                className="flex-row items-center"
-                onPress={() => router.push("/(subcontractor)/my-work" as any)}
-                activeOpacity={0.7}
-              >
+              <Text className="font-bold text-dark" style={{ fontSize: 19 }}>My Active Work</Text>
+              <TouchableOpacity className="flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
                 <Text className="text-brand-600 text-sm font-bold mr-0.5">All</Text>
                 <ChevronRight size={16} color={BRAND.colors.primary} />
               </TouchableOpacity>
             </View>
             <View className="px-4" style={{ gap: 6 }}>
               {activeSubJobs.map((sj) => {
-                const bid = mockSubBids.find((b) => b.subJobId === sj.id && b.status === "accepted");
+                const bid = acceptedBidMap.get(sj.id);
                 return (
-                  <View key={sj.id} className="bg-white border border-border rounded p-4">
+                  <TouchableOpacity key={sj.id} className="bg-white border border-border rounded p-4" activeOpacity={0.7} onPress={goMyWork}>
                     <View className="flex-row items-center justify-between mb-1">
                       <Text className="text-base font-bold text-dark flex-1 mr-2" numberOfLines={1}>{sj.title}</Text>
                       <Badge label="In Progress" variant="warning" square />
@@ -296,11 +275,10 @@ export default function SubContractorDashboard() {
                       <Text className="text-xs text-text-muted">{sj.milestoneLabel}</Text>
                       {bid && <Text className="text-base font-bold text-dark">{formatCurrency(bid.amount)}</Text>}
                     </View>
-                    {/* Progress bar */}
                     <View className="bg-gray-100 h-2 w-full mt-2">
                       <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary }} />
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
@@ -313,9 +291,9 @@ export default function SubContractorDashboard() {
             <Text className="text-lg font-bold text-dark mb-2">Pending Bids</Text>
             <View style={{ gap: 6 }}>
               {pendingBids.map((bid) => {
-                const sj = mockSubJobs.find((j) => j.id === bid.subJobId);
+                const sj = subJobMap.get(bid.subJobId);
                 return (
-                  <View key={bid.id} className="bg-white border border-border rounded flex-row items-center p-3">
+                  <TouchableOpacity key={bid.id} className="bg-white border border-border rounded flex-row items-center p-3" activeOpacity={0.7} onPress={goMyWork}>
                     <View className="flex-1">
                       <Text className="text-sm font-bold text-dark" numberOfLines={1}>{sj?.title || "Sub Job"}</Text>
                       <Text className="text-xs text-text-muted mt-0.5">{sj?.location} -- {bid.timeline}</Text>
@@ -326,14 +304,13 @@ export default function SubContractorDashboard() {
                         <Text className="text-[10px] font-bold text-text-secondary capitalize">{bid.status}</Text>
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
           </View>
         )}
 
-        {/* Bottom spacer for tab bar */}
         <View style={{ height: 90 }} />
       </ScrollView>
     </SafeAreaView>

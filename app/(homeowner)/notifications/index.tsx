@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,13 +16,13 @@ import {
   Bell,
   Star,
 } from "lucide-react-native";
-import { fetchNotifications } from "@src/api/data";
-import { mockNotifications } from "@src/lib/mock-data";
+import { useNotifications } from "@src/api/hooks";
 import { formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { router } from "expo-router";
+import type { Notification as BaseNotification } from "@src/types";
 
-type Notification = (typeof mockNotifications)[number] & { read: boolean };
+type Notification = BaseNotification & { read: boolean };
 
 const TYPE_ICONS: Record<string, { icon: typeof DollarSign; color: string; bg: string }> = {
   bid_received: { icon: DollarSign, color: "#059669", bg: "#ECFDF5" },
@@ -38,15 +38,14 @@ function getTypeConfig(type: string) {
 }
 
 export default function HomeownerNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>(
-    mockNotifications as Notification[]
-  );
+  const { data: queryNotifications = [] } = useNotifications();
+  const [notifications, setNotifications] = useState<Notification[]>(queryNotifications as Notification[]);
 
   useEffect(() => {
-    fetchNotifications().then((data) =>
-      setNotifications(data as Notification[])
-    );
-  }, []);
+    if (queryNotifications.length > 0) {
+      setNotifications(queryNotifications as Notification[]);
+    }
+  }, [queryNotifications]);
 
   const markAllRead = useCallback(() => {
     setNotifications((prev) =>

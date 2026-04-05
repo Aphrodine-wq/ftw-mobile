@@ -12,7 +12,7 @@ export async function getCurrentLocation(): Promise<{
     const { status } = await Location.requestForegroundPermissionsAsync();
 
     if (status !== "granted") {
-      console.log("Location permission denied");
+      if (__DEV__) console.log("Location permission denied");
       return null;
     }
 
@@ -41,7 +41,7 @@ export async function geocodeAddress(
     const results = await Location.geocodeAsync(address);
 
     if (results.length === 0) {
-      console.log("No geocoding results for:", address);
+      if (__DEV__) console.log("No geocoding results for:", address);
       return null;
     }
 

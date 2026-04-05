@@ -1,4 +1,5 @@
-import { Stack, useRouter, usePathname } from "expo-router";
+import { Tabs, useRouter, useSegments } from "expo-router";
+import { memo, useCallback, useMemo } from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageCircle, Bell } from "lucide-react-native";
@@ -8,94 +9,106 @@ import { BRAND } from "@src/lib/constants";
 const UNREAD_MESSAGES = 2;
 const UNREAD_NOTIFICATIONS = 3;
 
-const HIDE_FLOATING_ON = ["/projects", "/settings", "/reviews", "/notifications", "/messages", "/post-job"];
+const SHOW_FLOATING_ON = ["(dashboard)"];
 
-export default function HomeownerLayout() {
+const FloatingButtons = memo(function FloatingButtons({ top }: { top: number }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const insets = useSafeAreaInsets();
 
-  const showFloating = !HIDE_FLOATING_ON.some((p) => pathname.includes(p));
+  const goNotifications = useCallback(() => {
+    router.push("/(homeowner)/notifications" as any);
+  }, [router]);
+
+  const goMessages = useCallback(() => {
+    router.push("/(homeowner)/(messages)" as any);
+  }, [router]);
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Top floating buttons */}
-      {showFloating && (
-        <View style={[styles.topBar, { top: insets.top }]}>
-          <TouchableOpacity
-            style={styles.topButton}
-            onPress={() => router.push("/(homeowner)/(messages)" as any)}
-            activeOpacity={0.8}
-          >
-            <MessageCircle size={18} color={BRAND.colors.primary} />
-            {UNREAD_MESSAGES > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{UNREAD_MESSAGES}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.topButton}
-            onPress={() => router.push("/(homeowner)/notifications" as any)}
-            activeOpacity={0.8}
-          >
-            <Bell size={18} color={BRAND.colors.primary} />
-            {UNREAD_NOTIFICATIONS > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{UNREAD_NOTIFICATIONS}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+    <View style={[styles.topBar, { top }]} pointerEvents="box-none">
+      <TouchableOpacity style={styles.topButton} onPress={goNotifications} activeOpacity={0.8}>
+        <Bell size={22} color={BRAND.colors.textSecondary} />
+        {UNREAD_NOTIFICATIONS > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{UNREAD_NOTIFICATIONS}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.topButton} onPress={goMessages} activeOpacity={0.8}>
+        <MessageCircle size={22} color={BRAND.colors.textSecondary} />
+        {UNREAD_MESSAGES > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{UNREAD_MESSAGES}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+});
 
-      <Stack
+export default function HomeownerLayout() {
+  const segments = useSegments();
+  const insets = useSafeAreaInsets();
+
+  const showFloating = useMemo(() => {
+    const filtered = segments.filter((s) => s !== "(homeowner)");
+    const activeScreen = filtered[filtered.length - 1] || "";
+    return SHOW_FLOATING_ON.includes(activeScreen);
+  }, [segments]);
+
+  return (
+    <View style={styles.root}>
+      <Tabs
+        tabBar={(props) => <HomeownerTabBar {...props} />}
         screenOptions={{
           headerShown: false,
-          animation: "none",
+          lazy: false,
+          freezeOnBlur: false,
         }}
       >
-        <Stack.Screen name="(dashboard)" />
-        <Stack.Screen name="(jobs)" />
-        <Stack.Screen name="(messages)" />
-        <Stack.Screen name="(profile)" />
-        <Stack.Screen name="projects" />
-        <Stack.Screen name="settings" />
-        <Stack.Screen name="notifications" />
-        <Stack.Screen name="reviews" />
-        <Stack.Screen name="post-job" />
-      </Stack>
-      <HomeownerTabBar />
+        <Tabs.Screen name="(dashboard)" options={{ title: "Home" }} />
+        <Tabs.Screen name="(jobs)" options={{ title: "Jobs" }} />
+        <Tabs.Screen name="(messages)" options={{ href: null }} />
+        <Tabs.Screen name="(profile)" options={{ title: "Profile", href: null }} />
+        <Tabs.Screen name="projects" options={{ href: null }} />
+        <Tabs.Screen name="settings" options={{ title: "Settings" }} />
+        <Tabs.Screen name="notifications" options={{ href: null }} />
+        <Tabs.Screen name="reviews" options={{ href: null }} />
+        <Tabs.Screen name="post-job" options={{ href: null }} />
+      </Tabs>
+      {showFloating && <FloatingButtons top={insets.top} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   topBar: {
     position: "absolute",
     right: 16,
     zIndex: 100,
     flexDirection: "row",
-    gap: 8,
+    gap: 10,
   },
   topButton: {
-    width: 38,
-    height: 38,
-    backgroundColor: "transparent",
+    width: 46,
+    height: 46,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: BRAND.colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   badge: {
     position: "absolute",
-    top: -5,
-    right: -5,
+    top: -4,
+    right: -4,
     minWidth: 18,
     height: 18,
     paddingHorizontal: 4,
     backgroundColor: BRAND.colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 4,
   },
   badgeText: {
     color: "#FFFFFF",

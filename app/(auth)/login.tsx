@@ -78,17 +78,15 @@ export default function LoginScreen() {
     >
       <View className="flex-1 justify-center px-6">
         {/* Logo */}
-        <Animated.View entering={FadeInDown.duration(500).delay(50)} className="mb-8">
-          <View className="flex-row items-center mb-6">
-            <View
-              className="w-12 h-12 bg-brand-600 items-center justify-center"
-              style={{ borderRadius: 4 }}
-            >
-              <Text className="text-white text-lg font-bold">FTW</Text>
-            </View>
+        <Animated.View entering={FadeInDown.duration(500).delay(50)} className="mb-8 items-center">
+          <View
+            className="items-center justify-center mb-5"
+            style={{ width: 96, height: 96, backgroundColor: BRAND.colors.primary, borderRadius: 22 }}
+          >
+            <Text className="text-white font-bold text-center" style={{ fontSize: 28, letterSpacing: 2, paddingTop: 4, paddingLeft: 4 }}>FTW</Text>
           </View>
-          <Text className="text-2xl font-bold text-dark">Sign In</Text>
-          <Text className="text-text-muted text-sm mt-1">
+          <Text className="font-bold text-dark text-center" style={{ fontSize: 28 }}>FairTradeWorker</Text>
+          <Text className="text-text-muted text-center mt-1" style={{ fontSize: 14 }}>
             {BRAND.tagline}
           </Text>
         </Animated.View>

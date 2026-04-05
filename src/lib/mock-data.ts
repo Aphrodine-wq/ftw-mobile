@@ -22,7 +22,7 @@ export interface MockBid {
   message: string;
   timeline: string;
   status: "pending" | "accepted" | "rejected";
-  contractor: { id: string; name: string; rating: number; jobsCompleted: number };
+  contractor: { id: string; name: string; rating: number; jobsCompleted: number; avatar: string };
   placedAt: string;
 }
 
@@ -203,7 +203,7 @@ export const mockBids: MockBid[] = [
     message: "20 years experience in kitchen remodels. We handle everything including permits and inspections.",
     timeline: "6-8 weeks",
     status: "pending",
-    contractor: { id: "c1", name: "Marcus Johnson", rating: 4.9, jobsCompleted: 127 },
+    contractor: { id: "c1", name: "Marcus Johnson", rating: 4.9, jobsCompleted: 127, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" },
     placedAt: "2026-03-22T14:30:00Z",
   },
   {
@@ -213,7 +213,7 @@ export const mockBids: MockBid[] = [
     message: "Licensed GC, fully insured. Can start within 2 weeks. References available.",
     timeline: "5-7 weeks",
     status: "pending",
-    contractor: { id: "c2", name: "Rivera Construction", rating: 4.7, jobsCompleted: 89 },
+    contractor: { id: "c2", name: "Rivera Construction", rating: 4.7, jobsCompleted: 89, avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face" },
     placedAt: "2026-03-22T16:00:00Z",
   },
   {
@@ -223,7 +223,7 @@ export const mockBids: MockBid[] = [
     message: "Premium materials, lifetime warranty on labor. We use only licensed subs.",
     timeline: "8-10 weeks",
     status: "pending",
-    contractor: { id: "c3", name: "Apex Builders", rating: 5.0, jobsCompleted: 203 },
+    contractor: { id: "c3", name: "Apex Builders", rating: 5.0, jobsCompleted: 203, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" },
     placedAt: "2026-03-23T09:00:00Z",
   },
   {
@@ -233,17 +233,17 @@ export const mockBids: MockBid[] = [
     message: "Insurance restoration specialist. We handle the adjuster meeting.",
     timeline: "3-5 days",
     status: "pending",
-    contractor: { id: "c4", name: "Texas Roof Pros", rating: 4.8, jobsCompleted: 312 },
+    contractor: { id: "c4", name: "Texas Roof Pros", rating: 4.8, jobsCompleted: 312, avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" },
     placedAt: "2026-03-21T11:00:00Z",
   },
 ];
 
 export const mockConversations: MockConversation[] = [
-  { id: "conv1", name: "Sarah Mitchell", lastMessage: "When can you start on the kitchen?", lastMessageTime: "2:30 PM", unread: 2, avatar: "SM", role: "homeowner" },
-  { id: "conv2", name: "Marcus Johnson", lastMessage: "I've sent over the updated estimate", lastMessageTime: "11:15 AM", unread: 0, avatar: "MJ", role: "contractor" },
-  { id: "conv3", name: "Mike Chen", lastMessage: "The insurance adjuster is coming Thursday", lastMessageTime: "Yesterday", unread: 1, avatar: "MC", role: "homeowner" },
-  { id: "conv4", name: "Rivera Construction", lastMessage: "Materials are ordered, arriving Monday", lastMessageTime: "Yesterday", unread: 0, avatar: "RC", role: "contractor" },
-  { id: "conv5", name: "Lisa Torres", lastMessage: "Can you send photos of similar work?", lastMessageTime: "Mar 20", unread: 0, avatar: "LT", role: "homeowner" },
+  { id: "conv1", name: "Sarah Mitchell", lastMessage: "When can you start on the kitchen?", lastMessageTime: "2:30 PM", unread: 2, avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face", role: "homeowner" },
+  { id: "conv2", name: "Marcus Johnson", lastMessage: "I've sent over the updated estimate", lastMessageTime: "11:15 AM", unread: 0, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face", role: "contractor" },
+  { id: "conv3", name: "Mike Chen", lastMessage: "The insurance adjuster is coming Thursday", lastMessageTime: "Yesterday", unread: 1, avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=face", role: "homeowner" },
+  { id: "conv4", name: "Rivera Construction", lastMessage: "Materials are ordered, arriving Monday", lastMessageTime: "Yesterday", unread: 0, avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face", role: "contractor" },
+  { id: "conv5", name: "Lisa Torres", lastMessage: "Can you send photos of similar work?", lastMessageTime: "Mar 20", unread: 0, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face", role: "homeowner" },
 ];
 
 export const mockMessages: Record<string, MockMessage[]> = {
@@ -523,10 +523,10 @@ export const mockProjects = [
 ];
 
 export const mockClients = [
-  { id: "cl1", name: "Sarah Mitchell", email: "sarah@example.com", phone: "512-555-0101", projectCount: 2, totalSpent: 63500 },
-  { id: "cl2", name: "Mike Chen", email: "mike@example.com", phone: "512-555-0102", projectCount: 1, totalSpent: 14200 },
-  { id: "cl3", name: "Lisa Torres", email: "lisa@example.com", phone: "512-555-0103", projectCount: 1, totalSpent: 4200 },
-  { id: "cl4", name: "David Park", email: "david@example.com", phone: "512-555-0104", projectCount: 1, totalSpent: 8500 },
+  { id: "cl1", name: "Sarah Mitchell", email: "sarah@example.com", phone: "512-555-0101", projectCount: 2, totalSpent: 63500, avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face", lastProject: "Kitchen Remodel", status: "active" as const },
+  { id: "cl2", name: "Mike Chen", email: "mike@example.com", phone: "512-555-0102", projectCount: 1, totalSpent: 14200, avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=face", lastProject: "Roof Replacement", status: "completed" as const },
+  { id: "cl3", name: "Lisa Torres", email: "lisa@example.com", phone: "512-555-0103", projectCount: 1, totalSpent: 4200, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face", lastProject: "Interior Painting", status: "completed" as const },
+  { id: "cl4", name: "David Park", email: "david@example.com", phone: "512-555-0104", projectCount: 1, totalSpent: 8500, avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face", lastProject: "Bathroom Reno", status: "active" as const },
 ];
 
 export const mockInvoices = [

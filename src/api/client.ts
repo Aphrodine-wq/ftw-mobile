@@ -9,14 +9,44 @@ export class ApiError extends Error {
   }
 }
 
+// Prevent multiple simultaneous refresh attempts
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshToken(): Promise<string | null> {
+  const { token } = useAuthStore.getState();
+  if (!token) return null;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const newToken = data.token as string;
+
+    // Update store with new token
+    useAuthStore.setState({ token: newToken });
+    return newToken;
+  } catch {
+    return null;
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
-  options?: RequestInit
+  options?: RequestInit & { _retried?: boolean }
 ): Promise<T> {
   const token = useAuthStore.getState().token;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string>),
   };
 
   if (token) {
@@ -24,9 +54,30 @@ export async function apiFetch<T>(
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
-    headers,
     ...options,
+    headers,
   });
+
+  // 401 — attempt silent token refresh, retry once
+  if (res.status === 401 && !options?._retried && token) {
+    // Deduplicate concurrent refresh calls
+    if (!refreshPromise) {
+      refreshPromise = refreshToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const newToken = await refreshPromise;
+
+    if (newToken) {
+      // Retry with new token
+      return apiFetch<T>(path, { ...options, _retried: true });
+    }
+
+    // Refresh failed — clear auth, force re-login
+    useAuthStore.getState().logout();
+    throw new ApiError("Session expired", 401);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -37,9 +88,12 @@ export async function apiFetch<T>(
 }
 
 // Jobs
-export async function listJobs(): Promise<any[]> {
-  const data = await apiFetch<{ jobs: any[] }>("/api/jobs");
-  return data.jobs;
+export async function listJobs(params?: { cursor?: string; limit?: number }): Promise<{ jobs: any[]; nextCursor?: string }> {
+  const query = new URLSearchParams();
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return apiFetch(`/api/jobs${qs ? `?${qs}` : ""}`);
 }
 
 export async function getJob(id: string): Promise<{ job: any; bids: any[] }> {
@@ -64,10 +118,7 @@ export async function postJob(attrs: {
 }
 
 // Push token management
-export async function registerPushToken(
-  token: string,
-  platform: string
-): Promise<any> {
+export async function registerPushToken(token: string, platform: string): Promise<any> {
   return apiFetch("/api/push/register", {
     method: "POST",
     body: JSON.stringify({ token, platform }),
@@ -101,39 +152,45 @@ export async function acceptBid(jobId: string, bidId: string): Promise<any> {
 }
 
 // Estimates
-export async function listEstimates(): Promise<any[]> {
-  const data = await apiFetch<{ estimates: any[] }>("/api/estimates");
-  return data.estimates;
+export async function listEstimates(params?: { cursor?: string; limit?: number }): Promise<{ estimates: any[]; nextCursor?: string }> {
+  const query = new URLSearchParams();
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return apiFetch(`/api/estimates${qs ? `?${qs}` : ""}`);
 }
 
 // Invoices
-export async function listInvoices(): Promise<any[]> {
-  const data = await apiFetch<{ invoices: any[] }>("/api/invoices");
-  return data.invoices;
+export async function listInvoices(params?: { cursor?: string; limit?: number }): Promise<{ invoices: any[]; nextCursor?: string }> {
+  const query = new URLSearchParams();
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return apiFetch(`/api/invoices${qs ? `?${qs}` : ""}`);
 }
 
 // Projects
-export async function listProjects(): Promise<any[]> {
-  const data = await apiFetch<{ projects: any[] }>("/api/projects");
-  return data.projects;
+export async function listProjects(): Promise<{ projects: any[] }> {
+  return apiFetch("/api/projects");
 }
 
 // Clients
-export async function listClients(): Promise<any[]> {
-  const data = await apiFetch<{ clients: any[] }>("/api/clients");
-  return data.clients;
+export async function listClients(params?: { cursor?: string; limit?: number }): Promise<{ clients: any[]; nextCursor?: string }> {
+  const query = new URLSearchParams();
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return apiFetch(`/api/clients${qs ? `?${qs}` : ""}`);
 }
 
 // Reviews
-export async function listReviews(): Promise<any[]> {
-  const data = await apiFetch<{ reviews: any[] }>("/api/reviews");
-  return data.reviews;
+export async function listReviews(): Promise<{ reviews: any[] }> {
+  return apiFetch("/api/reviews");
 }
 
 // Notifications
-export async function listNotifications(): Promise<any[]> {
-  const data = await apiFetch<{ notifications: any[] }>("/api/notifications");
-  return data.notifications;
+export async function listNotifications(): Promise<{ notifications: any[] }> {
+  return apiFetch("/api/notifications");
 }
 
 export async function markNotificationRead(id: string): Promise<any> {

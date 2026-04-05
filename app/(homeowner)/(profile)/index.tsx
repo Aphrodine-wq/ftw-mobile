@@ -33,7 +33,8 @@ const STATS = [
 
 export default function HomeownerProfile() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">

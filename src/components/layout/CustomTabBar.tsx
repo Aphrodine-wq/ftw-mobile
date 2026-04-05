@@ -7,7 +7,7 @@ import {
   Pressable,
   ViewStyle,
 } from "react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import Animated, {
   SharedValue,
   useSharedValue,
@@ -31,6 +31,8 @@ import {
   ClipboardList,
   Flag,
   Brain,
+  Calculator,
+  Phone,
 } from "lucide-react-native";
 import { BRAND } from "@src/lib/constants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,10 +84,11 @@ const FEATURED_ACTIONS = [
 
 const QUICK_ACTIONS = [
   { key: "ai-agent", label: "AI Agent", icon: Brain, route: "/(contractor)/ai-agent", pro: true },
+  { key: "call-agent", label: "Call Agent", icon: Phone, route: "/(contractor)/voice-agent", pro: true },
   { key: "job", label: "Browse Jobs", icon: Briefcase, route: "/(contractor)/(jobs)", pro: false },
   { key: "invoice", label: "New Invoice", icon: Receipt, route: "/(contractor)/invoices", pro: false },
+  { key: "calculator", label: "Calculator", icon: Calculator, route: "/(contractor)/calculator", pro: false },
   { key: "message", label: "Messages", icon: MessageCircle, route: "/(contractor)/(messages)", pro: false },
-  { key: "milestones", label: "Milestones", icon: Flag, route: "/(contractor)/milestones", pro: false },
 ] as const;
 
 const SPRING_CONFIG = { damping: 20, stiffness: 300 };
@@ -109,15 +112,24 @@ const AnimatedItem = memo(function AnimatedItem({
 
 const TOTAL_ITEMS = FEATURED_ACTIONS.length + QUICK_ACTIONS.length;
 
-export default function CustomTabBar() {
-  const pathname = usePathname();
+// Map tab route names from Tabs navigator state to our tab keys
+const ROUTE_TO_KEY: Record<string, string> = {
+  "(dashboard)": "dashboard",
+  projects: "projects",
+  clients: "clients",
+  settings: "settings",
+};
+
+export default function CustomTabBar(props: any) {
+  const tabNavigation = props?.navigation;
+  const tabState = props?.state;
+  const onMenuToggle = props?.onMenuToggle as ((open: boolean) => void) | undefined;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
 
   const progress = useSharedValue(0);
   const rotation = useSharedValue(0);
-  // Fixed count — always 7 shared values, same every render
   const item0 = useSharedValue(0);
   const item1 = useSharedValue(0);
   const item2 = useSharedValue(0);
@@ -125,20 +137,22 @@ export default function CustomTabBar() {
   const item4 = useSharedValue(0);
   const item5 = useSharedValue(0);
   const item6 = useSharedValue(0);
-  const itemProgress = [item0, item1, item2, item3, item4, item5, item6];
+  const item7 = useSharedValue(0);
+  const itemProgress = useMemo(() => [item0, item1, item2, item3, item4, item5, item6, item7], [item0, item1, item2, item3, item4, item5, item6, item7]);
 
+  // Use Tabs navigator state directly — no pathname parsing needed
   const activeTabKey = useMemo(() => {
-    for (const tab of TABS) {
-      if (tab.match.some((m) => pathname.startsWith(m.replace("/(contractor)", "")))) {
-        return tab.key;
-      }
+    if (tabState) {
+      const activeRoute = tabState.routes[tabState.index];
+      return ROUTE_TO_KEY[activeRoute?.name] || null;
     }
     return null;
-  }, [pathname]);
+  }, [tabState?.index]);
 
   const openMenu = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setOpen(true);
+    onMenuToggle?.(true);
     progress.value = withTiming(1, { duration: 450, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
     rotation.value = withTiming(1, { duration: 400, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
     itemProgress.forEach((sv) => {
@@ -153,6 +167,7 @@ export default function CustomTabBar() {
     itemProgress.forEach((sv) => {
       sv.value = withTiming(0, { duration: 300, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
     });
+    onMenuToggle?.(false);
     setTimeout(() => {
       setOpen(false);
       cb?.();
@@ -178,8 +193,13 @@ export default function CustomTabBar() {
     transform: [{ scale: interpolate(progress.value, [0, 1], [0.96, 1]) }],
   }));
 
+  const centerScale = useSharedValue(1);
+
   const rotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${interpolate(rotation.value, [0, 1], [0, 45])}deg` }],
+    transform: [
+      { scale: centerScale.value },
+      { rotate: `${interpolate(rotation.value, [0, 1], [0, 45])}deg` },
+    ],
   }));
 
   return (
@@ -215,7 +235,7 @@ export default function CustomTabBar() {
                     onPress={() => handleAction(fa.route)}
                     activeOpacity={0.8}
                   >
-                    <FaIcon size={24} color="#FFFFFF" />
+                    <FaIcon size={30} color="#FFFFFF" />
                     <Text style={styles.featuredButtonText}>{fa.label}</Text>
                   </TouchableOpacity>
                 </AnimatedItem>
@@ -234,7 +254,7 @@ export default function CustomTabBar() {
                       activeOpacity={0.7}
                     >
                       <View style={styles.actionIcon}>
-                        <Icon size={30} color={BRAND.colors.dark} />
+                        <Icon size={36} color={BRAND.colors.dark} />
                         {action.pro && (
                           <View style={styles.proBadge}>
                             <Text style={styles.proBadgeText}>PRO</Text>
@@ -259,16 +279,21 @@ export default function CustomTabBar() {
 
             if ("isCenter" in tab && tab.isCenter) {
               return (
-                <TouchableOpacity
+                <Pressable
                   key={tab.key}
                   style={styles.centerButton}
+                  onPressIn={() => {
+                    centerScale.value = withTiming(0.9, { duration: 120, easing: Easing.out(Easing.ease) });
+                  }}
+                  onPressOut={() => {
+                    centerScale.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+                  }}
                   onPress={open ? () => closeMenu() : openMenu}
-                  activeOpacity={0.8}
                 >
                   <Animated.View style={[styles.centerCircle, rotateStyle]}>
-                    <Plus size={30} color="#FFFFFF" strokeWidth={2.5} />
+                    <Plus size={38} color="#FFFFFF" strokeWidth={3} />
                   </Animated.View>
-                </TouchableOpacity>
+                </Pressable>
               );
             }
 
@@ -278,9 +303,17 @@ export default function CustomTabBar() {
                 style={styles.tab}
                 onPress={() => {
                   if (active && !open) return;
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (open) closeMenu(() => router.push(tab.route));
-                  else router.push(tab.route);
+                  const go = () => {
+                    if (tabNavigation) {
+                      const routeName = tab.route.replace("/(contractor)/", "").replace("/(contractor)", "(dashboard)");
+                      tabNavigation.navigate(routeName);
+                    } else {
+                      router.push(tab.route as any);
+                    }
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  };
+                  if (open) closeMenu(go);
+                  else go();
                 }}
                 activeOpacity={0.7}
               >
@@ -379,7 +412,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   actionLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",
     textAlign: "center",
@@ -394,7 +427,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   featuredButtonText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "700",
     color: "#FFFFFF",
   },

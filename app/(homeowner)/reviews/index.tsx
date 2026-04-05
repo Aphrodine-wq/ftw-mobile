@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import {
   View,
   Text,
@@ -12,8 +12,8 @@ import {
   ChevronLeft,
   Plus,
 } from "lucide-react-native";
-import { fetchReviews } from "@src/api/data";
 import { mockReviews } from "@src/lib/mock-data";
+import { useReviews } from "@src/api/hooks";
 import { formatDate, getInitials } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { router } from "expo-router";
@@ -37,11 +37,7 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export default function HomeownerReviews() {
-  const [reviews, setReviews] = useState<Review[]>(mockReviews);
-
-  useEffect(() => {
-    fetchReviews().then((data) => setReviews(data as Review[]));
-  }, []);
+  const { data: reviews = mockReviews as Review[] } = useReviews();
 
   const renderReview = useCallback(
     ({ item }: { item: Review }) => (

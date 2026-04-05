@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -15,8 +14,7 @@ import {
   Shield,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { fetchProjects } from "@src/api/data";
-import { mockProjects } from "@src/lib/mock-data";
+import { useProjects } from "@src/api/hooks";
 import { formatCurrency } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
@@ -35,23 +33,7 @@ function getStatusVariant(
 
 export default function ProjectsScreen() {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>(mockProjects as Project[]);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadData = useCallback(async () => {
-    const data = await fetchProjects();
-    setProjects(data);
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
+  const { data: projects = [] as Project[], refetch, isRefetching } = useProjects();
 
   const renderHeader = () => (
     <View className="px-5 pt-4 pb-4">
@@ -163,7 +145,7 @@ export default function ProjectsScreen() {
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-5">

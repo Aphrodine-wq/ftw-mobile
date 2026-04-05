@@ -100,20 +100,26 @@ export default function WelcomeScreen() {
           style={{ width: SCREEN_WIDTH }}
         >
           <View
-            className="w-32 h-32 items-center justify-center mb-10"
-            style={{ backgroundColor: BRAND.colors.primary, borderRadius: 4 }}
+            className="items-center justify-center mb-10"
+            style={{ width: 96, height: 96, backgroundColor: BRAND.colors.primary, borderRadius: 22 }}
           >
-            <Text className="text-white text-5xl font-bold">FTW</Text>
+            <Text className="text-white font-bold text-center" style={{ fontSize: 28, letterSpacing: 2, paddingTop: 4, paddingLeft: 4 }}>FTW</Text>
           </View>
           <Text
-            className="text-4xl font-bold text-center mb-4"
-            style={{ color: BRAND.colors.textPrimary }}
+            className="font-bold text-center mb-4"
+            style={{ color: BRAND.colors.textPrimary, fontSize: 28, lineHeight: 34 }}
+          >
+            FairTradeWorker
+          </Text>
+          <Text
+            className="text-center mb-2"
+            style={{ color: BRAND.colors.textPrimary, fontSize: 20, fontWeight: "600" }}
           >
             The Fair Way to Build
           </Text>
           <Text
-            className="text-lg text-center leading-7 px-4"
-            style={{ color: BRAND.colors.textSecondary }}
+            className="text-center px-4"
+            style={{ color: BRAND.colors.textSecondary, fontSize: 16, lineHeight: 24 }}
           >
             No lead fees. No middlemen. Just homeowners and contractors
             connected directly, with fair pricing powered by AI.

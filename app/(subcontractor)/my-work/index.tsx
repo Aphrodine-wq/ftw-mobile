@@ -29,7 +29,7 @@ function getStatusBadge(status: string): { label: string; variant: "warning" | "
 }
 
 function daysUntil(deadline: string): number {
-  const diff = new Date(deadline).getTime() - new Date().getTime();
+  const diff = new Date(deadline).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 

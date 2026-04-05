@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -24,15 +24,23 @@ import {
   DollarSign,
   FileText,
   Calendar,
+  Crown,
+  Check,
+  Brain,
+  Mic,
+  Calculator,
+  BarChart3,
+  Shield,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { fetchInvoices } from "@src/api/data";
-import { mockInvoices, mockProjects } from "@src/lib/mock-data";
+import { useInvoices } from "@src/api/hooks";
+import { mockProjects } from "@src/lib/mock-data";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
 import type { Invoice, Project, ProjectMilestone } from "@src/types";
 
+type PageTab = "invoices" | "upgrade";
 type InvoiceFilter = "all" | "sent" | "paid" | "overdue";
 
 const FILTERS: { key: InvoiceFilter; label: string }[] = [
@@ -62,28 +70,15 @@ function getMilestoneIcon(status: ProjectMilestone["status"]) {
 
 export default function InvoicesScreen() {
   const router = useRouter();
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const { data: invoices = [], refetch, isRefetching } = useInvoices();
+  const [pageTab, setPageTab] = useState<PageTab>("invoices");
   const [activeFilter, setActiveFilter] = useState<InvoiceFilter>("all");
-  const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalStep, setModalStep] = useState<"project" | "milestone" | "details">("project");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
   const [invoiceNote, setInvoiceNote] = useState("");
   const [dueInDays, setDueInDays] = useState("30");
-
-  const loadData = useCallback(async () => {
-    const data = await fetchInvoices();
-    setInvoices(data);
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
 
   const filtered = useMemo(
     () => activeFilter === "all" ? invoices : invoices.filter((inv) => inv.status === activeFilter),
@@ -94,7 +89,7 @@ export default function InvoicesScreen() {
   const totalPaid = useMemo(() => invoices.filter((inv) => inv.status === "paid").reduce((sum, inv) => sum + inv.amount, 0), [invoices]);
   const outstanding = useMemo(() => invoices.filter((inv) => inv.status === "sent" || inv.status === "overdue").reduce((sum, inv) => sum + inv.amount, 0), [invoices]);
 
-  const activeProjects = (mockProjects as Project[]).filter((p) => p.status === "active" || p.status === "completed");
+  const activeProjects = useMemo(() => (mockProjects as Project[]).filter((p) => p.status === "active" || p.status === "completed"), []);
   const unpaidMilestones = selectedProject?.milestones.filter((m) => m.status !== "paid") || [];
 
   function openModal() {
@@ -133,13 +128,36 @@ export default function InvoicesScreen() {
           <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} className="mr-3">
             <ArrowLeft size={24} color={BRAND.colors.dark} />
           </TouchableOpacity>
-          <Text className="text-2xl font-bold text-dark">Invoices</Text>
+          <Text className="text-2xl font-bold text-dark">Payments</Text>
         </View>
-        <TouchableOpacity onPress={openModal} className="bg-brand-600 p-2.5" style={{ borderRadius: 4 }} activeOpacity={0.7}>
-          <Plus size={20} color="#FFFFFF" />
-        </TouchableOpacity>
+        {pageTab === "invoices" && (
+          <TouchableOpacity onPress={openModal} className="bg-brand-600 p-2.5" style={{ borderRadius: 4 }} activeOpacity={0.7}>
+            <Plus size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
       </View>
 
+      {/* Page Tabs */}
+      <View className="flex-row mx-5 mt-3 bg-surface p-1">
+        <Pressable
+          onPress={() => setPageTab("invoices")}
+          className={`flex-1 py-2.5 items-center ${pageTab === "invoices" ? "bg-white" : ""}`}
+          style={pageTab === "invoices" ? { shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2, elevation: 1 } : undefined}
+        >
+          <Text className={`font-bold ${pageTab === "invoices" ? "text-dark" : "text-text-muted"}`} style={{ fontSize: 14 }}>Invoices</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setPageTab("upgrade")}
+          className={`flex-1 py-2.5 items-center flex-row justify-center ${pageTab === "upgrade" ? "bg-white" : ""}`}
+          style={pageTab === "upgrade" ? { shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2, elevation: 1 } : undefined}
+        >
+          <Crown size={14} color={pageTab === "upgrade" ? BRAND.colors.primary : BRAND.colors.textMuted} />
+          <Text className={`font-bold ml-1.5 ${pageTab === "upgrade" ? "text-dark" : "text-text-muted"}`} style={{ fontSize: 14 }}>Upgrade</Text>
+        </Pressable>
+      </View>
+
+      {pageTab === "invoices" ? (
+        <>
       <View className="flex-row mx-5 mt-4 bg-white border border-border rounded overflow-hidden" style={{ borderRadius: 4 }}>
         <View className="flex-1 items-center py-4 border-r border-border">
           <Text className="text-xl font-bold text-dark">{formatCurrency(totalInvoiced)}</Text>
@@ -173,6 +191,100 @@ export default function InvoicesScreen() {
           );
         })}
       </View>
+        </>
+      ) : (
+        <View className="px-5 mt-4 pb-4">
+          {/* Current Plan */}
+          <View className="bg-white border border-border p-4 mb-4">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-text-muted font-bold uppercase tracking-wide" style={{ fontSize: 10 }}>Current Plan</Text>
+              <View className="bg-surface px-2 py-0.5">
+                <Text className="text-text-muted font-bold" style={{ fontSize: 11 }}>FREE</Text>
+              </View>
+            </View>
+            <Text className="text-dark font-bold" style={{ fontSize: 18 }}>FairTradeWorker Basic</Text>
+            <Text className="text-text-muted mt-1" style={{ fontSize: 13 }}>Job browsing, bidding, messaging, and escrow payments.</Text>
+          </View>
+
+          {/* Upgrade Card */}
+          <View className="border-2 border-brand-600 mb-4">
+            <View className="bg-brand-600 py-2 items-center">
+              <Text className="text-white font-bold uppercase tracking-wider" style={{ fontSize: 11 }}>Recommended</Text>
+            </View>
+            <View className="p-5">
+              <View className="flex-row items-start justify-between mb-1">
+                <View>
+                  <Text className="text-dark font-bold" style={{ fontSize: 22 }}>Solo Pro</Text>
+                  <Text className="text-text-muted" style={{ fontSize: 13 }}>For independent contractors</Text>
+                </View>
+                <View className="items-end">
+                  <View className="flex-row items-end">
+                    <Text className="text-dark font-bold" style={{ fontSize: 32 }}>$24</Text>
+                    <Text className="text-text-muted mb-1 ml-0.5" style={{ fontSize: 14 }}>/mo</Text>
+                  </View>
+                  <Text className="text-brand-600 font-bold" style={{ fontSize: 11 }}>Save $60/yr</Text>
+                </View>
+              </View>
+
+              <View className="h-px bg-border my-4" />
+
+              {["ConstructionAI estimates", "Voice estimate agent", "FairPrice calculator", "Unlimited PDF export", "Regional pricing data", "Priority support"].map((feat) => (
+                <View key={feat} className="flex-row items-center mb-2.5">
+                  <View className="w-5 h-5 bg-brand-50 items-center justify-center mr-3">
+                    <Check size={12} color={BRAND.colors.primary} strokeWidth={3} />
+                  </View>
+                  <Text className="text-dark" style={{ fontSize: 14 }}>{feat}</Text>
+                </View>
+              ))}
+
+              <TouchableOpacity className="bg-brand-600 py-4 items-center mt-3" activeOpacity={0.8}>
+                <Text className="text-white font-bold" style={{ fontSize: 16 }}>Start 14-Day Free Trial</Text>
+              </TouchableOpacity>
+              <Text className="text-text-muted text-center mt-2" style={{ fontSize: 12 }}>No card required. Cancel anytime.</Text>
+            </View>
+          </View>
+
+          {/* Pro Tools Preview */}
+          <Text className="text-text-muted font-bold uppercase tracking-wide mb-3" style={{ fontSize: 11 }}>Unlock with Pro</Text>
+          <View style={{ gap: 8 }}>
+            {[
+              { icon: Brain, title: "ConstructionAI", desc: "AI-powered line-item estimates" },
+              { icon: Mic, title: "Call Agent", desc: "Speak to create estimates on-site" },
+              { icon: Calculator, title: "FairPrice Calculator", desc: "Instant cost ranges by trade" },
+              { icon: BarChart3, title: "Analytics", desc: "Win rate and revenue insights" },
+              { icon: Shield, title: "FairRecord", desc: "Verified project history" },
+            ].map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <TouchableOpacity
+                  key={tool.title}
+                  className="bg-white border border-border p-4 flex-row items-center"
+                  activeOpacity={0.7}
+                  onPress={() => router.push("/(contractor)/pro" as any)}
+                >
+                  <View className="w-10 h-10 bg-brand-50 items-center justify-center mr-3">
+                    <Icon size={20} color={BRAND.colors.primary} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-dark font-bold" style={{ fontSize: 14 }}>{tool.title}</Text>
+                    <Text className="text-text-muted" style={{ fontSize: 12 }}>{tool.desc}</Text>
+                  </View>
+                  <ChevronRight size={16} color={BRAND.colors.textMuted} />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* See All Plans */}
+          <TouchableOpacity
+            className="border border-border py-3.5 items-center mt-4"
+            activeOpacity={0.7}
+            onPress={() => router.push("/(contractor)/pro" as any)}
+          >
+            <Text className="text-dark font-bold" style={{ fontSize: 15 }}>See All Plans</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -199,7 +311,7 @@ export default function InvoicesScreen() {
   return (
     <SafeAreaView className="flex-1 bg-surface">
       <FlatList
-        data={filtered}
+        data={pageTab === "invoices" ? filtered : []}
         keyExtractor={(item) => item.id}
         renderItem={renderInvoice}
         ListHeaderComponent={renderHeader}
@@ -209,7 +321,7 @@ export default function InvoicesScreen() {
         removeClippedSubviews
         initialNumToRender={10}
         maxToRenderPerBatch={10}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-5">
             <Receipt size={48} color={BRAND.colors.textMuted} />

@@ -342,7 +342,7 @@ export default function MilestonesScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
+    setTimeout(() => setRefreshing(false), 200);
   }, []);
 
   return (
@@ -363,29 +363,29 @@ export default function MilestonesScreen() {
         </View>
 
         {/* Summary */}
-        <View className="mx-5 mb-4 bg-dark p-4" style={{ borderRadius: 4 }}>
+        <View className="mx-5 mb-4 bg-white border border-border p-4" style={{ borderRadius: 4 }}>
           <View className="flex-row items-center justify-between mb-3">
             <View>
-              <Text className="text-white/50 text-xs uppercase tracking-wide">Total Pipeline</Text>
-              <Text className="text-white font-bold" style={{ fontSize: 28 }}>{formatCurrency(totalContract)}</Text>
+              <Text className="text-text-muted text-xs uppercase tracking-wide">Total Pipeline</Text>
+              <Text className="text-dark font-bold" style={{ fontSize: 28 }}>{formatCurrency(totalContract)}</Text>
             </View>
             <View className="items-end">
-              <Text className="text-white/50 text-xs">{activeMilestones} active</Text>
-              <Text className="text-white/50 text-xs">{totalMilestones} total</Text>
+              <Text className="text-text-muted text-xs">{activeMilestones} active</Text>
+              <Text className="text-text-muted text-xs">{totalMilestones} total</Text>
             </View>
           </View>
-          <View className="flex-row" style={{ gap: 1 }}>
-            <View className="flex-1 bg-white/10 p-3 items-center">
-              <Text className="text-white font-bold text-lg">{formatCurrency(totalPaid)}</Text>
-              <Text className="text-white/50 text-xs mt-0.5">Collected</Text>
+          <View className="flex-row" style={{ gap: 8 }}>
+            <View className="flex-1 bg-surface p-3 items-center">
+              <Text className="text-dark font-bold text-lg">{formatCurrency(totalPaid)}</Text>
+              <Text className="text-text-muted text-xs mt-0.5">Collected</Text>
             </View>
-            <View className="flex-1 bg-white/10 p-3 items-center">
-              <Text className="text-white font-bold text-lg">{formatCurrency(totalRemaining)}</Text>
-              <Text className="text-white/50 text-xs mt-0.5">Remaining</Text>
+            <View className="flex-1 bg-surface p-3 items-center">
+              <Text className="text-dark font-bold text-lg">{formatCurrency(totalRemaining)}</Text>
+              <Text className="text-text-muted text-xs mt-0.5">Remaining</Text>
             </View>
-            <View className="flex-1 bg-white/10 p-3 items-center">
-              <Text className="text-white font-bold text-lg">{totalContract > 0 ? Math.round((totalPaid / totalContract) * 100) : 0}%</Text>
-              <Text className="text-white/50 text-xs mt-0.5">Complete</Text>
+            <View className="flex-1 bg-surface p-3 items-center">
+              <Text className="text-dark font-bold text-lg">{totalContract > 0 ? Math.round((totalPaid / totalContract) * 100) : 0}%</Text>
+              <Text className="text-text-muted text-xs mt-0.5">Complete</Text>
             </View>
           </View>
         </View>

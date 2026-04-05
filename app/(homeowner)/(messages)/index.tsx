@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { Image } from "expo-image";
 import {
   View,
   Text,
@@ -33,11 +34,13 @@ const ConversationRow = memo(function ConversationRow({
       activeOpacity={0.7}
       onPress={onPress}
     >
-      <View style={s.avatar}>
-        <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>
-          {conversation.avatar}
-        </Text>
-      </View>
+      <Image
+        source={{ uri: conversation.avatar }}
+        style={{ width: 44, height: 44, borderRadius: 4, marginRight: 12 }}
+        contentFit="cover"
+        recyclingKey={`msg-avatar-${conversation.id}`}
+        transition={150}
+      />
       <View style={{ flex: 1, marginRight: 12 }}>
         <View className="flex-row items-center justify-between mb-0.5">
           <Text style={{ fontSize: 15, fontWeight: "600", color: BRAND.colors.textPrimary }}>
@@ -149,11 +152,11 @@ function ChatView({
         >
           <ArrowLeft size={24} color={BRAND.colors.dark} />
         </TouchableOpacity>
-        <View style={s.chatAvatar}>
-          <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>
-            {conversation.avatar}
-          </Text>
-        </View>
+        <Image
+          source={{ uri: conversation.avatar }}
+          style={{ width: 36, height: 36, borderRadius: 4, marginRight: 8 }}
+          contentFit="cover"
+        />
         <Text style={{ fontSize: 17, fontWeight: "600", color: BRAND.colors.textPrimary }}>
           {conversation.name}
         </Text>

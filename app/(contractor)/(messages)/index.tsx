@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Send } from "lucide-react-native";
 import {
@@ -107,11 +108,13 @@ export default function ContractorMessages() {
               onPress={() => setSelectedConvo(item.id)}
             >
               {/* Avatar */}
-              <View className="w-12 h-12 rounded-full bg-gray-100 items-center justify-center mr-3">
-                <Text className="text-gray-600 font-bold text-base">
-                  {item.avatar}
-                </Text>
-              </View>
+              <Image
+                source={{ uri: item.avatar }}
+                style={{ width: 48, height: 48, borderRadius: 4 }}
+                contentFit="cover"
+                recyclingKey={`avatar-${item.id}`}
+                transition={150}
+              />
 
               {/* Content */}
               <View className="flex-1 mr-3">
@@ -177,11 +180,11 @@ export default function ContractorMessages() {
           >
             <ArrowLeft size={24} color={BRAND.colors.dark} />
           </TouchableOpacity>
-          <View className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center mr-3">
-            <Text className="text-gray-600 font-bold text-sm">
-              {activeConvo?.avatar}
-            </Text>
-          </View>
+          <Image
+            source={{ uri: activeConvo?.avatar }}
+            style={{ width: 36, height: 36, borderRadius: 4, marginRight: 12 }}
+            contentFit="cover"
+          />
           <View className="flex-1">
             <Text className="text-dark font-semibold text-base">
               {activeConvo?.name}
