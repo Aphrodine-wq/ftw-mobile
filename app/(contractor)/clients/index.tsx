@@ -20,6 +20,7 @@ import {
   Users,
   DollarSign,
   MessageCircle,
+  Import,
 } from "lucide-react-native";
 import { mockClients } from "@src/lib/mock-data";
 import { useClients } from "@src/api/hooks";
@@ -121,6 +122,14 @@ export default function ContractorClients() {
           <ChevronLeft size={24} color={BRAND.colors.dark} />
         </TouchableOpacity>
         <Text className="text-dark font-bold flex-1" style={{ fontSize: 22 }}>Clients</Text>
+        <TouchableOpacity
+          onPress={() => router.push("/(contractor)/clients/import" as any)}
+          className="border border-border p-2.5 mr-2"
+          style={{ borderRadius: 4 }}
+          activeOpacity={0.7}
+        >
+          <Import size={20} color={BRAND.colors.dark} />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/(contractor)/clients/add" as any)}
           className="bg-brand-600 p-2.5"

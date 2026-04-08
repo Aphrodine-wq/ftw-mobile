@@ -1,4 +1,4 @@
-import { API_BASE } from "@src/lib/constants";
+import { API_BASE, AI_STREAM_BASE } from "@src/lib/constants";
 import { useAuthStore } from "@src/stores/auth";
 
 export class ApiError extends Error {
@@ -243,6 +243,65 @@ export async function getAIEstimate(description: string): Promise<{ estimate: an
     method: "POST",
     body: JSON.stringify({ description }),
   });
+}
+
+export async function aiChat(message: string, conversationId?: string): Promise<{ response: string; conversation_id: string; tool_results?: any[] }> {
+  return apiFetch("/api/ai/chat", {
+    method: "POST",
+    body: JSON.stringify({ message, conversation_id: conversationId }),
+  });
+}
+
+export function aiChatStream(
+  message: string,
+  conversationId: string | undefined,
+  onToken: (token: string) => void,
+  onDone: (conversationId: string) => void,
+  onError: (error: string) => void,
+): void {
+  let authToken: string | null = null;
+  try {
+    const mod = require("@src/stores/auth");
+    authToken = mod.useAuthStore.getState().token;
+  } catch {}
+
+  // Use non-streaming endpoint since RN XHR doesn't support
+  // incremental responseText reliably. GPU responses are fast enough (~2s).
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+
+  fetch(`${API_BASE}/api/ai/chat`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ message, conversation_id: conversationId }),
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      return res.json();
+    })
+    .then((data) => {
+      // Simulate streaming by typing out the response
+      const text = data.response || "";
+      const convId = data.conversation_id || conversationId || "";
+      let i = 0;
+      const words = text.split(/(\s+)/);
+
+      const typeNext = () => {
+        if (i < words.length) {
+          onToken(words[i]);
+          i++;
+          setTimeout(typeNext, 30);
+        } else {
+          onDone(convId);
+        }
+      };
+      typeNext();
+    })
+    .catch((e) => {
+      onError(e.message || "Chat failed");
+    });
 }
 
 // Settings

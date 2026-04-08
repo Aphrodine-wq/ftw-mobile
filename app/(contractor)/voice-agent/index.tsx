@@ -21,59 +21,8 @@ import {
 import { useRouter } from "expo-router";
 import { BRAND } from "@src/lib/constants";
 import { formatCurrency } from "@src/lib/utils";
+import { useCallEstimateStore, type CallEstimate } from "@src/stores/call-estimates";
 import * as Haptics from "expo-haptics";
-
-interface CallEstimate {
-  id: string;
-  title: string;
-  description: string;
-  low: number;
-  high: number;
-  mid: number;
-  timeline: string;
-  calledAt: string;
-  duration: string;
-  status: "processing" | "ready";
-}
-
-const MOCK_HISTORY: CallEstimate[] = [
-  {
-    id: "ce1",
-    title: "Kitchen Remodel — 200 sq ft",
-    description: "Full gut reno, cabinets, quartz countertops, backsplash, new fixtures",
-    low: 28000,
-    high: 38000,
-    mid: 32500,
-    timeline: "6-8 weeks",
-    calledAt: "Today, 2:15 PM",
-    duration: "1:42",
-    status: "ready",
-  },
-  {
-    id: "ce2",
-    title: "Roof Replacement — 2,400 sq ft",
-    description: "Tear-off one layer, 30-year architectural, new ridge vent, ice shield",
-    low: 11000,
-    high: 16500,
-    mid: 14200,
-    timeline: "3-5 days",
-    calledAt: "Yesterday, 10:30 AM",
-    duration: "0:58",
-    status: "ready",
-  },
-  {
-    id: "ce3",
-    title: "Bathroom Tile — 80 sq ft",
-    description: "Shower tile, floor tile, waterproofing, new vanity install",
-    low: 6800,
-    high: 11200,
-    mid: 8900,
-    timeline: "2-3 weeks",
-    calledAt: "Mar 28, 4:45 PM",
-    duration: "1:15",
-    status: "ready",
-  },
-];
 
 const PROCESSING_CALL: CallEstimate = {
   id: "ce0",
@@ -100,7 +49,8 @@ export default function CallAgentScreen() {
   const [isOnCall, setIsOnCall] = useState(false);
   const [callSeconds, setCallSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [estimates, setEstimates] = useState<CallEstimate[]>(MOCK_HISTORY);
+  const estimates = useCallEstimateStore((s) => s.estimates);
+  const addEstimate = useCallEstimateStore((s) => s.add);
 
   // Live call timer
   useEffect(() => {
@@ -137,29 +87,24 @@ export default function CallAgentScreen() {
       duration,
       calledAt: "Just now",
     };
-    setEstimates((prev) => [processingEntry, ...prev]);
+    addEstimate(processingEntry);
 
     // Simulate AI processing the recording (30-60 seconds in production)
     setTimeout(() => {
-      setEstimates((prev) =>
-        prev.map((e) =>
-          e.id === "ce0"
-            ? {
-                ...e,
-                id: `ce-${Date.now()}`,
-                title: "Deck Build — 400 sq ft",
-                description: "Pressure-treated framing, composite decking, railing, stairs",
-                low: 14800,
-                high: 22000,
-                mid: 18600,
-                timeline: "2-3 weeks",
-                duration,
-                calledAt: "Just now",
-                status: "ready" as const,
-              }
-            : e
-        )
-      );
+      const { remove, add } = useCallEstimateStore.getState();
+      remove("ce0");
+      add({
+        id: `ce-${Date.now()}`,
+        title: "Deck Build — 400 sq ft",
+        description: "Pressure-treated framing, composite decking, railing, stairs",
+        low: 14800,
+        high: 22000,
+        mid: 18600,
+        timeline: "2-3 weeks",
+        duration,
+        calledAt: "Just now",
+        status: "ready",
+      });
     }, 5000);
   }, [callSeconds]);
 

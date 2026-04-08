@@ -27,14 +27,18 @@ import {
   Calculator,
   Phone,
   FileText,
+  Bell,
+  MessageCircle,
 } from "lucide-react-native";
 import { useAuthStore } from "@src/stores/auth";
+import { useAppearanceStore } from "@src/stores/appearance";
 import { useJobs, useEstimates, useProjects, contractorStats } from "@src/api/hooks";
 import { mockBids } from "@src/lib/mock-data";
 import { formatCurrency } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { useRouter } from "expo-router";
 import type { Project } from "@src/types";
+import { JobsComingIllustration } from "@src/components/domain/jobs-coming-illustration";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CARD_WIDTH = SCREEN_WIDTH - 32;
@@ -94,14 +98,14 @@ const JobCard = memo(function JobCard({ job, onPress }: { job: any; onPress: () 
             <Text className="text-[11px] font-bold text-text-secondary uppercase">{job.category}</Text>
           </View>
           <View className="flex-row items-center">
-            <Users size={13} color={BRAND.colors.textMuted} />
-            <Text className="text-sm text-text-muted ml-1">{job.bidCount} bids</Text>
+            <Users size={13} color={BRAND.colors.textSecondary} />
+            <Text className="text-sm text-text-secondary ml-1">{job.bidCount} bids</Text>
           </View>
         </View>
         <Text className="font-bold text-dark mt-1" style={{ fontSize: 17 }} numberOfLines={1}>{job.title}</Text>
         <View className="flex-row items-center mt-1">
-          <MapPin size={14} color={BRAND.colors.textMuted} />
-          <Text className="text-sm text-text-muted ml-1">{job.location}</Text>
+          <MapPin size={14} color={BRAND.colors.textSecondary} />
+          <Text className="text-sm text-text-secondary ml-1">{job.location}</Text>
         </View>
         <Text className="font-bold text-dark mt-2" style={{ fontSize: 20 }}>
           {formatCurrency(job.budget.min)}–{formatCurrency(job.budget.max)}
@@ -114,6 +118,7 @@ const JobCard = memo(function JobCard({ job, onPress }: { job: any; onPress: () 
 export default function ContractorDashboard() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const fs = useAppearanceStore((s) => s.scale);
   const displayName = user?.name || "Contractor";
   const initials = displayName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
@@ -168,12 +173,44 @@ export default function ContractorDashboard() {
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C41E3A" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BRAND.colors.primary} />
         }
       >
         {/* Header */}
         <View className="px-4 pt-3 pb-4">
-          <Text className="font-bold text-dark" style={{ fontSize: 27 }}>FairTradeWorker</Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="font-bold text-dark" style={{ fontSize: 32 }}>FairTradeWorker</Text>
+            <View className="flex-row items-center" style={{ gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => router.push("/(contractor)/notifications" as any)}
+                className="bg-surface w-11 h-11 items-center justify-center"
+                activeOpacity={0.7}
+              >
+                <Bell size={22} color={BRAND.colors.dark} />
+                <View className="absolute" style={{ top: -2, right: -2, minWidth: 18, height: 18, paddingHorizontal: 4, alignItems: "center", justifyContent: "center", backgroundColor: BRAND.colors.primary }}>
+                  <Text className="text-white" style={{ fontSize: 10, fontWeight: "800" }}>5</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/(contractor)/(messages)" as any)}
+                className="bg-surface w-11 h-11 items-center justify-center"
+                activeOpacity={0.7}
+              >
+                <MessageCircle size={22} color={BRAND.colors.dark} />
+                <View className="absolute" style={{ top: -2, right: -2, minWidth: 18, height: 18, paddingHorizontal: 4, alignItems: "center", justifyContent: "center", backgroundColor: BRAND.colors.primary }}>
+                  <Text className="text-white" style={{ fontSize: 10, fontWeight: "800" }}>3</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/(contractor)/help" as any)}
+            className="self-start px-3 py-1.5 mt-2"
+            style={{ borderRadius: 4, backgroundColor: BRAND.colors.primaryLight }}
+            activeOpacity={0.7}
+          >
+            <Text className="font-bold" style={{ fontSize: 12, color: BRAND.colors.primary }}>How It Works</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Contractor Profile */}
@@ -186,23 +223,23 @@ export default function ContractorDashboard() {
               recyclingKey="profile-avatar"
               transition={150}
             />
-            <Text className="font-bold text-dark" style={{ fontSize: 17 }}>{displayName}</Text>
+            <Text className="font-bold text-dark" style={{ fontSize: fs(17) }}>{displayName}</Text>
           </View>
           <View className="flex-row" style={{ gap: 8 }}>
             <TouchableOpacity className="flex-1 bg-surface p-3 items-center" activeOpacity={0.7} onPress={goInvoices}>
               <DollarSign size={16} color={BRAND.colors.primary} />
-              <Text className="font-bold text-dark mt-1" style={{ fontSize: 17 }}>{formatCurrency(contractorStats.monthlyRevenue)}</Text>
-              <Text className="text-text-muted uppercase tracking-wide mt-0.5" style={{ fontSize: 10 }}>Revenue</Text>
+              <Text className="font-bold text-dark mt-1" style={{ fontSize: fs(17) }}>{formatCurrency(contractorStats.monthlyRevenue)}</Text>
+              <Text className="text-text-secondary uppercase tracking-wide mt-0.5" style={{ fontSize: fs(10) }}>Revenue</Text>
             </TouchableOpacity>
             <TouchableOpacity className="flex-1 bg-surface p-3 items-center" activeOpacity={0.7} onPress={goReviews}>
               <Star size={16} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
-              <Text className="font-bold text-dark mt-1" style={{ fontSize: 17 }}>{contractorStats.avgRating}</Text>
-              <Text className="text-text-muted uppercase tracking-wide mt-0.5" style={{ fontSize: 10 }}>Rating</Text>
+              <Text className="font-bold text-dark mt-1" style={{ fontSize: fs(17) }}>{contractorStats.avgRating}</Text>
+              <Text className="text-text-secondary uppercase tracking-wide mt-0.5" style={{ fontSize: fs(10) }}>Rating</Text>
             </TouchableOpacity>
             <TouchableOpacity className="flex-1 bg-surface p-3 items-center" activeOpacity={0.7} onPress={goJobs}>
               <Briefcase size={16} color={BRAND.colors.primary} />
-              <Text className="font-bold text-dark mt-1" style={{ fontSize: 17 }}>{contractorStats.completedJobs}</Text>
-              <Text className="text-text-muted uppercase tracking-wide mt-0.5" style={{ fontSize: 10 }}>Jobs Done</Text>
+              <Text className="font-bold text-dark mt-1" style={{ fontSize: fs(17) }}>{contractorStats.completedJobs}</Text>
+              <Text className="text-text-secondary uppercase tracking-wide mt-0.5" style={{ fontSize: fs(10) }}>Jobs Done</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -214,7 +251,7 @@ export default function ContractorDashboard() {
             activeOpacity={0.7}
             onPress={goEstimates}
           >
-            <View className="w-8 h-8 bg-brand-50 items-center justify-center mr-2">
+            <View className="w-8 h-8 items-center justify-center mr-2" style={{ backgroundColor: BRAND.colors.primaryLight }}>
               <FileText size={16} color={BRAND.colors.primary} />
             </View>
             <Text className="font-bold text-dark" style={{ fontSize: 13 }}>New Estimate</Text>
@@ -224,66 +261,67 @@ export default function ContractorDashboard() {
             activeOpacity={0.7}
             onPress={goVoiceAgent}
           >
-            <View className="w-8 h-8 bg-brand-50 items-center justify-center mr-2">
+            <View className="w-8 h-8 items-center justify-center mr-2" style={{ backgroundColor: BRAND.colors.primaryLight }}>
               <Phone size={16} color={BRAND.colors.primary} />
             </View>
             <Text className="font-bold text-dark flex-1" style={{ fontSize: 13 }}>Call Agent</Text>
-            <View className="bg-brand-600 px-1.5 py-0.5">
+            <View className="px-1.5 py-0.5" style={{ backgroundColor: BRAND.colors.primary }}>
               <Text className="text-white font-bold" style={{ fontSize: 7 }}>PRO</Text>
             </View>
           </TouchableOpacity>
         </View>
 
         {/* Job Feed — Referral CTA */}
-        <TouchableOpacity className="mx-4 mb-4 bg-white border border-border p-3" activeOpacity={0.7} onPress={() => router.push("/(contractor)/marketplace" as any)}>
-          <View className="flex-row items-center justify-between mb-1">
-            <View className="flex-row items-center">
-              <Users size={14} color={BRAND.colors.primary} />
-              <Text className="font-bold text-dark ml-1.5" style={{ fontSize: 14 }}>New Jobs</Text>
+        <View className="mx-4 mb-4 bg-white border border-border rounded overflow-hidden">
+          <View className="p-4 pb-3 flex-row items-start">
+            <View className="flex-1 mr-3">
+              <View className="self-start px-2.5 py-1 rounded mb-2" style={{ backgroundColor: BRAND.colors.primaryLight }}>
+                <Text className="font-bold" style={{ fontSize: 11, letterSpacing: 1, color: BRAND.colors.primary }}>COMING SOON</Text>
+              </View>
+              <Text className="text-dark font-bold" style={{ fontSize: 20 }}>Jobs Are Headed Your Way</Text>
+              <Text className="text-text-secondary mt-1.5" style={{ fontSize: 13, lineHeight: 19 }}>
+                Spread the word. The more people sign up in your area, the faster work starts showing up for everyone.
+              </Text>
             </View>
-            <ChevronRight size={16} color={BRAND.colors.textMuted} />
+            <JobsComingIllustration size={110} />
           </View>
-          <Text className="text-text-muted mt-1" style={{ fontSize: 12, lineHeight: 17 }}>
-            Invite contractors and subs to unlock your job feed.
-          </Text>
-          <View className="flex-row mt-2.5" style={{ gap: 8 }}>
-            <TouchableOpacity className="flex-1 bg-brand-600 py-2.5 items-center" activeOpacity={0.8}>
-              <Text className="text-white font-bold" style={{ fontSize: 13 }}>Invite a Contractor/Sub</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="flex-1 border border-border py-2.5 items-center" activeOpacity={0.7}>
-              <Text className="text-dark font-bold" style={{ fontSize: 13 }}>Share Link</Text>
-            </TouchableOpacity>
-          </View>
-          <View className="mt-3 bg-surface p-3" style={{ gap: 8 }}>
+          <View className="px-4 pb-3" style={{ gap: 10 }}>
             <View>
               <View className="flex-row items-center justify-between mb-1.5">
                 <Text className="text-dark font-bold" style={{ fontSize: 13 }}>Contractors</Text>
-                <Text className="text-text-muted font-bold" style={{ fontSize: 12 }}>3 of 50</Text>
+                <Text className="text-text-secondary font-bold" style={{ fontSize: 13 }}>3 / 50</Text>
               </View>
-              <View className="bg-border h-2.5 w-full">
-                <View className="h-2.5 bg-brand-600" style={{ width: "6%" }} />
+              <View className="bg-surface h-2.5 w-full" style={{ borderRadius: 99 }}>
+                <View className="h-2.5" style={{ width: "6%", borderRadius: 99, backgroundColor: BRAND.colors.primary }} />
               </View>
             </View>
             <View>
               <View className="flex-row items-center justify-between mb-1.5">
                 <Text className="text-dark font-bold" style={{ fontSize: 13 }}>Subcontractors</Text>
-                <Text className="text-text-muted font-bold" style={{ fontSize: 12 }}>5 of 150</Text>
+                <Text className="text-text-secondary font-bold" style={{ fontSize: 13 }}>5 / 150</Text>
               </View>
-              <View className="bg-border h-2.5 w-full">
-                <View className="h-2.5 bg-brand-600" style={{ width: "3%" }} />
+              <View className="bg-surface h-2.5 w-full" style={{ borderRadius: 99 }}>
+                <View className="h-2.5" style={{ width: "3%", borderRadius: 99, backgroundColor: BRAND.colors.primary }} />
               </View>
             </View>
-            <Text className="text-text-muted" style={{ fontSize: 12 }}>Job feed activates when both bars fill up in your area.</Text>
           </View>
-        </TouchableOpacity>
+          <View className="px-4 pb-4 flex-row" style={{ gap: 8 }}>
+            <TouchableOpacity className="flex-1 py-3 items-center rounded" style={{ backgroundColor: BRAND.colors.primary }} activeOpacity={0.8} onPress={() => router.push("/(contractor)/referrals" as any)}>
+              <Text className="text-white font-bold" style={{ fontSize: 14 }}>Invite People</Text>
+            </TouchableOpacity>
+            <TouchableOpacity className="flex-1 bg-surface py-3 items-center rounded" activeOpacity={0.7} onPress={() => router.push("/(contractor)/referrals" as any)}>
+              <Text className="text-dark font-bold" style={{ fontSize: 14 }}>Share Link</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Active Projects */}
         {activeProjects.length > 0 && (
           <View className="mb-4">
             <View className="flex-row items-center justify-between px-4 mb-3">
-              <Text className="font-bold text-dark" style={{ fontSize: 21 }}>Active Projects</Text>
+              <Text className="font-bold text-dark" style={{ fontSize: fs(21) }}>Active Projects</Text>
               <TouchableOpacity className="flex-row items-center" onPress={goProjects} activeOpacity={0.7}>
-                <Text className="text-brand-600 text-sm font-bold mr-0.5">All</Text>
+                <Text className="text-sm font-bold mr-0.5" style={{ color: BRAND.colors.primary }}>All</Text>
                 <ChevronRight size={16} color={BRAND.colors.primary} />
               </TouchableOpacity>
             </View>
@@ -308,11 +346,11 @@ export default function ContractorDashboard() {
                       <View className="flex-1 p-4">
                         <View className="flex-row items-center justify-between mb-1">
                           <Text className="font-bold text-dark flex-1 mr-2" style={{ fontSize: 16 }} numberOfLines={1}>{proj.name}</Text>
-                          <Text className="font-bold text-text-muted" style={{ fontSize: 14 }}>{pct}%</Text>
+                          <Text className="font-bold text-text-secondary" style={{ fontSize: 14 }}>{pct}%</Text>
                         </View>
-                        <Text className="text-text-muted mb-2" style={{ fontSize: 13 }}>{proj.homeownerName}</Text>
-                        <View className="bg-gray-100 h-2 w-full mb-1.5">
-                          <View className="h-2" style={{ width: `${pct}%`, backgroundColor: BRAND.colors.primary }} />
+                        <Text className="text-text-secondary mb-2" style={{ fontSize: 13 }}>{proj.homeownerName}</Text>
+                        <View className="bg-gray-100 h-2 w-full mb-1.5" style={{ borderRadius: 99 }}>
+                          <View className="h-2" style={{ width: `${pct}%`, backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
                         </View>
                         <Text className="text-xs font-bold text-dark">{formatCurrency(proj.spent)} / {formatCurrency(proj.budget)}</Text>
                       </View>
@@ -327,7 +365,7 @@ export default function ContractorDashboard() {
         {/* Milestones */}
         <View className="mb-4">
           <View className="flex-row items-center justify-between px-4 mb-2">
-            <Text className="font-bold text-dark" style={{ fontSize: 19 }}>Upcoming Milestones</Text>
+            <Text className="font-bold text-dark" style={{ fontSize: fs(19) }}>Upcoming Milestones</Text>
             <View className="bg-gray-100 px-2 py-0.5">
               <Text className="text-sm font-bold text-text-secondary">{ACTIVE_MILESTONE_COUNT} active</Text>
             </View>
@@ -339,16 +377,16 @@ export default function ContractorDashboard() {
                   {ms.status === "done" ? (
                     <CheckCircle2 size={20} color={BRAND.colors.primary} />
                   ) : (
-                    <Circle size={20} color={BRAND.colors.textMuted} />
+                    <Circle size={20} color={BRAND.colors.textSecondary} />
                   )}
                 </View>
                 <View className="flex-1">
-                  <Text className={`text-sm font-bold ${ms.status === "done" ? "text-text-muted line-through" : "text-dark"}`} numberOfLines={1}>{ms.task}</Text>
-                  <Text className="text-xs text-text-muted">{ms.project} — {ms.client}</Text>
+                  <Text className={`text-sm font-bold ${ms.status === "done" ? "text-text-secondary line-through" : "text-dark"}`} numberOfLines={1}>{ms.task}</Text>
+                  <Text className="text-xs text-text-secondary">{ms.project} — {ms.client}</Text>
                 </View>
                 <View className="items-end ml-2">
-                  <Text className={`font-bold ${ms.status === "done" ? "text-text-muted" : "text-dark"}`} style={{ fontSize: 14 }}>{formatCurrency(ms.amount)}</Text>
-                  <Text className={`${ms.status === "done" ? "text-text-muted" : "text-brand-600"} font-bold mt-0.5`} style={{ fontSize: 13 }}>{ms.status === "done" ? "Paid" : ms.due}</Text>
+                  <Text className={`font-bold ${ms.status === "done" ? "text-text-secondary" : "text-dark"}`} style={{ fontSize: 14 }}>{formatCurrency(ms.amount)}</Text>
+                  <Text className={`${ms.status === "done" ? "text-text-secondary" : "text-brand-600"} font-bold mt-0.5`} style={{ fontSize: 13 }}>{ms.status === "done" ? "Paid" : ms.due}</Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -361,7 +399,7 @@ export default function ContractorDashboard() {
             <View className="flex-row items-center justify-between px-3 pt-3 pb-1">
               <Text className="text-base font-bold text-dark">Estimates</Text>
               <TouchableOpacity className="flex-row items-center" onPress={goEstimates} activeOpacity={0.7}>
-                <Text className="text-brand-600 text-xs font-bold mr-0.5">All</Text>
+                <Text className="text-xs font-bold mr-0.5" style={{ color: BRAND.colors.primary }}>All</Text>
                 <ChevronRight size={14} color={BRAND.colors.primary} />
               </TouchableOpacity>
             </View>
@@ -377,7 +415,7 @@ export default function ContractorDashboard() {
                   >
                     <View className="flex-1 mr-2">
                       <Text className="text-sm font-bold text-dark" numberOfLines={1}>{est.client}</Text>
-                      <Text className="text-xs text-text-muted">{formatCurrency(est.total)}</Text>
+                      <Text className="text-xs text-text-secondary">{formatCurrency(est.total)}</Text>
                     </View>
                     <View className={`${statusStyle.bg} px-2 py-0.5`}>
                       <Text className={`${statusStyle.text} text-[10px] font-bold capitalize`}>{est.status}</Text>
@@ -395,15 +433,15 @@ export default function ContractorDashboard() {
             <View className="flex-1 px-3 pb-3 justify-evenly">
               <TouchableOpacity className="items-center py-2 border-b border-border" activeOpacity={0.7} onPress={goJobs}>
                 <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{contractorStats.activeJobs}</Text>
-                <Text className="text-[10px] text-text-muted mt-0.5">Active Jobs</Text>
+                <Text className="text-[10px] text-text-secondary mt-0.5">Active Jobs</Text>
               </TouchableOpacity>
               <TouchableOpacity className="items-center py-2 border-b border-border" activeOpacity={0.7} onPress={goJobs}>
                 <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{contractorStats.pendingBids}</Text>
-                <Text className="text-[10px] text-text-muted mt-0.5">Pending Bids</Text>
+                <Text className="text-[10px] text-text-secondary mt-0.5">Pending Bids</Text>
               </TouchableOpacity>
               <TouchableOpacity className="items-center py-2" activeOpacity={0.7} onPress={goJobs}>
                 <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{contractorStats.completedJobs}</Text>
-                <Text className="text-[10px] text-text-muted mt-0.5">Jobs Done</Text>
+                <Text className="text-[10px] text-text-secondary mt-0.5">Jobs Done</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -420,7 +458,7 @@ export default function ContractorDashboard() {
                   <TouchableOpacity key={bid.id} className="bg-white border border-border rounded flex-row items-center p-3" activeOpacity={0.7} onPress={() => router.push(`/(contractor)/(jobs)?jobId=${bid.jobId}` as any)}>
                     <View className="flex-1">
                       <Text className="text-sm font-bold text-dark" numberOfLines={1}>{job?.title || "Job"}</Text>
-                      <Text className="text-xs text-text-muted mt-0.5">{job?.location} — {bid.timeline}</Text>
+                      <Text className="text-xs text-text-secondary mt-0.5">{job?.location} — {bid.timeline}</Text>
                     </View>
                     <View className="items-end ml-2">
                       <Text className="text-base font-bold text-dark">{formatCurrency(bid.amount)}</Text>

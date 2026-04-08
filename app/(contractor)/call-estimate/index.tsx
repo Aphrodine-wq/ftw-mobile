@@ -1,24 +1,21 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, Phone, Clock, Send, Download } from "lucide-react-native";
+import { ArrowLeft, Phone, Clock, Send, Download, Trash2 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { BRAND } from "@src/lib/constants";
 import { formatCurrency } from "@src/lib/utils";
 import { mockAiEstimate } from "@src/lib/mock-data";
 import { AiEstimateCard } from "@src/components/domain/ai-estimate-card";
-
-// In production, this would fetch the estimate by ID from the API
-// For now, we use mock data with the title/price from the call
-const MOCK_CALL_ESTIMATES: Record<string, { title: string; calledAt: string; duration: string }> = {
-  "ce1": { title: "Kitchen Remodel — 200 sq ft", calledAt: "Today, 2:15 PM", duration: "1:42" },
-  "ce2": { title: "Roof Replacement — 2,400 sq ft", calledAt: "Yesterday, 10:30 AM", duration: "0:58" },
-  "ce3": { title: "Bathroom Tile — 80 sq ft", calledAt: "Mar 28, 4:45 PM", duration: "1:15" },
-};
+import { useCallEstimateStore } from "@src/stores/call-estimates";
 
 export default function CallEstimateDetail() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const callInfo = MOCK_CALL_ESTIMATES[id || "ce1"] || MOCK_CALL_ESTIMATES["ce1"];
+  const estimate = useCallEstimateStore((s) => s.estimates.find((e) => e.id === id));
+  const removeEstimate = useCallEstimateStore((s) => s.remove);
+
+  const callInfo = estimate || { title: "Estimate", calledAt: "", duration: "" };
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -67,6 +64,32 @@ export default function CallEstimateDetail() {
           <TouchableOpacity className="border border-border bg-white py-4 flex-row items-center justify-center" activeOpacity={0.7}>
             <Download size={18} color={BRAND.colors.textPrimary} />
             <Text className="text-dark font-bold ml-2" style={{ fontSize: 16 }}>Export PDF</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="border border-red-200 bg-red-50 py-4 flex-row items-center justify-center"
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              Alert.alert(
+                "Delete Estimate",
+                "This will permanently remove this call estimate. Are you sure?",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => {
+                      if (id) removeEstimate(id);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      router.back();
+                    },
+                  },
+                ],
+              );
+            }}
+          >
+            <Trash2 size={18} color="#DC2626" />
+            <Text className="font-bold ml-2" style={{ fontSize: 16, color: "#DC2626" }}>Delete Estimate</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

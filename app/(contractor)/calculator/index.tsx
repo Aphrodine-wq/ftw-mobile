@@ -257,11 +257,11 @@ export default function CalculatorScreen() {
               </View>
 
               {/* Range Bar */}
-              <View className="mt-4 h-3 bg-surface w-full">
-                <View className="h-3 bg-brand-600" style={{ width: "100%" }} />
+              <View className="mt-4 h-3 bg-surface w-full" style={{ borderRadius: 99 }}>
+                <View className="h-3 bg-brand-600" style={{ width: "100%", borderRadius: 99 }} />
                 <View
                   className="absolute h-3 bg-dark"
-                  style={{ left: "40%", width: "20%" }}
+                  style={{ left: "40%", width: "20%", borderRadius: 99 }}
                 />
               </View>
               <View className="flex-row justify-between mt-1">

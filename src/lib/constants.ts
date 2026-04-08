@@ -52,3 +52,6 @@ export const JOB_STATUSES = [
 
 export const API_BASE =
   process.env.EXPO_PUBLIC_REALTIME_URL || "http://localhost:4000";
+
+export const AI_STREAM_BASE =
+  process.env.EXPO_PUBLIC_AI_STREAM_URL || API_BASE.replace(":4000", ":8000");

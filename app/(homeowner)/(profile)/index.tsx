@@ -111,7 +111,10 @@ export default function HomeownerProfile() {
 
         {/* Logout */}
         <TouchableOpacity
-          onPress={logout}
+          onPress={() => {
+            logout();
+            router.replace("/(auth)/welcome" as any);
+          }}
           style={styles.logoutCard}
           activeOpacity={0.7}
         >

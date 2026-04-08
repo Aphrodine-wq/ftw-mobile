@@ -182,12 +182,13 @@ export default function ProjectDetailScreen() {
                   {formatCurrency(project.spent)} / {formatCurrency(project.budget)}
                 </Text>
               </View>
-              <View className="bg-gray-100 h-3 w-full mb-1">
+              <View className="bg-gray-100 h-3 w-full mb-1" style={{ borderRadius: 99 }}>
                 <View
                   className="h-3"
                   style={{
                     width: `${progress}%`,
                     backgroundColor: project.status === "completed" ? "#059669" : progress > 90 ? "#D97706" : BRAND.colors.primary,
+                    borderRadius: 99,
                   }}
                 />
               </View>
@@ -332,12 +333,13 @@ export default function ProjectDetailScreen() {
                 <Text className="text-base font-bold text-dark">Progress</Text>
                 <Text className="text-sm text-text-muted">{doneTasks} / {totalTasks}</Text>
               </View>
-              <View className="bg-gray-100 h-2 w-full">
+              <View className="bg-gray-100 h-2 w-full" style={{ borderRadius: 99 }}>
                 <View
                   className="h-2"
                   style={{
                     width: totalTasks > 0 ? `${Math.round((doneTasks / totalTasks) * 100)}%` : "0%",
                     backgroundColor: "#059669",
+                    borderRadius: 99,
                   }}
                 />
               </View>

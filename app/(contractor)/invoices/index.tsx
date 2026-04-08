@@ -403,8 +403,8 @@ export default function InvoicesScreen() {
                             <Text className="text-text-muted text-xs">{pct}% invoiced</Text>
                             <Text className="text-dark text-sm font-bold">{formatCurrency(proj.spent)} / {formatCurrency(proj.budget)}</Text>
                           </View>
-                          <View className="bg-gray-100 h-2 w-full">
-                            <View className="h-2" style={{ width: `${pct}%`, backgroundColor: BRAND.colors.primary }} />
+                          <View className="bg-gray-100 h-2 w-full" style={{ borderRadius: 99 }}>
+                            <View className="h-2" style={{ width: `${pct}%`, backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
                           </View>
                         </View>
 

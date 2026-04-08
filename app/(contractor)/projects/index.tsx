@@ -17,6 +17,7 @@ import { useRouter } from "expo-router";
 import { useProjects } from "@src/api/hooks";
 import { formatCurrency } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
+
 import { Badge } from "@src/components/ui/badge";
 import type { Project } from "@src/types";
 
@@ -56,7 +57,7 @@ export default function ProjectsScreen() {
 
     return (
       <TouchableOpacity
-        className="bg-white border border-border rounded mx-5 mb-3 overflow-hidden"
+        className="bg-white border border-border overflow-hidden flex-1"
         style={{ borderRadius: 4 }}
         activeOpacity={0.7}
         onPress={() => router.push(`/(contractor)/projects/${item.id}` as any)}
@@ -65,79 +66,90 @@ export default function ProjectsScreen() {
         {item.thumbnail && (
           <Image
             source={{ uri: item.thumbnail }}
-            style={{ width: "100%", height: 140 }}
+            style={{ width: "100%", height: 150 }}
             resizeMode="cover"
           />
         )}
 
-        <View className="p-4">
-          {/* Title + Status */}
-          <View className="flex-row items-center justify-between mb-1">
-            <Text className="text-lg font-bold text-dark flex-1 mr-2" numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Badge
-              label={item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-              variant={getStatusVariant(item.status)}
-            />
-          </View>
+        <View className="p-3">
+          {/* Status */}
+          <Badge
+            label={item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+            variant={getStatusVariant(item.status)}
+          />
 
-          {/* Client + Description */}
-          <Text className="text-sm text-text-secondary">{item.homeownerName}</Text>
-          <Text className="text-xs text-text-muted mt-1" numberOfLines={1}>
-            {item.description}
+          {/* Title */}
+          <Text className="font-bold text-dark mt-1.5" style={{ fontSize: 17 }} numberOfLines={2}>
+            {item.name}
           </Text>
 
+          {/* Client */}
+          <Text className="text-text-secondary mt-0.5" style={{ fontSize: 14 }}>{item.homeownerName}</Text>
+
           {/* Budget Bar */}
-          <View className="mt-3">
-            <View className="flex-row items-center justify-between mb-1">
-              <Text className="text-xs text-text-muted">{progress}%</Text>
-              <Text className="text-sm font-bold text-dark">
-                {formatCurrency(item.spent)} / {formatCurrency(item.budget)}
-              </Text>
-            </View>
-            <View className="h-2 bg-gray-100 overflow-hidden">
+          <View className="mt-2.5">
+            <View className="h-2 bg-gray-100 overflow-hidden" style={{ borderRadius: 99 }}>
               <View
-                className={`h-full ${
-                  item.status === "completed" ? "bg-emerald-500"
-                    : progress > 90 ? "bg-amber-500"
-                    : "bg-brand-600"
-                }`}
-                style={{ width: `${progress}%` }}
+                className="h-full"
+                style={{
+                  width: `${progress}%`,
+                  borderRadius: 99,
+                  backgroundColor: item.status === "completed" ? "#10B981"
+                    : progress > 90 ? "#F59E0B"
+                    : BRAND.colors.primary,
+                }}
               />
+            </View>
+            <View className="flex-row items-center justify-between mt-1">
+              <Text className="text-text-secondary font-bold" style={{ fontSize: 12 }}>{progress}%</Text>
+              <Text className="text-dark font-bold" style={{ fontSize: 12 }}>
+                {formatCurrency(item.spent)}
+              </Text>
             </View>
           </View>
 
-          {/* Footer */}
-          <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-border">
-            {totalTasks > 0 ? (
-              <Text className="text-xs text-text-muted">
-                {doneTasks}/{totalTasks} tasks done
-              </Text>
-            ) : (
-              <View />
-            )}
-            <ChevronRight size={16} color={BRAND.colors.textMuted} />
-          </View>
+          {/* Tasks */}
+          {totalTasks > 0 && (
+            <Text className="text-text-secondary mt-1.5" style={{ fontSize: 12 }}>
+              {doneTasks}/{totalTasks} tasks
+            </Text>
+          )}
 
           {/* FairRecord for completed */}
           {item.status === "completed" && (
-            <TouchableOpacity className="flex-row items-center mt-2 pt-2 border-t border-border" activeOpacity={0.7}>
-              <Shield size={14} color={BRAND.colors.primary} />
-              <Text className="text-brand-600 text-xs font-bold ml-1.5">View FairRecord</Text>
-            </TouchableOpacity>
+            <View className="flex-row items-center mt-2 pt-2 border-t border-border">
+              <Shield size={12} color={BRAND.colors.primary} />
+              <Text className="font-bold ml-1" style={{ fontSize: 11, color: BRAND.colors.primary }}>FairRecord</Text>
+            </View>
           )}
         </View>
       </TouchableOpacity>
     );
   };
 
+  const renderRow = ({ item }: { item: Project[] }) => (
+    <View className="flex-row px-4 mb-3" style={{ gap: 10 }}>
+      {item.map((project) => (
+        <View key={project.id} style={{ flex: 1 }}>
+          {renderProject({ item: project })}
+        </View>
+      ))}
+      {item.length === 1 && <View style={{ flex: 1 }} />}
+    </View>
+  );
+
+  // Chunk projects into pairs for two-column layout
+  const rows = [];
+  for (let i = 0; i < projects.length; i += 2) {
+    rows.push(projects.slice(i, i + 2));
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-surface">
       <FlatList
-        data={projects}
-        keyExtractor={(item) => item.id}
-        renderItem={renderProject}
+        data={rows}
+        keyExtractor={(_, i) => String(i)}
+        renderItem={renderRow}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
@@ -149,8 +161,8 @@ export default function ProjectsScreen() {
         }
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-5">
-            <FolderOpen size={48} color={BRAND.colors.textMuted} />
-            <Text className="text-text-muted text-base mt-4">No projects yet</Text>
+            <FolderOpen size={48} color={BRAND.colors.textSecondary} />
+            <Text className="text-text-secondary text-base mt-4">No projects yet</Text>
           </View>
         }
       />

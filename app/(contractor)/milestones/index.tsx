@@ -98,10 +98,10 @@ function MilestoneRow({
 
   const doneTasks = tasks.filter((t) => t.status === "done").length;
 
-  function handleMarkComplete() {
-    Alert.alert("Mark Complete", `Mark "${milestone.title}" as complete and ready for payment?`, [
+  function handleSendPaymentRequest() {
+    Alert.alert("Send Payment Request", `Request ${formatCurrency(milestone.amount)} from ${project.homeownerName} for "${milestone.title}"?`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Mark Complete", onPress: () => {} },
+      { text: "Send Request", onPress: () => {} },
     ]);
   }
 
@@ -169,8 +169,8 @@ function MilestoneRow({
           {/* Task progress bar (if tasks exist) */}
           {tasks.length > 0 && (
             <View className="flex-row items-center mt-2">
-              <View className="flex-1 bg-gray-100 h-1.5 mr-2">
-                <View className="h-1.5" style={{ width: `${tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0}%`, backgroundColor: "#059669" }} />
+              <View className="flex-1 bg-gray-100 h-1.5 mr-2" style={{ borderRadius: 99 }}>
+                <View className="h-1.5" style={{ width: `${tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0}%`, backgroundColor: "#059669", borderRadius: 99 }} />
               </View>
               <Text className="text-[10px] text-text-muted">{doneTasks}/{tasks.length} tasks</Text>
             </View>
@@ -227,10 +227,10 @@ function MilestoneRow({
                   className="flex-1 bg-white border border-border rounded py-3 flex-row items-center justify-center"
                   style={{ borderRadius: 4 }}
                   activeOpacity={0.7}
-                  onPress={handleMarkComplete}
+                  onPress={handleSendPaymentRequest}
                 >
-                  <CheckCircle2 size={16} color={BRAND.colors.dark} />
-                  <Text className="text-dark font-bold text-xs ml-1.5">Mark Complete</Text>
+                  <DollarSign size={16} color={BRAND.colors.dark} />
+                  <Text className="text-dark font-bold text-xs ml-1.5">Send Payment Request</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="flex-1 bg-white border border-border rounded py-3 flex-row items-center justify-center"
@@ -295,8 +295,8 @@ function ProjectSection({ project }: { project: Project }) {
 
         {/* Progress bar */}
         <View className="mt-2">
-          <View className="bg-gray-100 h-2 w-full">
-            <View className="h-2" style={{ width: `${paidPct}%`, backgroundColor: "#059669" }} />
+          <View className="bg-gray-100 h-2 w-full" style={{ borderRadius: 99 }}>
+            <View className="h-2" style={{ width: `${paidPct}%`, backgroundColor: "#059669", borderRadius: 99 }} />
           </View>
           <View className="flex-row items-center justify-between mt-1">
             <Text className="text-[10px] text-text-muted">{paidPct}% paid</Text>

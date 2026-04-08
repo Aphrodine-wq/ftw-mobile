@@ -117,8 +117,8 @@ export default function MyWorkScreen() {
 
                   {/* Progress bar for active jobs */}
                   {sj.status === "in_progress" && (
-                    <View className="bg-gray-100 h-2 w-full mt-1">
-                      <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary }} />
+                    <View className="bg-gray-100 h-2 w-full mt-1" style={{ borderRadius: 99 }}>
+                      <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
                     </View>
                   )}
 

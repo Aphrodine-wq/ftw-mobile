@@ -275,8 +275,8 @@ export default function SubContractorDashboard() {
                       <Text className="text-xs text-text-muted">{sj.milestoneLabel}</Text>
                       {bid && <Text className="text-base font-bold text-dark">{formatCurrency(bid.amount)}</Text>}
                     </View>
-                    <View className="bg-gray-100 h-2 w-full mt-2">
-                      <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary }} />
+                    <View className="bg-gray-100 h-2 w-full mt-2" style={{ borderRadius: 99 }}>
+                      <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
                     </View>
                   </TouchableOpacity>
                 );

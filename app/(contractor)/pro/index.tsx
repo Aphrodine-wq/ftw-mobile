@@ -257,6 +257,75 @@ export default function ProScreen() {
           })}
         </View>
 
+        {/* Feature Comparison */}
+        <View className="px-6 mt-10">
+          <Text className="text-dark font-bold mb-2" style={{ fontSize: 22 }}>Compare plans</Text>
+          <Text className="text-text-muted mb-5" style={{ fontSize: 14 }}>See exactly what you get at each level.</Text>
+
+          {/* Table Header */}
+          <View className="flex-row border-b-2 border-dark pb-3 mb-1">
+            <View className="flex-[2]">
+              <Text className="text-text-muted font-bold" style={{ fontSize: 11 }}>FEATURE</Text>
+            </View>
+            <View className="flex-1 items-center">
+              <Text className="text-text-muted font-bold" style={{ fontSize: 11 }}>FREE</Text>
+            </View>
+            <View className="flex-1 items-center">
+              <Text className="text-text-muted font-bold" style={{ fontSize: 11 }}>SOLO</Text>
+            </View>
+            <View className="flex-1 items-center">
+              <Text className="text-text-muted font-bold" style={{ fontSize: 11 }}>TEAM</Text>
+            </View>
+            <View className="flex-1 items-center">
+              <Text className="text-dark font-bold" style={{ fontSize: 11 }}>ENT.</Text>
+            </View>
+          </View>
+
+          {/* Rows */}
+          {([
+            { feature: "Browse & bid on jobs", free: true, solo: true, team: true, ent: true },
+            { feature: "Direct messaging", free: true, solo: true, team: true, ent: true },
+            { feature: "Escrow payments", free: true, solo: true, team: true, ent: true },
+            { feature: "Manual estimates", free: true, solo: true, team: true, ent: true },
+            { feature: "FairRecord profile", free: true, solo: true, team: true, ent: true },
+            { feature: "ConstructionAI estimates", free: false, solo: true, team: true, ent: true },
+            { feature: "Call Agent", free: false, solo: true, team: true, ent: true },
+            { feature: "FairPrice calculator", free: false, solo: true, team: true, ent: true },
+            { feature: "Unlimited estimates", free: false, solo: true, team: true, ent: true },
+            { feature: "PDF export", free: false, solo: true, team: true, ent: true },
+            { feature: "Regional pricing data", free: false, solo: true, team: true, ent: true },
+            { feature: "Team members", free: false, solo: false, team: "5", ent: true },
+            { feature: "Shared project dashboard", free: false, solo: false, team: true, ent: true },
+            { feature: "Team activity feed", free: false, solo: false, team: true, ent: true },
+            { feature: "Crew assignments", free: false, solo: false, team: true, ent: true },
+            { feature: "Advanced analytics", free: false, solo: false, team: true, ent: true },
+            { feature: "Priority support", free: false, solo: false, team: true, ent: true },
+            { feature: "Unlimited team members", free: false, solo: false, team: false, ent: true },
+            { feature: "API access", free: false, solo: false, team: false, ent: true },
+            { feature: "White-label estimates", free: false, solo: false, team: false, ent: true },
+            { feature: "Custom integrations", free: false, solo: false, team: false, ent: true },
+            { feature: "Dedicated account mgr", free: false, solo: false, team: false, ent: true },
+            { feature: "SLA guarantee", free: false, solo: false, team: false, ent: true },
+          ] as const).map((row, i) => (
+            <View key={row.feature} className={`flex-row py-3 ${i % 2 === 0 ? "bg-surface" : "bg-white"}`}>
+              <View className="flex-[2] justify-center pl-2">
+                <Text className="text-dark" style={{ fontSize: 12 }}>{row.feature}</Text>
+              </View>
+              {([row.free, row.solo, row.team, row.ent] as const).map((val, ci) => (
+                <View key={ci} className="flex-1 items-center justify-center">
+                  {val === true ? (
+                    <Check size={14} color="#059669" strokeWidth={3} />
+                  ) : val === false ? (
+                    <X size={14} color={BRAND.colors.border} />
+                  ) : (
+                    <Text className="text-dark font-bold" style={{ fontSize: 12 }}>{val}</Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+
         {/* Testimonials */}
         <View className="mt-10 mb-2">
           <Text className="text-dark font-bold px-6 mb-4" style={{ fontSize: 22 }}>From the field</Text>

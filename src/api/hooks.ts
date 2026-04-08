@@ -119,6 +119,29 @@ export function useEstimates() {
   });
 }
 
+export function useDeleteEstimate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // TODO: call api.deleteEstimate(id) when backend exists
+      return id;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.estimates });
+      const previous = queryClient.getQueryData(queryKeys.estimates);
+      queryClient.setQueryData(queryKeys.estimates, (old: any[] | undefined) =>
+        (old || []).filter((e: any) => e.id !== id),
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.estimates, context.previous);
+      }
+    },
+  });
+}
+
 export function useProjects() {
   return useQuery({
     queryKey: queryKeys.projects,

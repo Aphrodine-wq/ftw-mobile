@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   LogOut,
 } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import { useAuthStore } from "@src/stores/auth";
 import { BRAND } from "@src/lib/constants";
 import { router } from "expo-router";
@@ -76,6 +77,7 @@ const SECTIONS: SettingsSection[] = [
 
 export default function HomeownerSettings() {
   const { logout } = useAuthStore();
+  const router = useRouter();
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -139,7 +141,10 @@ export default function HomeownerSettings() {
         {/* Sign Out */}
         <View style={{ marginHorizontal: 20, marginTop: 24 }}>
           <TouchableOpacity
-            onPress={logout}
+            onPress={() => {
+              logout();
+              router.replace("/(auth)/welcome" as any);
+            }}
             style={s.logoutBtn}
             activeOpacity={0.7}
           >

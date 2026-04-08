@@ -37,17 +37,17 @@ export default function MarketplaceScreen() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
-        {/* Section 1 — The Problem */}
+        {/* Section 1 — Hero */}
         <View className="px-6 pt-8 pb-10 items-center">
-          <Text className="text-text-muted font-bold uppercase tracking-wider mb-3 text-center" style={{ fontSize: 11 }}>The Challenge</Text>
+          <Text className="text-text-muted font-bold uppercase tracking-wider mb-3 text-center" style={{ fontSize: 11 }}>No Lead Fees. Ever.</Text>
           <Text className="text-dark font-bold text-center" style={{ fontSize: 32, lineHeight: 38 }}>
-            Homeowners won't come{"\n"}until you're here.
+            Your work speaks.{"\n"}We just turn up the volume.
           </Text>
           <Text className="text-text-secondary mt-4 text-center" style={{ fontSize: 16, lineHeight: 24 }}>
-            A marketplace needs both sides. Homeowners need to see real contractors before they'll post a job. Contractors need to see real jobs before they'll sign up.
+            Every job you finish builds your FairRecord — a verified track record that wins you more work without paying for leads.
           </Text>
           <Text className="text-dark font-bold mt-4 text-center" style={{ fontSize: 16, lineHeight: 24 }}>
-            Someone has to go first. We're asking you.
+            Good contractors shouldn't have to buy their next customer.
           </Text>
         </View>
 
@@ -131,8 +131,8 @@ export default function MarketplaceScreen() {
               </View>
               <Text className="text-dark font-bold" style={{ fontSize: 15 }}>3<Text className="text-text-muted font-normal"> / 50</Text></Text>
             </View>
-            <View className="bg-surface h-4 w-full">
-              <View className="h-4 bg-brand-600" style={{ width: "6%" }} />
+            <View className="bg-surface h-4 w-full" style={{ borderRadius: 99 }}>
+              <View className="h-4 bg-brand-600" style={{ width: "6%", borderRadius: 99 }} />
             </View>
           </View>
 
@@ -144,8 +144,8 @@ export default function MarketplaceScreen() {
               </View>
               <Text className="text-dark font-bold" style={{ fontSize: 15 }}>5<Text className="text-text-muted font-normal"> / 150</Text></Text>
             </View>
-            <View className="bg-surface h-4 w-full">
-              <View className="h-4 bg-brand-600" style={{ width: "3%" }} />
+            <View className="bg-surface h-4 w-full" style={{ borderRadius: 99 }}>
+              <View className="h-4 bg-brand-600" style={{ width: "3%", borderRadius: 99 }} />
             </View>
           </View>
 
@@ -219,11 +219,11 @@ export default function MarketplaceScreen() {
             Every invite gets us closer. Every contractor who joins makes the platform more valuable for everyone — including you.
           </Text>
 
-          <TouchableOpacity className="bg-brand-600 py-4 items-center mb-3" activeOpacity={0.8}>
+          <TouchableOpacity className="bg-brand-600 py-4 items-center mb-3" activeOpacity={0.8} onPress={() => router.push("/(contractor)/referrals" as any)}>
             <Text className="text-white font-bold" style={{ fontSize: 17 }}>Invite a Contractor or Sub</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="border-2 border-border py-4 flex-row items-center justify-center" activeOpacity={0.7}>
+          <TouchableOpacity className="border-2 border-border py-4 flex-row items-center justify-center" activeOpacity={0.7} onPress={() => router.push("/(contractor)/referrals" as any)}>
             <Share2 size={18} color={BRAND.colors.textPrimary} />
             <Text className="text-dark font-bold ml-2" style={{ fontSize: 17 }}>Share Your Invite Link</Text>
           </TouchableOpacity>

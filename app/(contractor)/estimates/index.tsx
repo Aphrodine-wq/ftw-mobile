@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  Alert,
+  Modal,
+  Pressable,
+  Linking,
+  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -32,9 +37,14 @@ import {
   Mail,
   Calendar,
   Shield,
+  Trash2,
+  Send,
+  MessageCircle,
+  Link2,
+  Copy,
 } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useEstimates } from "@src/api/hooks";
+import { useEstimates, useDeleteEstimate } from "@src/api/hooks";
 import {
   type MockEstimate,
 } from "@src/lib/mock-data";
@@ -43,7 +53,7 @@ import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
 // ── Types ──────────────────────────────────────────────────────────────
 
-type TabId = "my-estimates" | "new-estimate";
+type TabId = "my-estimates" | "new-estimate" | "templates";
 type EstimateStatus = MockEstimate["status"];
 
 // ── Constants ──────────────────────────────────────────────────────────
@@ -51,6 +61,7 @@ type EstimateStatus = MockEstimate["status"];
 const TABS: { id: TabId; label: string }[] = [
   { id: "new-estimate", label: "New Estimate" },
   { id: "my-estimates", label: "My Estimates" },
+  { id: "templates", label: "Templates" },
 ];
 
 const BASE_ESTIMATES: Record<
@@ -235,6 +246,46 @@ function getStatusLabel(status: EstimateStatus): string {
 
 function MyEstimatesTab() {
   const { data: estimates = [] as MockEstimate[] } = useEstimates();
+  const deleteEstimate = useDeleteEstimate();
+  const [sendEstimate, setSendEstimate] = useState<MockEstimate | null>(null);
+
+  const confirmDelete = useCallback((id: string, title: string) => {
+    Alert.alert(
+      "Delete Estimate",
+      `Are you sure you want to delete "${title}"? This can't be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deleteEstimate.mutate(id) },
+      ],
+    );
+  }, [deleteEstimate]);
+
+  const handleSendEmail = useCallback(() => {
+    if (!sendEstimate) return;
+    Linking.openURL(`mailto:?subject=Estimate: ${sendEstimate.title}&body=Here's your estimate for ${sendEstimate.title} — ${formatCurrency(sendEstimate.total)}`);
+    setSendEstimate(null);
+  }, [sendEstimate]);
+
+  const handleSendText = useCallback(() => {
+    if (!sendEstimate) return;
+    Linking.openURL(`sms:&body=Here's your estimate for ${sendEstimate.title} — ${formatCurrency(sendEstimate.total)}`);
+    setSendEstimate(null);
+  }, [sendEstimate]);
+
+  const handleCopyLink = useCallback(() => {
+    if (!sendEstimate) return;
+    // TODO: generate real shareable link
+    Alert.alert("Link Copied", "Estimate link copied to clipboard.");
+    setSendEstimate(null);
+  }, [sendEstimate]);
+
+  const handleShare = useCallback(async () => {
+    if (!sendEstimate) return;
+    await Share.share({
+      message: `Estimate for ${sendEstimate.title} — ${formatCurrency(sendEstimate.total)}`,
+    });
+    setSendEstimate(null);
+  }, [sendEstimate]);
 
   const totalEstimates = estimates.length;
   const pendingValue = useMemo(() => estimates
@@ -299,14 +350,18 @@ function MyEstimatesTab() {
 
             {/* Actions */}
             <View className="flex-row border-t border-border">
-              <TouchableOpacity className="flex-1 py-3 items-center border-r border-border" activeOpacity={0.7}>
+              <TouchableOpacity className="flex-1 py-3 items-center border-r border-border" activeOpacity={0.7} onPress={() => setSendEstimate(item)}>
                 <Text className="text-brand-600 font-bold" style={{ fontSize: 13 }}>Send</Text>
               </TouchableOpacity>
               <TouchableOpacity className="flex-1 py-3 items-center border-r border-border" activeOpacity={0.7}>
                 <Text className="text-text-secondary font-bold" style={{ fontSize: 13 }}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity className="flex-1 py-3 items-center" activeOpacity={0.7}>
+              <TouchableOpacity className="flex-1 py-3 items-center border-r border-border" activeOpacity={0.7}>
                 <Text className="text-text-secondary font-bold" style={{ fontSize: 13 }}>PDF</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 py-3 items-center flex-row justify-center" activeOpacity={0.7} onPress={() => confirmDelete(item.id, item.title)}>
+                <Trash2 size={15} color="#9B1C2E" />
+                <Text className="font-bold ml-1.5" style={{ fontSize: 13, color: "#9B1C2E" }}>Delete</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -318,13 +373,89 @@ function MyEstimatesTab() {
           </View>
         )}
       </View>
+
+      {/* Send Estimate Modal */}
+      <Modal visible={!!sendEstimate} transparent animationType="fade" onRequestClose={() => setSendEstimate(null)}>
+        <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onPress={() => setSendEstimate(null)}>
+          <Pressable className="bg-white rounded-t-lg" onPress={(e) => e.stopPropagation()}>
+            {/* Handle bar */}
+            <View className="items-center pt-3 pb-1">
+              <View className="bg-border" style={{ width: 36, height: 4, borderRadius: 2 }} />
+            </View>
+
+            {/* Header */}
+            <View className="px-5 pt-3 pb-4 border-b border-border">
+              <Text className="text-dark font-bold" style={{ fontSize: 18 }}>Send Estimate</Text>
+              {sendEstimate && (
+                <Text className="text-text-muted mt-1" style={{ fontSize: 13 }}>
+                  {sendEstimate.title} — {formatCurrency(sendEstimate.total)}
+                </Text>
+              )}
+            </View>
+
+            {/* Send options */}
+            <View className="px-5 py-4" style={{ gap: 2 }}>
+              <TouchableOpacity className="flex-row items-center py-3.5" activeOpacity={0.7} onPress={handleSendEmail}>
+                <View className="bg-brand-50 w-10 h-10 items-center justify-center rounded mr-3">
+                  <Mail size={20} color={BRAND.colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-dark font-bold" style={{ fontSize: 15 }}>Email</Text>
+                  <Text className="text-text-muted" style={{ fontSize: 12 }}>Send as email with estimate attached</Text>
+                </View>
+                <ChevronRight size={18} color={BRAND.colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity className="flex-row items-center py-3.5" activeOpacity={0.7} onPress={handleSendText}>
+                <View className="bg-brand-50 w-10 h-10 items-center justify-center rounded mr-3">
+                  <MessageCircle size={20} color={BRAND.colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-dark font-bold" style={{ fontSize: 15 }}>Text Message</Text>
+                  <Text className="text-text-muted" style={{ fontSize: 12 }}>Send a link via SMS</Text>
+                </View>
+                <ChevronRight size={18} color={BRAND.colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity className="flex-row items-center py-3.5" activeOpacity={0.7} onPress={handleCopyLink}>
+                <View className="bg-brand-50 w-10 h-10 items-center justify-center rounded mr-3">
+                  <Copy size={20} color={BRAND.colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-dark font-bold" style={{ fontSize: 15 }}>Copy Link</Text>
+                  <Text className="text-text-muted" style={{ fontSize: 12 }}>Copy a shareable link to clipboard</Text>
+                </View>
+                <ChevronRight size={18} color={BRAND.colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity className="flex-row items-center py-3.5" activeOpacity={0.7} onPress={handleShare}>
+                <View className="bg-brand-50 w-10 h-10 items-center justify-center rounded mr-3">
+                  <Send size={20} color={BRAND.colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-dark font-bold" style={{ fontSize: 15 }}>Share</Text>
+                  <Text className="text-text-muted" style={{ fontSize: 12 }}>Open share sheet</Text>
+                </View>
+                <ChevronRight size={18} color={BRAND.colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Cancel */}
+            <View className="px-5 pb-8 pt-1">
+              <TouchableOpacity className="bg-surface py-3.5 items-center rounded" activeOpacity={0.7} onPress={() => setSendEstimate(null)}>
+                <Text className="text-dark font-bold" style={{ fontSize: 15 }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
 
 // ── Tab: New Estimate (4-step form) ────────────────────────────────────
 
-function NewEstimateTab() {
+function NewEstimateTab({ template, onTemplateConsumed }: { template?: EstimateTemplate | null; onTemplateConsumed?: () => void }) {
   const [step, setStep] = useState(0);
   const steps = [
     { label: "Client", icon: User },
@@ -348,6 +479,22 @@ function NewEstimateTab() {
     "Payment due within 30 days of invoice. 50% deposit required to begin work.",
   );
   const [validThrough, setValidThrough] = useState("30");
+
+  const [showTemplates, setShowTemplates] = useState(false);
+
+  // Apply template when one is passed
+  useEffect(() => {
+    if (template) {
+      setJobTitle(template.name);
+      setJobCategory(template.category);
+      setJobDescription(template.description);
+      setLineItems(template.lineItems.map((li) => ({ ...li })));
+      setTerms(template.terms);
+      setValidThrough(template.validDays);
+      setStep(0); // Start at client info since template fills the rest
+      onTemplateConsumed?.();
+    }
+  }, [template]);
 
   const categories = Object.keys(BASE_ESTIMATES);
 
@@ -381,6 +528,61 @@ function NewEstimateTab() {
     (s, li) => s + (parseFloat(li.total) || 0),
     0,
   );
+
+  function applyTemplate(t: EstimateTemplate) {
+    setJobTitle(t.name);
+    setJobCategory(t.category);
+    setJobDescription(t.description);
+    setLineItems(t.lineItems.map((li) => ({ ...li })));
+    setTerms(t.terms);
+    setValidThrough(t.validDays);
+    setShowTemplates(false);
+    setStep(0);
+  }
+
+  if (showTemplates) {
+    return (
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <View className="px-5 mt-4 mb-3 flex-row items-center justify-between">
+          <View>
+            <Text className="text-dark font-bold text-lg">Pick a Template</Text>
+            <Text className="text-text-muted text-sm">Pre-fills job details, line items, and terms.</Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowTemplates(false)} activeOpacity={0.7}>
+            <Text className="text-brand-600 font-bold" style={{ fontSize: 14 }}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+        <View className="px-5" style={{ gap: 10 }}>
+          {BUILT_IN_TEMPLATES.map((t) => {
+            const total = t.lineItems.reduce((s, li) => s + (parseFloat(li.total) || 0), 0);
+            return (
+              <TouchableOpacity
+                key={t.id}
+                className="bg-white border border-border p-4"
+                style={{ borderRadius: 4 }}
+                activeOpacity={0.7}
+                onPress={() => applyTemplate(t)}
+              >
+                <View className="flex-row items-start justify-between mb-1">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-dark font-bold" style={{ fontSize: 15 }}>{t.name}</Text>
+                    <View className="flex-row items-center mt-1">
+                      <View className="bg-surface px-2 py-0.5 mr-2" style={{ borderRadius: 2 }}>
+                        <Text className="text-text-muted font-bold" style={{ fontSize: 10 }}>{t.category.toUpperCase()}</Text>
+                      </View>
+                      <Text className="text-text-muted" style={{ fontSize: 11 }}>{t.lineItems.length} items</Text>
+                    </View>
+                  </View>
+                  <Text className="text-dark font-bold" style={{ fontSize: 18 }}>{formatCurrency(total)}</Text>
+                </View>
+                <Text className="text-text-muted mt-1" style={{ fontSize: 12 }} numberOfLines={2}>{t.description}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView
@@ -443,6 +645,21 @@ function NewEstimateTab() {
       {/* Step 0: Client */}
       {step === 0 && (
         <View className="mx-5">
+          {/* Use Template CTA */}
+          <TouchableOpacity
+            onPress={() => setShowTemplates(true)}
+            className="bg-brand-50 border border-brand-600 p-4 flex-row items-center mb-5"
+            style={{ borderRadius: 4 }}
+            activeOpacity={0.7}
+          >
+            <ClipboardList size={22} color={BRAND.colors.primary} />
+            <View className="flex-1 ml-3">
+              <Text className="text-dark font-bold" style={{ fontSize: 15 }}>Start from a template</Text>
+              <Text className="text-text-muted" style={{ fontSize: 12 }}>Pre-built estimates for common jobs</Text>
+            </View>
+            <ChevronRight size={18} color={BRAND.colors.primary} />
+          </TouchableOpacity>
+
           <Text className="text-dark font-bold text-lg mb-3">
             Client Information
           </Text>
@@ -1284,12 +1501,251 @@ function BreakdownRow({
 
 // ── Main Screen ────────────────────────────────────────────────────────
 
+// ── Estimate Templates ────────────────────────────────────────────────
+
+interface EstimateTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  lineItems: { description: string; quantity: string; unit: string; unitCost: string; total: string }[];
+  terms: string;
+  validDays: string;
+  usageCount: number;
+}
+
+const BUILT_IN_TEMPLATES: EstimateTemplate[] = [
+  {
+    id: "t1",
+    name: "Kitchen Remodel — Standard",
+    category: "Remodeling",
+    description: "Full kitchen renovation including demo, cabinets, countertops, backsplash, flooring, and fixtures.",
+    lineItems: [
+      { description: "Demo & haul-off", quantity: "1", unit: "LS", unitCost: "2500", total: "2500" },
+      { description: "Cabinets (supply + install)", quantity: "1", unit: "LS", unitCost: "8500", total: "8500" },
+      { description: "Quartz countertops", quantity: "40", unit: "SF", unitCost: "85", total: "3400" },
+      { description: "Tile backsplash", quantity: "30", unit: "SF", unitCost: "28", total: "840" },
+      { description: "LVP flooring", quantity: "200", unit: "SF", unitCost: "12", total: "2400" },
+      { description: "Plumbing rough-in", quantity: "1", unit: "LS", unitCost: "1800", total: "1800" },
+      { description: "Electrical rough-in", quantity: "1", unit: "LS", unitCost: "1400", total: "1400" },
+      { description: "Fixtures (sink, faucet, disposal)", quantity: "1", unit: "LS", unitCost: "1200", total: "1200" },
+      { description: "Paint & trim", quantity: "1", unit: "LS", unitCost: "1600", total: "1600" },
+      { description: "Permit & inspection", quantity: "1", unit: "LS", unitCost: "850", total: "850" },
+    ],
+    terms: "50% deposit to begin. 25% at rough-in completion. 25% at final walkthrough. Net 15 on final.",
+    validDays: "30",
+    usageCount: 12,
+  },
+  {
+    id: "t2",
+    name: "Bathroom Remodel — Full",
+    category: "Remodeling",
+    description: "Complete bathroom renovation including tile, vanity, shower/tub, plumbing, and electrical.",
+    lineItems: [
+      { description: "Demo & haul-off", quantity: "1", unit: "LS", unitCost: "1500", total: "1500" },
+      { description: "Waterproofing (Kerdi system)", quantity: "1", unit: "LS", unitCost: "1200", total: "1200" },
+      { description: "Shower tile (wall + floor)", quantity: "80", unit: "SF", unitCost: "32", total: "2560" },
+      { description: "Floor tile", quantity: "60", unit: "SF", unitCost: "18", total: "1080" },
+      { description: "Vanity + top (supply + install)", quantity: "1", unit: "EA", unitCost: "2200", total: "2200" },
+      { description: "Plumbing (rough + finish)", quantity: "1", unit: "LS", unitCost: "2400", total: "2400" },
+      { description: "Electrical (fan, lighting, GFCI)", quantity: "1", unit: "LS", unitCost: "1100", total: "1100" },
+      { description: "Fixtures (shower head, faucet, toilet)", quantity: "1", unit: "LS", unitCost: "1400", total: "1400" },
+      { description: "Paint & trim", quantity: "1", unit: "LS", unitCost: "800", total: "800" },
+    ],
+    terms: "50% deposit to begin. 50% at completion. Net 15.",
+    validDays: "30",
+    usageCount: 8,
+  },
+  {
+    id: "t3",
+    name: "Roof Replacement — Architectural Shingle",
+    category: "Roofing",
+    description: "Tear-off existing layer, install 30-year architectural shingles, new underlayment, ridge vent, and flashing.",
+    lineItems: [
+      { description: "Tear-off & disposal (1 layer)", quantity: "24", unit: "SQ", unitCost: "75", total: "1800" },
+      { description: "Synthetic underlayment", quantity: "24", unit: "SQ", unitCost: "45", total: "1080" },
+      { description: "Ice & water shield (eaves + valleys)", quantity: "6", unit: "SQ", unitCost: "65", total: "390" },
+      { description: "Architectural shingles (30-yr)", quantity: "24", unit: "SQ", unitCost: "180", total: "4320" },
+      { description: "Ridge vent + cap", quantity: "1", unit: "LS", unitCost: "650", total: "650" },
+      { description: "Step & counter flashing", quantity: "1", unit: "LS", unitCost: "800", total: "800" },
+      { description: "Pipe boots & vents", quantity: "4", unit: "EA", unitCost: "85", total: "340" },
+      { description: "Drip edge", quantity: "200", unit: "LF", unitCost: "4", total: "800" },
+      { description: "Cleanup & haul-off", quantity: "1", unit: "LS", unitCost: "500", total: "500" },
+    ],
+    terms: "50% deposit. Balance due upon completion and inspection. Net 10.",
+    validDays: "14",
+    usageCount: 15,
+  },
+  {
+    id: "t4",
+    name: "Deck Build — Composite",
+    category: "General Contracting",
+    description: "New composite deck with pressure-treated frame, railing, stairs, and permit.",
+    lineItems: [
+      { description: "Footings & posts", quantity: "8", unit: "EA", unitCost: "185", total: "1480" },
+      { description: "PT framing (joists, ledger, beam)", quantity: "1", unit: "LS", unitCost: "3200", total: "3200" },
+      { description: "Composite decking (Trex Select)", quantity: "400", unit: "SF", unitCost: "14", total: "5600" },
+      { description: "Composite railing system", quantity: "60", unit: "LF", unitCost: "45", total: "2700" },
+      { description: "Stairs (3 treads + stringer)", quantity: "1", unit: "LS", unitCost: "1200", total: "1200" },
+      { description: "Hardware (joist hangers, bolts, etc)", quantity: "1", unit: "LS", unitCost: "450", total: "450" },
+      { description: "Permit & inspection", quantity: "1", unit: "LS", unitCost: "400", total: "400" },
+    ],
+    terms: "40% deposit. 30% at framing. 30% at completion. Net 15.",
+    validDays: "21",
+    usageCount: 6,
+  },
+  {
+    id: "t5",
+    name: "Interior Paint — Whole House",
+    category: "Painting",
+    description: "Full interior repaint including walls, ceilings, trim, and doors. Prep, prime, two coats.",
+    lineItems: [
+      { description: "Prep (patch, sand, caulk, tape)", quantity: "1", unit: "LS", unitCost: "1800", total: "1800" },
+      { description: "Prime (stain-block where needed)", quantity: "1", unit: "LS", unitCost: "600", total: "600" },
+      { description: "Walls — 2 coats (Sherwin ProMar 200)", quantity: "2400", unit: "SF", unitCost: "1.50", total: "3600" },
+      { description: "Ceilings — 1 coat flat", quantity: "1200", unit: "SF", unitCost: "1.00", total: "1200" },
+      { description: "Trim & doors — 2 coats semi-gloss", quantity: "1", unit: "LS", unitCost: "2200", total: "2200" },
+      { description: "Cleanup & touch-up", quantity: "1", unit: "LS", unitCost: "400", total: "400" },
+    ],
+    terms: "50% deposit. 50% at completion. Net 10.",
+    validDays: "21",
+    usageCount: 10,
+  },
+  {
+    id: "t6",
+    name: "Electrical Panel Upgrade — 200A",
+    category: "Electrical",
+    description: "Replace 100A panel with 200A, new main breaker, transfer circuits, label, and inspection.",
+    lineItems: [
+      { description: "200A panel + main breaker (supply)", quantity: "1", unit: "EA", unitCost: "850", total: "850" },
+      { description: "Panel installation", quantity: "1", unit: "LS", unitCost: "1400", total: "1400" },
+      { description: "Transfer existing circuits", quantity: "20", unit: "EA", unitCost: "65", total: "1300" },
+      { description: "New grounding (rod + bond)", quantity: "1", unit: "LS", unitCost: "350", total: "350" },
+      { description: "Arc-fault breakers (bedrooms)", quantity: "4", unit: "EA", unitCost: "55", total: "220" },
+      { description: "Permit & inspection", quantity: "1", unit: "LS", unitCost: "300", total: "300" },
+      { description: "Panel labeling & documentation", quantity: "1", unit: "LS", unitCost: "150", total: "150" },
+    ],
+    terms: "50% deposit. Balance upon passing inspection. Net 15.",
+    validDays: "30",
+    usageCount: 4,
+  },
+];
+
+function TemplatesTab({ onUseTemplate }: { onUseTemplate: (t: EstimateTemplate) => void }) {
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!search) return BUILT_IN_TEMPLATES;
+    const q = search.toLowerCase();
+    return BUILT_IN_TEMPLATES.filter(
+      (t) => t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q),
+    );
+  }, [search]);
+
+  const totalForTemplate = (t: EstimateTemplate) =>
+    t.lineItems.reduce((s, li) => s + (parseFloat(li.total) || 0), 0);
+
+  return (
+    <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+      <View className="px-5 mt-4 mb-3">
+        <Text className="text-dark font-bold text-lg mb-1">Estimate Templates</Text>
+        <Text className="text-text-muted text-sm mb-3">Start from a proven template, customize for the job.</Text>
+
+        <View className="flex-row items-center bg-white border border-border px-3 py-2.5" style={{ borderRadius: 4 }}>
+          <ClipboardList size={16} color={BRAND.colors.textMuted} />
+          <TextInput
+            className="flex-1 ml-2 text-dark text-sm"
+            placeholder="Search templates..."
+            placeholderTextColor={BRAND.colors.textMuted}
+            value={search}
+            onChangeText={setSearch}
+            autoCapitalize="none"
+          />
+        </View>
+      </View>
+
+      <View className="px-5" style={{ gap: 10 }}>
+        {filtered.map((t) => {
+          const total = totalForTemplate(t);
+          return (
+            <View key={t.id} className="bg-white border border-border overflow-hidden" style={{ borderRadius: 4 }}>
+              <View className="p-4">
+                <View className="flex-row items-start justify-between mb-1">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-dark font-bold" style={{ fontSize: 15 }}>{t.name}</Text>
+                    <View className="flex-row items-center mt-1">
+                      <View className="bg-surface px-2 py-0.5 mr-2" style={{ borderRadius: 2 }}>
+                        <Text className="text-text-muted font-bold" style={{ fontSize: 10 }}>{t.category.toUpperCase()}</Text>
+                      </View>
+                      <Text className="text-text-muted" style={{ fontSize: 11 }}>{t.lineItems.length} line items</Text>
+                    </View>
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-dark font-bold" style={{ fontSize: 18 }}>{formatCurrency(total)}</Text>
+                    <Text className="text-text-muted" style={{ fontSize: 10 }}>Used {t.usageCount}x</Text>
+                  </View>
+                </View>
+
+                <Text className="text-text-secondary mt-2 mb-3" style={{ fontSize: 12, lineHeight: 18 }}>{t.description}</Text>
+
+                {/* Line item preview — first 3 */}
+                <View className="bg-surface p-3" style={{ borderRadius: 4 }}>
+                  {t.lineItems.slice(0, 3).map((li, i) => (
+                    <View key={i} className="flex-row items-center justify-between mb-1">
+                      <Text className="text-text-secondary flex-1 mr-2" style={{ fontSize: 11 }} numberOfLines={1}>{li.description}</Text>
+                      <Text className="text-dark font-bold" style={{ fontSize: 11 }}>{formatCurrency(parseFloat(li.total) || 0)}</Text>
+                    </View>
+                  ))}
+                  {t.lineItems.length > 3 && (
+                    <Text className="text-text-muted" style={{ fontSize: 10 }}>+{t.lineItems.length - 3} more items</Text>
+                  )}
+                </View>
+              </View>
+
+              <View className="flex-row border-t border-border">
+                <TouchableOpacity
+                  className="flex-1 py-3.5 items-center bg-brand-600"
+                  activeOpacity={0.8}
+                  onPress={() => onUseTemplate(t)}
+                >
+                  <Text className="text-white font-bold" style={{ fontSize: 13 }}>Use Template</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 py-3.5 items-center border-l border-border"
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-text-secondary font-bold" style={{ fontSize: 13 }}>Duplicate</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+
+        {filtered.length === 0 && (
+          <View className="items-center py-12">
+            <ClipboardList size={40} color={BRAND.colors.textMuted} />
+            <Text className="text-text-muted mt-3" style={{ fontSize: 14 }}>No templates match your search</Text>
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+// ── Main Screen ──────────────────────────────────────────────────────
+
 export default function EstimatesScreen() {
   const router = useRouter();
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<TabId>(
     tab === "my-estimates" ? tab : "new-estimate"
   );
+  const [pendingTemplate, setPendingTemplate] = useState<EstimateTemplate | null>(null);
+
+  const handleUseTemplate = useCallback((t: EstimateTemplate) => {
+    setPendingTemplate(t);
+    setActiveTab("new-estimate");
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -1344,7 +1800,8 @@ export default function EstimatesScreen() {
 
       {/* Tab content */}
       {activeTab === "my-estimates" && <MyEstimatesTab />}
-      {activeTab === "new-estimate" && <NewEstimateTab />}
+      {activeTab === "new-estimate" && <NewEstimateTab template={pendingTemplate} onTemplateConsumed={() => setPendingTemplate(null)} />}
+      {activeTab === "templates" && <TemplatesTab onUseTemplate={handleUseTemplate} />}
     </SafeAreaView>
   );
 }

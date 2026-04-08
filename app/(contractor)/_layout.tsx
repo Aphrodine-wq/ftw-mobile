@@ -61,38 +61,41 @@ export default function ContractorLayout() {
   }, [segments, menuOpen]);
 
   return (
-    <View style={styles.root}>
-      <Tabs
-        tabBar={(props) => <CustomTabBar {...props} onMenuToggle={onMenuToggle} />}
-        screenOptions={{
-          headerShown: false,
-          lazy: false,
-          freezeOnBlur: false,
-        }}
-      >
-        <Tabs.Screen name="(dashboard)" options={{ title: "Home" }} />
-        <Tabs.Screen name="projects" options={{ title: "Projects" }} />
-        <Tabs.Screen name="(jobs)" options={{ href: null }} />
-        <Tabs.Screen name="(messages)" options={{ href: null }} />
-        <Tabs.Screen name="(profile)" options={{ title: "Profile", href: null }} />
-        <Tabs.Screen name="clients" options={{ title: "Clients" }} />
-        <Tabs.Screen name="settings" options={{ title: "Settings" }} />
-        <Tabs.Screen name="estimates" options={{ href: null }} />
-        <Tabs.Screen name="invoices" options={{ href: null }} />
-        <Tabs.Screen name="notifications" options={{ href: null }} />
-        <Tabs.Screen name="records" options={{ href: null }} />
-        <Tabs.Screen name="reviews" options={{ href: null }} />
-        <Tabs.Screen name="milestones" options={{ href: null }} />
-        <Tabs.Screen name="ai-agent" options={{ href: null }} />
-        <Tabs.Screen name="pro" options={{ href: null }} />
-        <Tabs.Screen name="calculator" options={{ href: null }} />
-        <Tabs.Screen name="voice-agent" options={{ href: null }} />
-        <Tabs.Screen name="marketplace" options={{ href: null }} />
-        <Tabs.Screen name="call-estimate" options={{ href: null }} />
-        <Tabs.Screen name="about-ai" options={{ href: null }} />
-      </Tabs>
-      {showFloating && <FloatingButtons top={insets.top} />}
-    </View>
+    <>
+      <View style={styles.root}>
+        <Tabs
+          tabBar={(props) => <CustomTabBar {...props} onMenuToggle={onMenuToggle} />}
+          screenOptions={{
+            headerShown: false,
+            lazy: false,
+            freezeOnBlur: false,
+          }}
+        >
+          <Tabs.Screen name="(dashboard)" options={{ title: "Home" }} />
+          <Tabs.Screen name="projects" options={{ title: "Projects" }} />
+          <Tabs.Screen name="(jobs)" options={{ href: null }} />
+          <Tabs.Screen name="(messages)" options={{ href: null }} />
+          <Tabs.Screen name="(profile)" options={{ title: "Profile", href: null }} />
+          <Tabs.Screen name="clients" options={{ title: "Clients" }} />
+          <Tabs.Screen name="settings" options={{ title: "Settings" }} />
+          <Tabs.Screen name="estimates" options={{ href: null }} />
+          <Tabs.Screen name="invoices" options={{ href: null }} />
+          <Tabs.Screen name="notifications" options={{ href: null }} />
+          <Tabs.Screen name="records" options={{ href: null }} />
+          <Tabs.Screen name="reviews" options={{ href: null }} />
+          <Tabs.Screen name="milestones" options={{ href: null }} />
+          <Tabs.Screen name="ai-agent" options={{ href: null }} />
+          <Tabs.Screen name="pro" options={{ href: null }} />
+          <Tabs.Screen name="calculator" options={{ href: null }} />
+          <Tabs.Screen name="voice-agent" options={{ href: null }} />
+          <Tabs.Screen name="marketplace" options={{ href: null }} />
+          <Tabs.Screen name="call-estimate" options={{ href: null }} />
+          <Tabs.Screen name="about-ai" options={{ href: null }} />
+          <Tabs.Screen name="referrals" options={{ href: null }} />
+          <Tabs.Screen name="help" options={{ href: null }} />
+        </Tabs>
+      </View>
+    </>
   );
 }
 
@@ -103,16 +106,15 @@ const styles = StyleSheet.create({
   topBar: {
     position: "absolute",
     right: 16,
-    zIndex: 100,
+    zIndex: 999,
+    elevation: 999,
     flexDirection: "row",
     gap: 10,
   },
   topButton: {
     width: 46,
     height: 46,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: BRAND.colors.border,
+    backgroundColor: "#F5F3F0",
     alignItems: "center",
     justifyContent: "center",
   },

@@ -21,12 +21,21 @@ import {
   HelpCircle,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import {
-  mockAiEstimate,
-  type AiEstimateResult,
-} from "@src/lib/mock-data";
+import { type AiEstimateResult } from "@src/lib/mock-data";
+import { aiChatStream, getAIEstimate } from "@src/api/client";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
+import { pickImage } from "@src/lib/image-picker";
+import * as DocumentPicker from "expo-document-picker";
+import { Image, ActionSheetIOS } from "react-native";
+import { FileText as FileIcon } from "lucide-react-native";
+
+interface Attachment {
+  uri: string;
+  name: string;
+  type: "image" | "file";
+  mimeType?: string;
+}
 
 interface ChatMessage {
   id: string;
@@ -34,6 +43,7 @@ interface ChatMessage {
   sender: "user" | "ai";
   timestamp: string;
   estimateCard?: AiEstimateResult;
+  attachment?: Attachment;
 }
 
 interface ConversationSummary {
@@ -58,34 +68,215 @@ export default function AiAgentScreen() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [attached, setAttached] = useState<Attachment | null>(null);
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((p) => !p), []);
 
+  function handleAttach() {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ["Cancel", "Photo Library", "File"], cancelButtonIndex: 0 },
+        async (index) => {
+          if (index === 1) {
+            const uri = await pickImage();
+            if (uri) setAttached({ uri, name: uri.split("/").pop() || "photo.jpg", type: "image" });
+          } else if (index === 2) {
+            const result = await DocumentPicker.getDocumentAsync({ type: "*/*", copyToCacheDirectory: true });
+            if (!result.canceled && result.assets.length > 0) {
+              const asset = result.assets[0];
+              const isImage = asset.mimeType?.startsWith("image/");
+              setAttached({ uri: asset.uri, name: asset.name, type: isImage ? "image" : "file", mimeType: asset.mimeType || undefined });
+            }
+          }
+        }
+      );
+    } else {
+      // Android — go straight to document picker which handles both
+      DocumentPicker.getDocumentAsync({ type: "*/*", copyToCacheDirectory: true }).then((result) => {
+        if (!result.canceled && result.assets.length > 0) {
+          const asset = result.assets[0];
+          const isImage = asset.mimeType?.startsWith("image/");
+          setAttached({ uri: asset.uri, name: asset.name, type: isImage ? "image" : "file", mimeType: asset.mimeType || undefined });
+        }
+      });
+    }
+  }
+
   function sendMessage() {
-    if (!input.trim() || loading) return;
+    if ((!input.trim() && !attached) || loading) return;
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
-      text: input.trim(),
+      text: input.trim() || (attached ? `Attached ${attached.name}` : ""),
       sender: "user",
       timestamp: new Date().toLocaleTimeString(),
+      attachment: attached || undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setAttached(null);
     setLoading(true);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
 
-    setTimeout(() => {
-      const aiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        text: `Based on your description, here's the estimate breakdown for "${userMsg.text.slice(0, 40)}..."`,
+    const aiMsgId = `ai-${Date.now()}`;
+
+    // Detect estimate requests
+    const estimateKeywords = ["estimate", "cost", "price", "how much", "bid", "quote", "remodel", "build", "install", "replace", "renovation", "repair"];
+    const isEstimate = estimateKeywords.some((kw) => userMsg.text.toLowerCase().includes(kw));
+
+    if (isEstimate) {
+      // Show loading message then call estimate endpoint
+      const loadingMsg: ChatMessage = {
+        id: aiMsgId,
+        text: "Generating your estimate...",
         sender: "ai",
         timestamp: new Date().toLocaleTimeString(),
-        estimateCard: mockAiEstimate,
+      };
+      setMessages((prev) => [...prev, loadingMsg]);
+
+      getAIEstimate(userMsg.text)
+        .then((result) => {
+          // Response is nested: result.estimate.response has the full JSON string
+          const wrapper = result.estimate || {};
+          let est: any = {};
+          if (wrapper.response) {
+            try {
+              est = JSON.parse(wrapper.response);
+            } catch {
+              // JSON might be truncated -- extract line_items array manually
+              const match = wrapper.response.match(/"line_items"\s*:\s*\[([\s\S]*)/);
+              if (match) {
+                // Find complete objects in the array
+                const items: any[] = [];
+                const regex = /\{[^}]+\}/g;
+                let m;
+                while ((m = regex.exec(match[1])) !== null) {
+                  try { items.push(JSON.parse(m[0])); } catch {}
+                }
+                // Extract other fields from the truncated JSON
+                const typeMatch = wrapper.response.match(/"project_type"\s*:\s*"([^"]+)"/);
+                const locMatch = wrapper.response.match(/"location"\s*:\s*"([^"]+)"/);
+                const sqftMatch = wrapper.response.match(/"sqft"\s*:\s*(\d+)/);
+                est = {
+                  project_type: typeMatch?.[1] || "Construction Project",
+                  location: locMatch?.[1] || "",
+                  sqft: sqftMatch ? parseInt(sqftMatch[1]) : 0,
+                  line_items: items,
+                };
+              }
+            }
+          }
+          if (!est.line_items && wrapper.line_items) {
+            est = wrapper;
+          }
+
+          const lineItems = (est.line_items || []).map((li: any) => ({
+            description: li.description || "",
+            quantity: li.quantity || 0,
+            unit: li.unit || "LS",
+            unitCost: li.unit_cost || 0,
+            total: li.total || 0,
+          }));
+
+          const subtotal = est.subtotal || lineItems.reduce((s: number, li: any) => s + li.total, 0);
+          const overhead = est.overhead || subtotal * 0.10;
+          const profit = est.profit || subtotal * 0.15;
+          const contingency = est.contingency || subtotal * 0.05;
+          const total = est.total || subtotal + overhead + profit + contingency;
+
+          const estimateCard: AiEstimateResult = {
+            id: est.estimate_number || aiMsgId,
+            jobTitle: est.project_type || userMsg.text.slice(0, 50),
+            estimateMin: total * 0.85,
+            estimateMax: total * 1.15,
+            estimateMid: total,
+            confidence: 0.78,
+            laborHours: est.labor_hours || Math.round(subtotal / 65),
+            laborCost: est.labor_cost || subtotal * 0.45,
+            materialCost: est.material_cost || subtotal * 0.40,
+            equipmentCost: est.equipment_cost || subtotal * 0.15,
+            subtotal,
+            overheadPercent: est.overhead_pct || 0.10,
+            profitPercent: est.profit_pct || 0.15,
+            contingencyPct: est.contingency_pct || 0.05,
+            total,
+            breakdown: lineItems.slice(0, 8).map((li: any) => ({
+              division: li.description,
+              item: li.description,
+              cost: li.total,
+            })),
+            lineItems,
+            exclusions: est.exclusions || ["Structural modifications", "Permit fees", "Hazardous material abatement"],
+            notes: est.notes || ["Prices reflect current Austin, TX market rates", "Timeline assumes no permit delays"],
+            timelineWeeks: est.timeline_weeks || 8,
+            regionFactor: est.region_factor || 1.0,
+            modelVersion: "constructionai-v4",
+          };
+
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === aiMsgId
+                ? { ...m, text: `Here's your estimate for ${est.project_type || "this project"}.`, estimateCard }
+                : m
+            )
+          );
+          setLoading(false);
+          setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+        })
+        .catch((err) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === aiMsgId
+                ? { ...m, text: `Couldn't generate estimate: ${err.message || "Unknown error"}` }
+                : m
+            )
+          );
+          setLoading(false);
+        });
+    } else {
+      // Regular chat - type out response word by word
+      const aiMsg: ChatMessage = {
+        id: aiMsgId,
+        text: "",
+        sender: "ai",
+        timestamp: new Date().toLocaleTimeString(),
       };
       setMessages((prev) => [...prev, aiMsg]);
-      setLoading(false);
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-    }, 2000);
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        setLoading(false);
+      };
+
+      aiChatStream(
+        userMsg.text,
+        conversationId,
+        (token) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === aiMsgId ? { ...m, text: m.text + token } : m
+            )
+          );
+          setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+        },
+        (convId) => {
+          if (convId) setConversationId(convId);
+          finish();
+        },
+        (error) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === aiMsgId && !m.text
+                ? { ...m, text: `Couldn't reach ConstructionAI: ${error}` }
+                : m
+            )
+          );
+          finish();
+        },
+      );
+    }
   }
 
   return (
@@ -103,10 +294,7 @@ export default function AiAgentScreen() {
           )}
         </TouchableOpacity>
         <View className="flex-1 items-center">
-          <View className="flex-row items-center">
-            <Brain size={20} color={BRAND.colors.primary} />
-            <Text className="text-dark font-bold ml-2" style={{ fontSize: 18 }}>ConstructionAI</Text>
-          </View>
+          <Text className="text-dark font-bold" style={{ fontSize: 22 }}>ConstructionAI</Text>
         </View>
         <View className="flex-row items-center" style={{ gap: 8 }}>
           <TouchableOpacity onPress={() => router.push("/(contractor)/about-ai" as any)} activeOpacity={0.7}>
@@ -309,14 +497,23 @@ export default function AiAgentScreen() {
                 ) : (
                   <View className="ml-8">
                     <View className="bg-brand-50 border border-brand-600 p-3" style={{ borderRadius: 4 }}>
-                      <Text className="text-dark text-sm">{msg.text}</Text>
+                      {msg.attachment?.type === "image" && (
+                        <Image source={{ uri: msg.attachment.uri }} style={{ width: "100%", height: 180, borderRadius: 4, marginBottom: msg.text ? 8 : 0 }} resizeMode="cover" />
+                      )}
+                      {msg.attachment?.type === "file" && (
+                        <View className="flex-row items-center bg-white border border-border p-3 mb-2" style={{ borderRadius: 4 }}>
+                          <FileIcon size={20} color={BRAND.colors.primary} />
+                          <Text className="text-dark text-sm font-bold ml-2 flex-1" numberOfLines={1}>{msg.attachment.name}</Text>
+                        </View>
+                      )}
+                      {msg.text ? <Text className="text-dark text-sm">{msg.text}</Text> : null}
                     </View>
                   </View>
                 )}
               </View>
             ))}
 
-            {loading && (
+            {loading && messages[messages.length - 1]?.text === "" && (
               <View className="mr-8 mb-4">
                 <View className="flex-row items-center mb-1.5">
                   <View className="w-6 h-6 bg-brand-50 items-center justify-center">
@@ -325,15 +522,38 @@ export default function AiAgentScreen() {
                   <Text className="text-text-muted text-xs ml-2 font-bold">ConstructionAI</Text>
                 </View>
                 <View className="bg-white border border-border rounded p-3" style={{ borderRadius: 4 }}>
-                  <Text className="text-text-muted text-sm">Analyzing scope and generating estimate...</Text>
+                  <Text className="text-text-muted text-sm">Thinking...</Text>
                 </View>
               </View>
             )}
           </ScrollView>
 
+          {/* Attachment Preview */}
+          {attached && (
+            <View className="border-t border-border bg-white px-4 pt-3 flex-row items-center">
+              <View style={{ position: "relative" }}>
+                {attached.type === "image" ? (
+                  <Image source={{ uri: attached.uri }} style={{ width: 64, height: 64, borderRadius: 4 }} resizeMode="cover" />
+                ) : (
+                  <View className="flex-row items-center bg-gray-100 border border-border px-3 py-2" style={{ borderRadius: 4 }}>
+                    <FileIcon size={16} color={BRAND.colors.primary} />
+                    <Text className="text-dark text-xs font-bold ml-2" numberOfLines={1} style={{ maxWidth: 180 }}>{attached.name}</Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  onPress={() => setAttached(null)}
+                  style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: 10, backgroundColor: BRAND.colors.dark, alignItems: "center", justifyContent: "center" }}
+                  activeOpacity={0.7}
+                >
+                  <Plus size={12} color="#FFFFFF" style={{ transform: [{ rotate: "45deg" }] }} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* Input Bar */}
-          <View className="border-t border-border bg-white px-4 py-3 flex-row items-center">
-            <TouchableOpacity activeOpacity={0.7} className="mr-2">
+          <View className={`${attached ? "" : "border-t border-border"} bg-white px-4 py-3 flex-row items-center`}>
+            <TouchableOpacity onPress={handleAttach} activeOpacity={0.7} className="mr-2">
               <View className="w-11 h-11 bg-gray-100 items-center justify-center" style={{ borderRadius: 4 }}>
                 <Paperclip size={20} color={BRAND.colors.textSecondary} />
               </View>

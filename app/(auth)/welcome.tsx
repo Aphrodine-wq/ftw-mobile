@@ -101,9 +101,28 @@ export default function WelcomeScreen() {
         >
           <View
             className="items-center justify-center mb-10"
-            style={{ width: 96, height: 96, backgroundColor: BRAND.colors.primary, borderRadius: 22 }}
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 22,
+              backgroundColor: BRAND.colors.primary,
+              boxShadow: "0 8px 24px rgba(196, 30, 58, 0.4), 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.15)",
+            }}
           >
-            <Text className="text-white font-bold text-center" style={{ fontSize: 28, letterSpacing: 2, paddingTop: 4, paddingLeft: 4 }}>FTW</Text>
+            <View
+              style={{
+                width: 88,
+                height: 88,
+                borderRadius: 19,
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.12)",
+                borderBottomColor: "rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <Text className="text-white font-bold text-center" style={{ fontSize: 28, letterSpacing: 2, textShadowColor: "rgba(0, 0, 0, 0.25)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 }}>FTW</Text>
+            </View>
           </View>
           <Text
             className="font-bold text-center mb-4"

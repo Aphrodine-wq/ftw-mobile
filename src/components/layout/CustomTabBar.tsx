@@ -33,8 +33,10 @@ import {
   Brain,
   Calculator,
   Phone,
+  Gift,
 } from "lucide-react-native";
 import { BRAND } from "@src/lib/constants";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 
@@ -82,14 +84,15 @@ const FEATURED_ACTIONS = [
   { key: "client", label: "New Client", icon: Users, route: "/(contractor)/clients/add" },
 ] as const;
 
-const QUICK_ACTIONS = [
+const QUICK_ACTIONS: { key: string; label: string; icon: any; route: string; pro: boolean; soon?: boolean }[] = [
   { key: "ai-agent", label: "AI Agent", icon: Brain, route: "/(contractor)/ai-agent", pro: true },
   { key: "call-agent", label: "Call Agent", icon: Phone, route: "/(contractor)/voice-agent", pro: true },
-  { key: "job", label: "Browse Jobs", icon: Briefcase, route: "/(contractor)/(jobs)", pro: false },
+  { key: "job", label: "Browse Jobs", icon: Briefcase, route: "/(contractor)/(jobs)", pro: false, soon: true },
   { key: "invoice", label: "New Invoice", icon: Receipt, route: "/(contractor)/invoices", pro: false },
   { key: "calculator", label: "Calculator", icon: Calculator, route: "/(contractor)/calculator", pro: false },
   { key: "message", label: "Messages", icon: MessageCircle, route: "/(contractor)/(messages)", pro: false },
-] as const;
+  { key: "referrals", label: "Referrals", icon: Gift, route: "/(contractor)/referrals", pro: false },
+];
 
 const SPRING_CONFIG = { damping: 20, stiffness: 300 };
 
@@ -138,7 +141,8 @@ export default function CustomTabBar(props: any) {
   const item5 = useSharedValue(0);
   const item6 = useSharedValue(0);
   const item7 = useSharedValue(0);
-  const itemProgress = useMemo(() => [item0, item1, item2, item3, item4, item5, item6, item7], [item0, item1, item2, item3, item4, item5, item6, item7]);
+  const item8 = useSharedValue(0);
+  const itemProgress = useMemo(() => [item0, item1, item2, item3, item4, item5, item6, item7, item8], [item0, item1, item2, item3, item4, item5, item6, item7, item8]);
 
   // Use Tabs navigator state directly — no pathname parsing needed
   const activeTabKey = useMemo(() => {
@@ -153,25 +157,25 @@ export default function CustomTabBar(props: any) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setOpen(true);
     onMenuToggle?.(true);
-    progress.value = withTiming(1, { duration: 450, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
-    rotation.value = withTiming(1, { duration: 400, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
-    itemProgress.forEach((sv) => {
+    progress.value = withTiming(1, { duration: 350, easing: Easing.bezier(0.16, 1, 0.3, 1) });
+    rotation.value = withTiming(1, { duration: 300, easing: Easing.bezier(0.16, 1, 0.3, 1) });
+    itemProgress.forEach((sv, i) => {
       sv.value = 0;
-      sv.value = withTiming(1, { duration: 450, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+      sv.value = withDelay(i * 30, withTiming(1, { duration: 300, easing: Easing.bezier(0.16, 1, 0.3, 1) }));
     });
   }, []);
 
   const closeMenu = useCallback((cb?: () => void) => {
-    progress.value = withTiming(0, { duration: 350, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
-    rotation.value = withTiming(0, { duration: 350, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+    progress.value = withTiming(0, { duration: 250, easing: Easing.bezier(0.4, 0, 1, 1) });
+    rotation.value = withTiming(0, { duration: 250, easing: Easing.bezier(0.4, 0, 1, 1) });
     itemProgress.forEach((sv) => {
-      sv.value = withTiming(0, { duration: 300, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+      sv.value = withTiming(0, { duration: 200, easing: Easing.bezier(0.4, 0, 1, 1) });
     });
     onMenuToggle?.(false);
     setTimeout(() => {
       setOpen(false);
       cb?.();
-    }, 370);
+    }, 270);
   }, []);
 
   const handleAction = useCallback((route: string | null) => {
@@ -231,7 +235,7 @@ export default function CustomTabBar(props: any) {
                   style={{ width: "100%", marginBottom: fi < FEATURED_ACTIONS.length - 1 ? 8 : 16 }}
                 >
                   <TouchableOpacity
-                    style={styles.featuredButton}
+                    style={[styles.featuredButton, { backgroundColor: BRAND.colors.primary }]}
                     onPress={() => handleAction(fa.route)}
                     activeOpacity={0.8}
                   >
@@ -256,8 +260,13 @@ export default function CustomTabBar(props: any) {
                       <View style={styles.actionIcon}>
                         <Icon size={36} color={BRAND.colors.dark} />
                         {action.pro && (
-                          <View style={styles.proBadge}>
+                          <View style={[styles.proBadge, { backgroundColor: BRAND.colors.primary }]}>
                             <Text style={styles.proBadgeText}>PRO</Text>
+                          </View>
+                        )}
+                        {action.soon && (
+                          <View style={styles.soonBadge}>
+                            <Text style={styles.soonBadgeText}>SOON</Text>
                           </View>
                         )}
                       </View>
@@ -283,14 +292,14 @@ export default function CustomTabBar(props: any) {
                   key={tab.key}
                   style={styles.centerButton}
                   onPressIn={() => {
-                    centerScale.value = withTiming(0.9, { duration: 120, easing: Easing.out(Easing.ease) });
+                    centerScale.value = withTiming(0.95, { duration: 250, easing: Easing.bezier(0.25, 0.46, 0.45, 0.94) });
                   }}
                   onPressOut={() => {
-                    centerScale.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
+                    centerScale.value = withTiming(1, { duration: 350, easing: Easing.bezier(0.25, 0.46, 0.45, 0.94) });
                   }}
                   onPress={open ? () => closeMenu() : openMenu}
                 >
-                  <Animated.View style={[styles.centerCircle, rotateStyle]}>
+                  <Animated.View style={[styles.centerCircle, { backgroundColor: BRAND.colors.primary }, rotateStyle]}>
                     <Plus size={38} color="#FFFFFF" strokeWidth={3} />
                   </Animated.View>
                 </Pressable>
@@ -402,6 +411,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: BRAND.colors.border,
+    borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 10,
@@ -425,6 +435,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 24,
     gap: 12,
+    borderRadius: 6,
   },
   featuredButtonText: {
     fontSize: 22,
@@ -443,5 +454,20 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 8,
     fontWeight: "800",
+  },
+  soonBadge: {
+    position: "absolute" as const,
+    top: -6,
+    right: -10,
+    backgroundColor: BRAND.colors.dark,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  soonBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 7,
+    fontWeight: "800" as const,
+    letterSpacing: 0.5,
   },
 });
