@@ -178,11 +178,15 @@ class RealtimeClient {
   }
 
   joinSubJobFeed(callbacks: {
+    onSubJobsList?: (subJobs: any[]) => void;
     onSubJobPosted?: (subJob: any) => void;
     onSubJobUpdated?: (subJob: any) => void;
   }): () => void {
     return this.subscribe("/topic/sub-jobs.feed", (msg) => {
       switch (msg.event) {
+        case "sub-jobs:list":
+          callbacks.onSubJobsList?.(msg.data.subJobs || msg.data);
+          break;
         case "sub-job:posted":
           callbacks.onSubJobPosted?.(msg.data);
           break;
@@ -190,6 +194,36 @@ class RealtimeClient {
           callbacks.onSubJobUpdated?.(msg.data);
           break;
       }
+    });
+  }
+
+  joinSubJob(
+    subJobId: string,
+    callbacks: {
+      onSubJobDetails?: (data: { subJob: any; bids: any[] }) => void;
+      onSubBidPlaced?: (bid: any) => void;
+      onSubBidAccepted?: (bid: any) => void;
+    },
+  ): () => void {
+    return this.subscribe(`/topic/sub-job.${subJobId}`, (msg) => {
+      switch (msg.event) {
+        case "sub-job:details":
+          callbacks.onSubJobDetails?.(msg.data);
+          break;
+        case "sub-bid:placed":
+          callbacks.onSubBidPlaced?.(msg.data);
+          break;
+        case "sub-bid:accepted":
+          callbacks.onSubBidAccepted?.(msg.data);
+          break;
+      }
+    });
+  }
+
+  placeSubBid(subJobId: string, attrs: { amount: number; message: string; timeline: string }) {
+    this.client?.publish({
+      destination: `/app/sub-job.${subJobId}.bid`,
+      body: JSON.stringify(attrs),
     });
   }
 

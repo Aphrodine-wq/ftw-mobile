@@ -1,14 +1,17 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Clock } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { mockSubJobs, mockSubBids } from "@src/lib/mock-data";
+import { useRealtimeMySubJobs } from "@src/realtime/hooks";
+import { SubJob, SubBid } from "@src/lib/mock-data";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
@@ -36,18 +39,27 @@ function daysUntil(deadline: string): number {
 export default function MyWorkScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<FilterTab>("active");
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Only show sub jobs the user has accepted bids on, or in_progress/completed
-  const mySubJobs = useMemo(() => mockSubJobs.filter((sj) => {
-    const hasBid = mockSubBids.some((b) => b.subJobId === sj.id && (b.status === "accepted" || b.status === "pending"));
+  const { subJobs, bids, loading } = useRealtimeMySubJobs();
+
+  const mySubJobs = useMemo(() => subJobs.filter((sj: SubJob) => {
+    const hasBid = bids.some((b: SubBid) => b.subJobId === sj.id && (b.status === "accepted" || b.status === "pending"));
     return hasBid || sj.status === "in_progress" || sj.status === "completed";
-  }), []);
+  }), [subJobs, bids]);
 
-  const filtered = useMemo(() => mySubJobs.filter((sj) => {
+  const filtered = useMemo(() => mySubJobs.filter((sj: SubJob) => {
     if (activeTab === "active") return sj.status === "in_progress" || sj.status === "open";
     if (activeTab === "completed") return sj.status === "completed";
     return true;
   }), [mySubJobs, activeTab]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    import("@src/api/data").then(({ fetchMySubJobs }) =>
+      fetchMySubJobs().then(() => setRefreshing(false))
+    ).catch(() => setRefreshing(false));
+  }, []);
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: "active", label: "Active" },
@@ -81,62 +93,74 @@ export default function MyWorkScreen() {
         ))}
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {filtered.length === 0 ? (
-          <View className="items-center justify-center py-20">
-            <Text className="text-text-muted text-base">No work found</Text>
-          </View>
-        ) : (
-          <View className="px-4" style={{ gap: 8 }}>
-            {filtered.map((sj) => {
-              const bid = mockSubBids.find((b) => b.subJobId === sj.id && (b.status === "accepted" || b.status === "pending"));
-              const statusBadge = getStatusBadge(sj.status);
-              const days = daysUntil(sj.deadline);
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={BRAND.colors.primary} />
+        </View>
+      ) : (
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C41E3A" />
+          }
+        >
+          {filtered.length === 0 ? (
+            <View className="items-center justify-center py-20">
+              <Text className="text-text-muted text-base">No work found</Text>
+            </View>
+          ) : (
+            <View className="px-4" style={{ gap: 8 }}>
+              {filtered.map((sj: SubJob) => {
+                const bid = bids.find((b: SubBid) => b.subJobId === sj.id && (b.status === "accepted" || b.status === "pending"));
+                const statusBadge = getStatusBadge(sj.status);
+                const days = daysUntil(sj.deadline);
 
-              return (
-                <View key={sj.id} className="bg-white border border-border rounded p-4">
-                  <View className="flex-row items-center justify-between mb-1">
-                    <Text className="text-base font-bold text-dark flex-1 mr-2" numberOfLines={1}>{sj.title}</Text>
-                    <Badge label={statusBadge.label} variant={statusBadge.variant} square />
-                  </View>
+                return (
+                  <View key={sj.id} className="bg-white border border-border rounded p-4">
+                    <View className="flex-row items-center justify-between mb-1">
+                      <Text className="text-base font-bold text-dark flex-1 mr-2" numberOfLines={1}>{sj.title}</Text>
+                      <Badge label={statusBadge.label} variant={statusBadge.variant} square />
+                    </View>
 
-                  <Text className="text-sm text-text-secondary mb-1">{sj.contractorName}</Text>
-                  <Text className="text-xs text-text-muted mb-2">{sj.projectName} -- {sj.milestoneLabel}</Text>
+                    <Text className="text-sm text-text-secondary mb-1">{sj.contractorName}</Text>
+                    <Text className="text-xs text-text-muted mb-2">{sj.projectName} -- {sj.milestoneLabel}</Text>
 
-                  <View className="flex-row items-center justify-between mb-2">
-                    {bid && (
-                      <Text className="text-lg font-bold text-dark">{formatCurrency(bid.amount)}</Text>
+                    <View className="flex-row items-center justify-between mb-2">
+                      {bid && (
+                        <Text className="text-lg font-bold text-dark">{formatCurrency(bid.amount)}</Text>
+                      )}
+                      <View className="flex-row items-center">
+                        <Clock size={13} color={days <= 3 ? BRAND.colors.primary : BRAND.colors.textMuted} />
+                        <Text className={`text-sm ml-1 font-bold ${days <= 3 ? "text-brand-600" : "text-text-muted"}`}>
+                          {formatDate(sj.deadline)}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Progress bar for active jobs */}
+                    {sj.status === "in_progress" && (
+                      <View className="bg-gray-100 h-2 w-full mt-1" style={{ borderRadius: 99 }}>
+                        <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
+                      </View>
                     )}
-                    <View className="flex-row items-center">
-                      <Clock size={13} color={days <= 3 ? BRAND.colors.primary : BRAND.colors.textMuted} />
-                      <Text className={`text-sm ml-1 font-bold ${days <= 3 ? "text-brand-600" : "text-text-muted"}`}>
-                        {formatDate(sj.deadline)}
-                      </Text>
-                    </View>
+
+                    {/* Payout for completed */}
+                    {sj.status === "completed" && bid && (
+                      <View className="flex-row items-center justify-between mt-2 pt-2 border-t border-border">
+                        <Text className="text-xs text-text-muted">Payout</Text>
+                        <Text className="text-base font-bold text-dark">{formatCurrency(Math.round(bid.amount * 0.95))}</Text>
+                      </View>
+                    )}
                   </View>
+                );
+              })}
+            </View>
+          )}
 
-                  {/* Progress bar for active jobs */}
-                  {sj.status === "in_progress" && (
-                    <View className="bg-gray-100 h-2 w-full mt-1" style={{ borderRadius: 99 }}>
-                      <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
-                    </View>
-                  )}
-
-                  {/* Payout for completed */}
-                  {sj.status === "completed" && bid && (
-                    <View className="flex-row items-center justify-between mt-2 pt-2 border-t border-border">
-                      <Text className="text-xs text-text-muted">Payout</Text>
-                      <Text className="text-base font-bold text-dark">{formatCurrency(Math.round(bid.amount * 0.95))}</Text>
-                    </View>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        <View style={{ height: 90 }} />
-      </ScrollView>
+          <View style={{ height: 90 }} />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

@@ -70,6 +70,72 @@ export function useRealtimeChat(conversationId: string | null) {
   return { messages, loading, sendMessage, sendTyping };
 }
 
+export function useRealtimeSubJobs() {
+  const [subJobs, setSubJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  useEffect(() => {
+    if (!isAuthenticated) { setLoading(false); return; }
+
+    // Seed from REST API, then overlay realtime updates
+    import("@src/api/data").then(({ fetchSubJobs }) =>
+      fetchSubJobs().then((list) => { setSubJobs(list); setLoading(false); })
+    );
+
+    realtimeClient.connect();
+    const leave = realtimeClient.joinSubJobFeed({
+      onSubJobsList: (list) => { setSubJobs(list); setLoading(false); },
+      onSubJobPosted: (job) => setSubJobs((prev) => [job, ...prev]),
+      onSubJobUpdated: (updated) => setSubJobs((prev) => prev.map((j) => j.id === updated.id ? updated : j)),
+    });
+    return leave;
+  }, [isAuthenticated]);
+
+  return { subJobs, loading };
+}
+
+export function useRealtimeMySubJobs() {
+  const [subJobs, setSubJobs] = useState<any[]>([]);
+  const [bids, setBids] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  useEffect(() => {
+    if (!isAuthenticated) { setLoading(false); return; }
+
+    // Seed from REST API
+    Promise.all([
+      import("@src/api/data").then(({ fetchMySubJobs }) => fetchMySubJobs()),
+      import("@src/api/data").then(({ fetchSubBidsForUser }) => fetchSubBidsForUser()),
+    ]).then(([sjList, bidList]) => {
+      setSubJobs(sjList);
+      setBids(bidList);
+      setLoading(false);
+    });
+
+    return () => {};
+  }, [isAuthenticated]);
+
+  return { subJobs, bids, loading };
+}
+
+export function useSubContractorStats() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  useEffect(() => {
+    if (!isAuthenticated) { setLoading(false); return; }
+
+    import("@src/api/data").then(({ fetchSubContractorStats }) =>
+      fetchSubContractorStats().then((data) => { setStats(data); setLoading(false); })
+    );
+  }, [isAuthenticated]);
+
+  return { stats, loading };
+}
+
 export function useRealtimeNotifications(userId: string | null) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);

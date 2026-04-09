@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -9,9 +9,9 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { useAuthStore } from "@src/stores/auth";
+import { useSubContractorStats } from "@src/realtime/hooks";
 import { getInitials, formatCurrency } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
-import { subContractorStats } from "@src/lib/mock-data";
 
 const MENU_ITEMS = [
   { label: "My Work", icon: Briefcase, route: "/(subcontractor)/my-work" },
@@ -19,16 +19,17 @@ const MENU_ITEMS = [
   { label: "Settings", icon: Settings, route: "/(subcontractor)/(profile)" },
 ] as const;
 
-const STATS = [
-  { label: "Revenue", value: formatCurrency(subContractorStats.monthlyRevenue) },
-  { label: "Rating", value: String(subContractorStats.avgRating) },
-  { label: "Jobs Done", value: String(subContractorStats.completedSubJobs) },
-] as const;
-
 export default function SubContractorProfile() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const { stats, loading } = useSubContractorStats();
+
+  const STATS = [
+    { label: "Revenue", value: stats ? formatCurrency(stats.monthlyRevenue) : "--" },
+    { label: "Rating", value: stats ? String(stats.avgRating) : "--" },
+    { label: "Jobs Done", value: stats ? String(stats.completedSubJobs) : "--" },
+  ] as const;
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -56,17 +57,23 @@ export default function SubContractorProfile() {
 
         {/* Stats row */}
         <View className="flex-row mx-5 mt-3 bg-white border border-border rounded overflow-hidden">
-          {STATS.map((stat, i) => (
-            <View
-              key={stat.label}
-              className={`flex-1 items-center py-4 ${
-                i < STATS.length - 1 ? "border-r border-border" : ""
-              }`}
-            >
-              <Text className="text-xl font-bold text-dark">{stat.value}</Text>
-              <Text className="text-text-secondary text-sm mt-0.5">{stat.label}</Text>
+          {loading ? (
+            <View className="flex-1 items-center py-4">
+              <ActivityIndicator size="small" color={BRAND.colors.primary} />
             </View>
-          ))}
+          ) : (
+            STATS.map((stat, i) => (
+              <View
+                key={stat.label}
+                className={`flex-1 items-center py-4 ${
+                  i < STATS.length - 1 ? "border-r border-border" : ""
+                }`}
+              >
+                <Text className="text-xl font-bold text-dark">{stat.value}</Text>
+                <Text className="text-text-secondary text-sm mt-0.5">{stat.label}</Text>
+              </View>
+            ))
+          )}
         </View>
 
         {/* Menu items */}

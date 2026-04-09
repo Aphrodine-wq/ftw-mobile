@@ -13,6 +13,9 @@ import {
   mockInvoices,
   contractorStats,
   homeownerStats,
+  mockSubJobs,
+  mockSubBids,
+  subContractorStats,
 } from "@src/lib/mock-data";
 
 export async function fetchJobs() {
@@ -80,6 +83,46 @@ export async function fetchFairRecords(contractorId?: string) {
     records: mockFairRecords,
     stats: { total: mockFairRecords.length, avg_budget_accuracy: 96.8, on_time_rate: 80.0, avg_rating: 4.9 },
   };
+}
+
+export async function fetchSubJobs() {
+  try {
+    const data = await api.listSubJobs();
+    if (data.subJobs.length > 0) return data.subJobs;
+  } catch {}
+  return mockSubJobs;
+}
+
+export async function fetchMySubJobs() {
+  try {
+    const data = await api.listMySubJobs();
+    if (data.subJobs.length > 0) return data.subJobs;
+  } catch {}
+  return mockSubJobs.filter((sj) => sj.status === "in_progress" || sj.status === "completed");
+}
+
+export async function fetchSubContractorStats() {
+  try {
+    const data = await api.getSubContractorStats();
+    if (data) return data;
+  } catch {}
+  return subContractorStats;
+}
+
+export async function fetchSubBidsForUser() {
+  // No dedicated endpoint yet — derive from mySubJobs or fall back to mock
+  try {
+    const data = await api.listMySubJobs();
+    if (data.subJobs.length > 0) {
+      // Flatten bids from sub jobs if backend returns them nested
+      const bids: any[] = [];
+      for (const sj of data.subJobs) {
+        if (sj.bids) bids.push(...sj.bids);
+      }
+      if (bids.length > 0) return bids;
+    }
+  } catch {}
+  return mockSubBids;
 }
 
 export { contractorStats, homeownerStats, mockConversations, mockBids, mockMessages, mockFairRecords };

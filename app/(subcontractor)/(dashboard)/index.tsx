@@ -9,6 +9,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -23,26 +24,14 @@ import {
   FileText,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import {
-  mockSubJobs,
-  mockSubBids,
-  subContractorStats,
-} from "@src/lib/mock-data";
+import { useRealtimeSubJobs, useRealtimeMySubJobs, useSubContractorStats } from "@src/realtime/hooks";
+import { SubJob, SubBid } from "@src/lib/mock-data";
 import { formatCurrency } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-
-// Pre-computed at module level
-const openSubJobs = mockSubJobs.filter((sj) => sj.status === "open");
-const activeSubJobs = mockSubJobs.filter((sj) => sj.status === "in_progress");
-const pendingBids = mockSubBids.filter((b) => b.status === "pending");
-const subJobMap = new Map(mockSubJobs.map((sj) => [sj.id, sj]));
-const acceptedBidMap = new Map(
-  mockSubBids.filter((b) => b.status === "accepted").map((b) => [b.subJobId, b])
-);
 
 function daysUntil(deadline: string): number {
   const diff = new Date(deadline).getTime() - Date.now();
@@ -59,9 +48,9 @@ const SUB_JOB_ITEM_LAYOUT = (_data: any, index: number) => ({
   index,
 });
 
-const SubJobSeparator = memo(() => <View style={{ width: 12 }} />);
+const SubJobSeparator = memo(function SubJobSeparator() { return <View style={{ width: 12 }} />; });
 
-const SubJobCard = memo(function SubJobCard({ sj }: { sj: typeof openSubJobs[0] }) {
+const SubJobCard = memo(function SubJobCard({ sj }: { sj: SubJob }) {
   const days = daysUntil(sj.deadline);
   return (
     <View className="bg-white border border-border rounded overflow-hidden" style={{ width: CARD_WIDTH }}>
@@ -92,7 +81,6 @@ const SubJobCard = memo(function SubJobCard({ sj }: { sj: typeof openSubJobs[0] 
           {formatCurrency(sj.budgetMin)}-{formatCurrency(sj.budgetMax)}
         </Text>
 
-        {/* Skills — plain View instead of ScrollView to avoid FlatList nesting */}
         <View className="flex-row flex-wrap mb-2" style={{ gap: 6 }}>
           {sj.skills.map((skill) => (
             <View key={skill} className="bg-gray-100 px-2 py-0.5">
@@ -127,9 +115,26 @@ export default function SubContractorDashboard() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
+  const { subJobs: allSubJobs, loading: subJobsLoading } = useRealtimeSubJobs();
+  const { subJobs: mySubJobs, bids: myBids } = useRealtimeMySubJobs();
+  const { stats, loading: statsLoading } = useSubContractorStats();
+
+  const openSubJobs = useMemo(() => allSubJobs.filter((sj) => sj.status === "open"), [allSubJobs]);
+  const activeSubJobs = useMemo(() => mySubJobs.filter((sj) => sj.status === "in_progress"), [mySubJobs]);
+  const pendingBids = useMemo(() => myBids.filter((b: SubBid) => b.status === "pending"), [myBids]);
+  const subJobMap = useMemo(() => new Map(allSubJobs.map((sj) => [sj.id, sj])), [allSubJobs]);
+  const acceptedBidMap = useMemo(
+    () => new Map(myBids.filter((b: SubBid) => b.status === "accepted").map((b: SubBid) => [b.subJobId, b])),
+    [myBids]
+  );
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 200);
+    // Re-fetch from API
+    Promise.all([
+      import("@src/api/data").then(({ fetchSubJobs }) => fetchSubJobs()),
+      import("@src/api/data").then(({ fetchSubContractorStats }) => fetchSubContractorStats()),
+    ]).then(() => setRefreshing(false)).catch(() => setRefreshing(false));
   }, []);
 
   const dateStr = useMemo(() => {
@@ -142,15 +147,16 @@ export default function SubContractorDashboard() {
     setActiveIdx(idx);
   }, []);
 
-  // Memoized nav handlers
   const goMyWork = useCallback(() => router.navigate("/(subcontractor)/my-work" as any), [router]);
   const goBrowse = useCallback(() => router.navigate("/(subcontractor)/work" as any), [router]);
 
-  const renderSubJobCard = useCallback(({ item }: { item: typeof openSubJobs[0] }) => (
+  const renderSubJobCard = useCallback(({ item }: { item: SubJob }) => (
     <SubJobCard sj={item} />
   ), []);
 
   const keyExtractor = useCallback((item: { id: string }) => item.id, []);
+
+  const isLoading = subJobsLoading || statsLoading;
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -167,148 +173,164 @@ export default function SubContractorDashboard() {
           <Text className="font-bold text-dark" style={{ fontSize: 29 }}>{dateStr}</Text>
         </View>
 
-        {/* Stats Row */}
-        <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
-          <View className="flex-1 bg-white border border-border rounded p-4">
-            <View className="flex-row items-center mb-2">
-              <DollarSign size={16} color={BRAND.colors.primary} />
-              <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Revenue</Text>
-            </View>
-            <Text className="text-2xl font-bold text-dark">{formatCurrency(subContractorStats.monthlyRevenue)}</Text>
+        {isLoading ? (
+          <View className="items-center py-20">
+            <ActivityIndicator size="large" color={BRAND.colors.primary} />
           </View>
-          <View className="flex-1 bg-white border border-border rounded p-4 items-center">
-            <View className="flex-row items-center mb-2">
-              <Star size={16} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
-              <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Rating</Text>
+        ) : (
+          <>
+            {/* Stats Row */}
+            <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
+              <View className="flex-1 bg-white border border-border rounded p-4">
+                <View className="flex-row items-center mb-2">
+                  <DollarSign size={16} color={BRAND.colors.primary} />
+                  <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Revenue</Text>
+                </View>
+                <Text className="text-2xl font-bold text-dark">{formatCurrency(stats?.monthlyRevenue ?? 0)}</Text>
+              </View>
+              <View className="flex-1 bg-white border border-border rounded p-4 items-center">
+                <View className="flex-row items-center mb-2">
+                  <Star size={16} color={BRAND.colors.primary} fill={BRAND.colors.primary} />
+                  <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Rating</Text>
+                </View>
+                <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{stats?.avgRating ?? "--"}</Text>
+              </View>
+              <View className="flex-1 bg-white border border-border rounded p-4 items-center">
+                <View className="flex-row items-center mb-2">
+                  <TrendingUp size={16} color={BRAND.colors.primary} />
+                  <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Win Rate</Text>
+                </View>
+                <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{stats?.winRate ?? "--"}%</Text>
+              </View>
             </View>
-            <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{subContractorStats.avgRating}</Text>
-          </View>
-          <View className="flex-1 bg-white border border-border rounded p-4 items-center">
-            <View className="flex-row items-center mb-2">
-              <TrendingUp size={16} color={BRAND.colors.primary} />
-              <Text className="text-xs text-text-muted ml-1 uppercase tracking-wide">Win Rate</Text>
-            </View>
-            <Text className="font-bold text-dark" style={{ fontSize: 36 }}>{subContractorStats.winRate}%</Text>
-          </View>
-        </View>
 
-        {/* Quick Glance */}
-        <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
-          <TouchableOpacity className="flex-1 bg-white border border-border rounded p-4 flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
-            <Briefcase size={20} color={BRAND.colors.primary} />
-            <View className="ml-3">
-              <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{subContractorStats.activeSubJobs}</Text>
-              <Text className="text-xs text-text-muted">Active Sub Jobs</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity className="flex-1 bg-white border border-border rounded p-4 flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
-            <FileText size={20} color={BRAND.colors.primary} />
-            <View className="ml-3">
-              <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{subContractorStats.pendingBids}</Text>
-              <Text className="text-xs text-text-muted">Pending Bids</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Available Sub Jobs Carousel */}
-        <View className="mb-4">
-          <View className="flex-row items-center justify-between px-4 mb-2">
-            <Text className="font-bold text-dark" style={{ fontSize: 19 }}>Available Sub Jobs</Text>
-            <TouchableOpacity className="flex-row items-center" onPress={goBrowse} activeOpacity={0.7}>
-              <Text className="text-brand-600 text-sm font-bold mr-0.5">Browse All</Text>
-              <ChevronRight size={16} color={BRAND.colors.primary} />
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            data={openSubJobs}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            onScroll={onScroll}
-            scrollEventThrottle={32}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-            ItemSeparatorComponent={SubJobSeparator}
-            snapToInterval={CARD_WIDTH + 12}
-            decelerationRate="fast"
-            removeClippedSubviews
-            initialNumToRender={2}
-            maxToRenderPerBatch={2}
-            windowSize={3}
-            getItemLayout={SUB_JOB_ITEM_LAYOUT}
-            renderItem={renderSubJobCard}
-            keyExtractor={keyExtractor}
-          />
-          <View className="flex-row items-center justify-center mt-3" style={{ gap: 6 }}>
-            {openSubJobs.map((sj, i) => (
-              <View
-                key={sj.id}
-                style={{
-                  width: i === activeIdx ? 20 : 6,
-                  height: 6,
-                  backgroundColor: i === activeIdx ? BRAND.colors.primary : BRAND.colors.border,
-                }}
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* My Active Work */}
-        {activeSubJobs.length > 0 && (
-          <View className="mb-4">
-            <View className="flex-row items-center justify-between px-4 mb-2">
-              <Text className="font-bold text-dark" style={{ fontSize: 19 }}>My Active Work</Text>
-              <TouchableOpacity className="flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
-                <Text className="text-brand-600 text-sm font-bold mr-0.5">All</Text>
-                <ChevronRight size={16} color={BRAND.colors.primary} />
+            {/* Quick Glance */}
+            <View className="flex-row px-4 mb-4" style={{ gap: 8 }}>
+              <TouchableOpacity className="flex-1 bg-white border border-border rounded p-4 flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
+                <Briefcase size={20} color={BRAND.colors.primary} />
+                <View className="ml-3">
+                  <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{stats?.activeSubJobs ?? activeSubJobs.length}</Text>
+                  <Text className="text-xs text-text-muted">Active Sub Jobs</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 bg-white border border-border rounded p-4 flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
+                <FileText size={20} color={BRAND.colors.primary} />
+                <View className="ml-3">
+                  <Text className="font-bold text-dark" style={{ fontSize: 22 }}>{stats?.pendingBids ?? pendingBids.length}</Text>
+                  <Text className="text-xs text-text-muted">Pending Bids</Text>
+                </View>
               </TouchableOpacity>
             </View>
-            <View className="px-4" style={{ gap: 6 }}>
-              {activeSubJobs.map((sj) => {
-                const bid = acceptedBidMap.get(sj.id);
-                return (
-                  <TouchableOpacity key={sj.id} className="bg-white border border-border rounded p-4" activeOpacity={0.7} onPress={goMyWork}>
-                    <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-base font-bold text-dark flex-1 mr-2" numberOfLines={1}>{sj.title}</Text>
-                      <Badge label="In Progress" variant="warning" square />
-                    </View>
-                    <Text className="text-sm text-text-secondary mb-2">{sj.contractorName} -- {sj.projectName}</Text>
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-xs text-text-muted">{sj.milestoneLabel}</Text>
-                      {bid && <Text className="text-base font-bold text-dark">{formatCurrency(bid.amount)}</Text>}
-                    </View>
-                    <View className="bg-gray-100 h-2 w-full mt-2" style={{ borderRadius: 99 }}>
-                      <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        )}
 
-        {/* Pending Bids */}
-        {pendingBids.length > 0 && (
-          <View className="px-4 mb-6">
-            <Text className="text-lg font-bold text-dark mb-2">Pending Bids</Text>
-            <View style={{ gap: 6 }}>
-              {pendingBids.map((bid) => {
-                const sj = subJobMap.get(bid.subJobId);
-                return (
-                  <TouchableOpacity key={bid.id} className="bg-white border border-border rounded flex-row items-center p-3" activeOpacity={0.7} onPress={goMyWork}>
-                    <View className="flex-1">
-                      <Text className="text-sm font-bold text-dark" numberOfLines={1}>{sj?.title || "Sub Job"}</Text>
-                      <Text className="text-xs text-text-muted mt-0.5">{sj?.location} -- {bid.timeline}</Text>
-                    </View>
-                    <View className="items-end ml-2">
-                      <Text className="text-base font-bold text-dark">{formatCurrency(bid.amount)}</Text>
-                      <View className="bg-gray-100 px-2 py-0.5 mt-0.5">
-                        <Text className="text-[10px] font-bold text-text-secondary capitalize">{bid.status}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+            {/* Available Sub Jobs Carousel */}
+            <View className="mb-4">
+              <View className="flex-row items-center justify-between px-4 mb-2">
+                <Text className="font-bold text-dark" style={{ fontSize: 19 }}>Available Sub Jobs</Text>
+                <TouchableOpacity className="flex-row items-center" onPress={goBrowse} activeOpacity={0.7}>
+                  <Text className="text-brand-600 text-sm font-bold mr-0.5">Browse All</Text>
+                  <ChevronRight size={16} color={BRAND.colors.primary} />
+                </TouchableOpacity>
+              </View>
+              {openSubJobs.length === 0 ? (
+                <View className="items-center py-8">
+                  <Text className="text-text-muted text-sm">No open sub jobs right now</Text>
+                </View>
+              ) : (
+                <>
+                  <FlatList
+                    data={openSubJobs}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={onScroll}
+                    scrollEventThrottle={32}
+                    contentContainerStyle={{ paddingHorizontal: 16 }}
+                    ItemSeparatorComponent={SubJobSeparator}
+                    snapToInterval={CARD_WIDTH + 12}
+                    decelerationRate="fast"
+                    removeClippedSubviews
+                    initialNumToRender={2}
+                    maxToRenderPerBatch={2}
+                    windowSize={3}
+                    getItemLayout={SUB_JOB_ITEM_LAYOUT}
+                    renderItem={renderSubJobCard}
+                    keyExtractor={keyExtractor}
+                  />
+                  <View className="flex-row items-center justify-center mt-3" style={{ gap: 6 }}>
+                    {openSubJobs.map((sj, i) => (
+                      <View
+                        key={sj.id}
+                        style={{
+                          width: i === activeIdx ? 20 : 6,
+                          height: 6,
+                          backgroundColor: i === activeIdx ? BRAND.colors.primary : BRAND.colors.border,
+                        }}
+                      />
+                    ))}
+                  </View>
+                </>
+              )}
             </View>
-          </View>
+
+            {/* My Active Work */}
+            {activeSubJobs.length > 0 && (
+              <View className="mb-4">
+                <View className="flex-row items-center justify-between px-4 mb-2">
+                  <Text className="font-bold text-dark" style={{ fontSize: 19 }}>My Active Work</Text>
+                  <TouchableOpacity className="flex-row items-center" onPress={goMyWork} activeOpacity={0.7}>
+                    <Text className="text-brand-600 text-sm font-bold mr-0.5">All</Text>
+                    <ChevronRight size={16} color={BRAND.colors.primary} />
+                  </TouchableOpacity>
+                </View>
+                <View className="px-4" style={{ gap: 6 }}>
+                  {activeSubJobs.map((sj) => {
+                    const bid = acceptedBidMap.get(sj.id);
+                    return (
+                      <TouchableOpacity key={sj.id} className="bg-white border border-border rounded p-4" activeOpacity={0.7} onPress={goMyWork}>
+                        <View className="flex-row items-center justify-between mb-1">
+                          <Text className="text-base font-bold text-dark flex-1 mr-2" numberOfLines={1}>{sj.title}</Text>
+                          <Badge label="In Progress" variant="warning" square />
+                        </View>
+                        <Text className="text-sm text-text-secondary mb-2">{sj.contractorName} -- {sj.projectName}</Text>
+                        <View className="flex-row justify-between items-center">
+                          <Text className="text-xs text-text-muted">{sj.milestoneLabel}</Text>
+                          {bid && <Text className="text-base font-bold text-dark">{formatCurrency(bid.amount)}</Text>}
+                        </View>
+                        <View className="bg-gray-100 h-2 w-full mt-2" style={{ borderRadius: 99 }}>
+                          <View className="h-2" style={{ width: "45%", backgroundColor: BRAND.colors.primary, borderRadius: 99 }} />
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Pending Bids */}
+            {pendingBids.length > 0 && (
+              <View className="px-4 mb-6">
+                <Text className="text-lg font-bold text-dark mb-2">Pending Bids</Text>
+                <View style={{ gap: 6 }}>
+                  {pendingBids.map((bid: SubBid) => {
+                    const sj = subJobMap.get(bid.subJobId);
+                    return (
+                      <TouchableOpacity key={bid.id} className="bg-white border border-border rounded flex-row items-center p-3" activeOpacity={0.7} onPress={goMyWork}>
+                        <View className="flex-1">
+                          <Text className="text-sm font-bold text-dark" numberOfLines={1}>{sj?.title || "Sub Job"}</Text>
+                          <Text className="text-xs text-text-muted mt-0.5">{sj?.location} -- {bid.timeline}</Text>
+                        </View>
+                        <View className="items-end ml-2">
+                          <Text className="text-base font-bold text-dark">{formatCurrency(bid.amount)}</Text>
+                          <View className="bg-gray-100 px-2 py-0.5 mt-0.5">
+                            <Text className="text-[10px] font-bold text-text-secondary capitalize">{bid.status}</Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+          </>
         )}
 
         <View style={{ height: 90 }} />

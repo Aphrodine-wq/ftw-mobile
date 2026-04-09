@@ -304,6 +304,62 @@ export function aiChatStream(
     });
 }
 
+// Sub Jobs
+export async function listSubJobs(params?: {
+  cursor?: string;
+  limit?: number;
+  category?: string;
+  status?: string;
+}): Promise<{ subJobs: any[]; nextCursor?: string }> {
+  const query = new URLSearchParams();
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.category) query.set("category", params.category);
+  if (params?.status) query.set("status", params.status);
+  const qs = query.toString();
+  return apiFetch(`/api/sub-jobs${qs ? `?${qs}` : ""}`);
+}
+
+export async function getSubJob(id: string): Promise<{ subJob: any; bids: any[] }> {
+  return apiFetch(`/api/sub-jobs/${id}`);
+}
+
+export async function listMySubJobs(params?: {
+  cursor?: string;
+  limit?: number;
+  status?: string;
+}): Promise<{ subJobs: any[]; nextCursor?: string }> {
+  const query = new URLSearchParams();
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.status) query.set("status", params.status);
+  const qs = query.toString();
+  return apiFetch(`/api/sub-jobs/mine${qs ? `?${qs}` : ""}`);
+}
+
+export async function placeSubBid(
+  subJobId: string,
+  bid: { amount: number; message: string; timeline: string }
+): Promise<any> {
+  const data = await apiFetch<{ bid: any }>(`/api/sub-jobs/${subJobId}/bids`, {
+    method: "POST",
+    body: JSON.stringify({ bid }),
+  });
+  return data.bid;
+}
+
+export async function acceptSubBid(subJobId: string, bidId: string): Promise<any> {
+  const data = await apiFetch<{ bid: any }>(
+    `/api/sub-jobs/${subJobId}/bids/${bidId}/accept`,
+    { method: "POST" }
+  );
+  return data.bid;
+}
+
+export async function getSubContractorStats(): Promise<any> {
+  return apiFetch("/api/sub-contractors/stats");
+}
+
 // Settings
 export async function getSettings(): Promise<any> {
   const data = await apiFetch<{ settings: any }>("/api/settings");
