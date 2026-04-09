@@ -112,7 +112,7 @@ export async function postJob(attrs: {
 }): Promise<any> {
   const data = await apiFetch<{ job: any }>("/api/jobs", {
     method: "POST",
-    body: JSON.stringify({ job: attrs }),
+    body: JSON.stringify(attrs),
   });
   return data.job;
 }
@@ -138,7 +138,7 @@ export async function placeBid(
 ): Promise<any> {
   const data = await apiFetch<{ bid: any }>(`/api/jobs/${jobId}/bids`, {
     method: "POST",
-    body: JSON.stringify({ bid }),
+    body: JSON.stringify(bid),
   });
   return data.bid;
 }
@@ -189,13 +189,17 @@ export async function listReviews(): Promise<{ reviews: any[] }> {
 }
 
 export async function listContractorReviews(contractorId: string): Promise<{ reviews: any[]; stats: { avgRating: number; totalReviews: number } }> {
-  return apiFetch(`/api/reviews/contractor/${contractorId}`);
+  const [reviewsData, statsData] = await Promise.all([
+    apiFetch<{ reviews: any[] }>(`/api/reviews/contractor/${contractorId}`),
+    apiFetch<{ stats: { avgRating: number; totalReviews: number } }>(`/api/reviews/stats/${contractorId}`),
+  ]);
+  return { reviews: reviewsData.reviews, stats: statsData.stats };
 }
 
 export async function submitReview(review: { contractorId: string; jobId: string; rating: number; comment: string }): Promise<any> {
   return apiFetch("/api/reviews", {
     method: "POST",
-    body: JSON.stringify({ review }),
+    body: JSON.stringify(review),
   });
 }
 
@@ -230,7 +234,7 @@ export async function getVerificationStatus(): Promise<any> {
 export async function submitVerification(step: string, data: Record<string, unknown>): Promise<any> {
   return apiFetch(`/api/contractor/verification/${step}`, {
     method: "POST",
-    body: JSON.stringify({ data }),
+    body: JSON.stringify(data),
   });
 }
 
@@ -264,7 +268,7 @@ export async function uploadInsurance(formData: FormData): Promise<any> {
 
 // Conversations
 export async function listConversations(): Promise<{ conversations: any[] }> {
-  return apiFetch("/api/conversations");
+  return apiFetch("/api/chat/conversations");
 }
 
 // Chat
@@ -276,7 +280,7 @@ export async function listMessages(conversationId: string): Promise<any[]> {
 export async function sendMessage(conversationId: string, body: string): Promise<any> {
   const data = await apiFetch<{ message: any }>(`/api/chat/${conversationId}`, {
     method: "POST",
-    body: JSON.stringify({ message: { body } }),
+    body: JSON.stringify({ body }),
   });
   return data.message;
 }
@@ -354,7 +358,7 @@ export async function listSubJobs(params?: {
   limit?: number;
   category?: string;
   status?: string;
-}): Promise<{ subJobs: any[]; nextCursor?: string }> {
+}): Promise<{ sub_jobs: any[]; nextCursor?: string }> {
   const query = new URLSearchParams();
   if (params?.cursor) query.set("cursor", params.cursor);
   if (params?.limit) query.set("limit", String(params.limit));
@@ -364,7 +368,7 @@ export async function listSubJobs(params?: {
   return apiFetch(`/api/sub-jobs${qs ? `?${qs}` : ""}`);
 }
 
-export async function getSubJob(id: string): Promise<{ subJob: any; bids: any[] }> {
+export async function getSubJob(id: string): Promise<{ sub_job: any; bids: any[] }> {
   return apiFetch(`/api/sub-jobs/${id}`);
 }
 
@@ -372,7 +376,7 @@ export async function listMySubJobs(params?: {
   cursor?: string;
   limit?: number;
   status?: string;
-}): Promise<{ subJobs: any[]; nextCursor?: string }> {
+}): Promise<{ sub_jobs: any[]; nextCursor?: string }> {
   const query = new URLSearchParams();
   if (params?.cursor) query.set("cursor", params.cursor);
   if (params?.limit) query.set("limit", String(params.limit));
@@ -387,7 +391,7 @@ export async function placeSubBid(
 ): Promise<any> {
   const data = await apiFetch<{ bid: any }>(`/api/sub-jobs/${subJobId}/bids`, {
     method: "POST",
-    body: JSON.stringify({ bid }),
+    body: JSON.stringify(bid),
   });
   return data.bid;
 }
@@ -413,7 +417,7 @@ export async function getSettings(): Promise<any> {
 export async function updateSettings(settings: Record<string, any>): Promise<any> {
   const data = await apiFetch<{ settings: any }>("/api/settings", {
     method: "PUT",
-    body: JSON.stringify({ settings }),
+    body: JSON.stringify(settings),
   });
   return data.settings;
 }

@@ -88,7 +88,7 @@ export async function fetchFairRecords(contractorId?: string) {
 export async function fetchSubJobs() {
   try {
     const data = await api.listSubJobs();
-    if (data.subJobs.length > 0) return data.subJobs;
+    if (data.sub_jobs.length > 0) return data.sub_jobs;
   } catch {}
   return mockSubJobs;
 }
@@ -96,7 +96,7 @@ export async function fetchSubJobs() {
 export async function fetchMySubJobs() {
   try {
     const data = await api.listMySubJobs();
-    if (data.subJobs.length > 0) return data.subJobs;
+    if (data.sub_jobs.length > 0) return data.sub_jobs;
   } catch {}
   return mockSubJobs.filter((sj) => sj.status === "in_progress" || sj.status === "completed");
 }
@@ -113,10 +113,10 @@ export async function fetchSubBidsForUser() {
   // No dedicated endpoint yet — derive from mySubJobs or fall back to mock
   try {
     const data = await api.listMySubJobs();
-    if (data.subJobs.length > 0) {
+    if (data.sub_jobs.length > 0) {
       // Flatten bids from sub jobs if backend returns them nested
       const bids: any[] = [];
-      for (const sj of data.subJobs) {
+      for (const sj of data.sub_jobs) {
         if (sj.bids) bids.push(...sj.bids);
       }
       if (bids.length > 0) return bids;
