@@ -9,8 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Star, MessageSquare } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { useReviews } from "@src/api/hooks";
-import { formatDate, getInitials } from "@src/lib/utils";
+import { useContractorReviews } from "@src/api/hooks";
+import { useAuthStore } from "@src/stores/auth";
+import { formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Avatar } from "@src/components/ui/avatar";
 import type { Review } from "@src/types";
@@ -50,19 +51,17 @@ function RatingBar({ stars, count, total }: { stars: number; count: number; tota
 
 export default function ReviewsScreen() {
   const router = useRouter();
-  const { data: reviews = [] as Review[], refetch, isRefetching } = useReviews();
+  const userId = useAuthStore((s) => s.user?.id) || "me";
+  const { data, refetch, isRefetching } = useContractorReviews(userId);
 
-  // Compute stats
+  const reviews = (data?.reviews || []) as Review[];
+  const stats = data?.stats || { avgRating: 0, totalReviews: 0 };
+
   const totalReviews = reviews.length;
-  const avgRating = useMemo(
-    () =>
-      totalReviews > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-        : 0,
-    [reviews, totalReviews],
-  );
+  const avgRating = stats.avgRating || (totalReviews > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+    : 0);
 
-  // Rating breakdown
   const breakdown = useMemo(
     () =>
       [5, 4, 3, 2, 1].map((stars) => ({
@@ -74,7 +73,6 @@ export default function ReviewsScreen() {
 
   const renderHeader = () => (
     <View>
-      {/* Header */}
       <View className="px-5 pt-4 pb-2 flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -86,13 +84,11 @@ export default function ReviewsScreen() {
         <Text className="text-2xl font-bold text-dark">Reviews</Text>
       </View>
 
-      {/* Rating Summary */}
       <View
         className="bg-white border border-border rounded mx-5 mt-4 p-5"
         style={{ borderRadius: 4 }}
       >
         <View className="flex-row">
-          {/* Left: big number */}
           <View className="items-center mr-6">
             <Text className="text-5xl font-bold text-dark">
               {avgRating.toFixed(1)}
@@ -102,8 +98,6 @@ export default function ReviewsScreen() {
               {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
             </Text>
           </View>
-
-          {/* Right: breakdown bars */}
           <View className="flex-1 justify-center">
             {breakdown.map((b) => (
               <RatingBar
@@ -117,7 +111,6 @@ export default function ReviewsScreen() {
         </View>
       </View>
 
-      {/* Section label */}
       <View className="px-5 mt-5 mb-2">
         <Text className="text-lg font-bold text-dark">All Reviews</Text>
       </View>
@@ -129,7 +122,6 @@ export default function ReviewsScreen() {
       className="bg-white border border-border rounded mx-5 mb-3 p-4"
       style={{ borderRadius: 4 }}
     >
-      {/* Reviewer row */}
       <View className="flex-row items-center mb-3">
         <Avatar name={item.reviewerName} />
         <View className="flex-1 ml-3">
@@ -138,8 +130,6 @@ export default function ReviewsScreen() {
         </View>
         <StarRating rating={item.rating} />
       </View>
-
-      {/* Comment */}
       <Text className="text-text-secondary text-sm leading-5">
         {item.comment}
       </Text>

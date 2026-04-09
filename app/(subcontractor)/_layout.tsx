@@ -5,40 +5,34 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageCircle, Bell } from "lucide-react-native";
 import SubContractorTabBar from "@src/components/layout/SubContractorTabBar";
 import { BRAND } from "@src/lib/constants";
-
-const UNREAD_MESSAGES = 1;
-const UNREAD_NOTIFICATIONS = 3;
+import { useNotificationStore } from "@src/stores/notifications";
 
 const SHOW_FLOATING_ON = ["(dashboard)"];
 
 const FloatingButtons = memo(function FloatingButtons({ top }: { top: number }) {
   const router = useRouter();
+  const unreadNotifications = useNotificationStore((s) => s.unreadCount);
 
   const goNotifications = useCallback(() => {
-    router.push("/(subcontractor)/(dashboard)" as any);
+    router.push("/(subcontractor)/notifications" as any);
   }, [router]);
 
   const goMessages = useCallback(() => {
-    router.push("/(subcontractor)/(dashboard)" as any);
+    router.push("/(subcontractor)/messages" as any);
   }, [router]);
 
   return (
     <View style={[styles.topBar, { top }]} pointerEvents="box-none">
       <TouchableOpacity style={styles.topButton} onPress={goNotifications} activeOpacity={0.8}>
         <Bell size={22} color={BRAND.colors.textSecondary} />
-        {UNREAD_NOTIFICATIONS > 0 && (
+        {unreadNotifications > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{UNREAD_NOTIFICATIONS}</Text>
+            <Text style={styles.badgeText}>{unreadNotifications}</Text>
           </View>
         )}
       </TouchableOpacity>
       <TouchableOpacity style={styles.topButton} onPress={goMessages} activeOpacity={0.8}>
         <MessageCircle size={22} color={BRAND.colors.textSecondary} />
-        {UNREAD_MESSAGES > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{UNREAD_MESSAGES}</Text>
-          </View>
-        )}
       </TouchableOpacity>
     </View>
   );
@@ -68,6 +62,8 @@ export default function SubContractorLayout() {
         <Tabs.Screen name="work" options={{ title: "Work" }} />
         <Tabs.Screen name="my-work" options={{ title: "My Work" }} />
         <Tabs.Screen name="(profile)" options={{ title: "Profile", href: null }} />
+        <Tabs.Screen name="messages" options={{ href: null }} />
+        <Tabs.Screen name="notifications" options={{ href: null }} />
       </Tabs>
       {showFloating && <FloatingButtons top={insets.top} />}
     </View>

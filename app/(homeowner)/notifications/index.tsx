@@ -16,7 +16,10 @@ import {
   Bell,
   Star,
 } from "lucide-react-native";
-import { useNotifications } from "@src/api/hooks";
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@src/api/hooks";
+import { useRealtimeNotifications } from "@src/realtime/hooks";
+import { useAuthStore } from "@src/stores/auth";
+import { useNotificationStore } from "@src/stores/notifications";
 import { formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { router } from "expo-router";
@@ -38,8 +41,13 @@ function getTypeConfig(type: string) {
 }
 
 export default function HomeownerNotifications() {
+  const userId = useAuthStore((s) => s.user?.id);
   const { data: queryNotifications = [] } = useNotifications();
   const [notifications, setNotifications] = useState<Notification[]>(queryNotifications as Notification[]);
+  const { notifications: realtimeNotifications } = useRealtimeNotifications(userId || null);
+  const markReadMutation = useMarkNotificationRead();
+  const markAllReadMutation = useMarkAllNotificationsRead();
+  const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
 
   useEffect(() => {
     if (queryNotifications.length > 0) {
@@ -47,19 +55,36 @@ export default function HomeownerNotifications() {
     }
   }, [queryNotifications]);
 
+  // Overlay realtime notifications
+  useEffect(() => {
+    if (realtimeNotifications.length > 0) {
+      setNotifications((prev) => {
+        const existingIds = new Set(prev.map((n) => n.id));
+        const newOnes = realtimeNotifications
+          .filter((n: any) => !existingIds.has(n.id))
+          .map((n: any) => ({ ...n, read: false }));
+        return [...newOnes, ...prev];
+      });
+    }
+  }, [realtimeNotifications]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    setUnreadCount(unreadCount);
+  }, [unreadCount, setUnreadCount]);
+
   const markAllRead = useCallback(() => {
-    setNotifications((prev) =>
-      prev.map((n) => ({ ...n, read: true }))
-    );
-  }, []);
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    markAllReadMutation.mutate();
+  }, [markAllReadMutation]);
 
   const markRead = useCallback((id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
-  }, []);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
+    markReadMutation.mutate(id);
+  }, [markReadMutation]);
 
   const renderNotification = useCallback(
     ({ item }: { item: Notification }) => {
@@ -73,12 +98,9 @@ export default function HomeownerNotifications() {
           onPress={() => markRead(item.id)}
         >
           <View className="flex-row items-start">
-            {/* Icon */}
             <View style={[s.iconBox, { backgroundColor: config.bg }]}>
               <IconComponent size={18} color={config.color} />
             </View>
-
-            {/* Content */}
             <View style={{ flex: 1 }}>
               <View className="flex-row items-center">
                 <Text
@@ -113,7 +135,6 @@ export default function HomeownerNotifications() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      {/* Header */}
       <View className="flex-row items-center px-5 pt-4 pb-2">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -134,7 +155,6 @@ export default function HomeownerNotifications() {
         )}
       </View>
 
-      {/* Mark All Read */}
       {unreadCount > 0 && (
         <View className="px-5 mt-2 mb-1">
           <TouchableOpacity
@@ -150,7 +170,6 @@ export default function HomeownerNotifications() {
         </View>
       )}
 
-      {/* Notification List */}
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}

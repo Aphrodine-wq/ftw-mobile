@@ -10,6 +10,7 @@ import {
   mockReviews,
   mockNotifications,
   mockFairRecords,
+  mockConversations,
   contractorStats,
   homeownerStats,
 } from "@src/lib/mock-data";
@@ -24,10 +25,13 @@ export const queryKeys = {
   clients: ["clients"] as const,
   invoices: ["invoices"] as const,
   reviews: ["reviews"] as const,
+  contractorReviews: (id: string) => ["reviews", "contractor", id] as const,
   notifications: ["notifications"] as const,
+  conversations: ["conversations"] as const,
   records: (contractorId?: string) => ["records", contractorId || "me"] as const,
   settings: ["settings"] as const,
   messages: (conversationId: string) => ["messages", conversationId] as const,
+  verification: ["verification"] as const,
 };
 
 // ── Fetchers with mock fallback ───────────────────────────────────────
@@ -323,6 +327,103 @@ export function useUpdateSettings() {
 export function useGetAIEstimate() {
   return useMutation({
     mutationFn: api.getAIEstimate,
+  });
+}
+
+// ── Conversations ────────────────────────────────────────────────────
+
+async function fetchConversationsWithFallback() {
+  try {
+    const data = await api.listConversations();
+    if (data.conversations.length > 0) return data.conversations;
+  } catch {}
+  return mockConversations;
+}
+
+export function useConversations() {
+  return useQuery({
+    queryKey: queryKeys.conversations,
+    queryFn: fetchConversationsWithFallback,
+    initialData: mockConversations,
+    staleTime: 1000 * 30,
+  });
+}
+
+// ── Contractor Reviews ──────────────────────────────────────────────
+
+export function useContractorReviews(contractorId: string) {
+  return useQuery({
+    queryKey: queryKeys.contractorReviews(contractorId),
+    queryFn: async () => {
+      try {
+        const data = await api.listContractorReviews(contractorId);
+        if (data.reviews.length > 0) return data;
+      } catch {}
+      return { reviews: mockReviews, stats: { avgRating: 4.8, totalReviews: mockReviews.length } };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useSubmitReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.submitReview,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.reviews });
+    },
+  });
+}
+
+// ── Verification / Onboarding ───────────────────────────────────────
+
+export function useVerificationStatus() {
+  return useQuery({
+    queryKey: queryKeys.verification,
+    queryFn: async () => {
+      try {
+        return await api.getVerificationStatus();
+      } catch {}
+      return {
+        step: "pending",
+        businessVerified: false,
+        licenseVerified: false,
+        insuranceVerified: false,
+        overallStatus: "incomplete",
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useSubmitVerification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ step, data }: { step: string; data: Record<string, unknown> }) =>
+      api.submitVerification(step, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.verification });
+    },
+  });
+}
+
+export function useUploadLicense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.uploadLicense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.verification });
+    },
+  });
+}
+
+export function useUploadInsurance() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.uploadInsurance,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.verification });
+    },
   });
 }
 

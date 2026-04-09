@@ -12,20 +12,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Send } from "lucide-react-native";
-import { mockConversations, mockMessages } from "@src/lib/mock-data";
-import type { MockConversation, MockMessage } from "@src/lib/mock-data";
 import { BRAND } from "@src/lib/constants";
-import { getInitials } from "@src/lib/utils";
 import { useRealtimeChat } from "@src/realtime/hooks";
-
-const convoKeyExtractor = (item: MockConversation) => item.id;
-const messageKeyExtractor = (item: MockMessage) => item.id;
+import { useConversations } from "@src/api/hooks";
+import { useAuthStore } from "@src/stores/auth";
+import type { Conversation } from "@src/types";
 
 const ConversationRow = memo(function ConversationRow({
   conversation,
   onPress,
 }: {
-  conversation: MockConversation;
+  conversation: any;
   onPress: () => void;
 }) {
   return (
@@ -68,78 +65,42 @@ const ConversationRow = memo(function ConversationRow({
   );
 });
 
-const ChatBubble = memo(function ChatBubble({ message }: { message: MockMessage }) {
-  const isMe = message.sender === "me";
-  return (
-    <View
-      style={[
-        s.bubbleWrapper,
-        { alignSelf: isMe ? "flex-end" : "flex-start" },
-      ]}
-    >
-      <View
-        style={[
-          s.bubble,
-          isMe ? s.bubbleMe : s.bubbleThem,
-        ]}
-      >
-        <Text style={{ fontSize: 14, color: isMe ? "#FFFFFF" : BRAND.colors.textPrimary }}>
-          {message.text}
-        </Text>
-      </View>
-      <Text
-        style={[
-          s.bubbleTime,
-          { textAlign: isMe ? "right" : "left" },
-        ]}
-      >
-        {message.time}
-      </Text>
-    </View>
-  );
-});
-
 function ChatView({
   conversation,
   onBack,
 }: {
-  conversation: MockConversation;
+  conversation: any;
   onBack: () => void;
 }) {
   const [text, setText] = useState("");
-  const [messages, setMessages] = useState<MockMessage[]>(
-    mockMessages[conversation.id] || []
-  );
   const flatListRef = useRef<FlatList>(null);
-  const { messages: realtimeMessages, sendMessage: realtimeSend } = useRealtimeChat(conversation.id);
+  const typingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userId = useAuthStore((s) => s.user?.id);
+  const { messages: realtimeMessages, sendMessage: realtimeSend, sendTyping, typingUser } = useRealtimeChat(conversation.id);
 
-  useEffect(() => {
-    if (realtimeMessages.length > 0) setMessages(realtimeMessages as MockMessage[]);
-  }, [realtimeMessages]);
+  const handleTextChange = useCallback((value: string) => {
+    setText(value);
+    if (value.trim()) {
+      sendTyping(true);
+      if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
+      typingDebounceRef.current = setTimeout(() => sendTyping(false), 2000);
+    }
+  }, [sendTyping]);
 
   const handleSend = () => {
     if (!text.trim()) return;
     realtimeSend(text.trim());
-    const newMsg: MockMessage = {
-      id: `m-${Date.now()}`,
-      text: text.trim(),
-      sender: "me",
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-    };
-    setMessages((prev) => [...prev, newMsg]);
     setText("");
+    sendTyping(false);
   };
 
   useEffect(() => {
-    if (messages.length > 0) {
+    if (realtimeMessages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
-  }, [messages.length]);
+  }, [realtimeMessages.length]);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -157,9 +118,14 @@ function ChatView({
           style={{ width: 36, height: 36, borderRadius: 4, marginRight: 8 }}
           contentFit="cover"
         />
-        <Text style={{ fontSize: 17, fontWeight: "600", color: BRAND.colors.textPrimary }}>
-          {conversation.name}
-        </Text>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 17, fontWeight: "600", color: BRAND.colors.textPrimary }}>
+            {conversation.name}
+          </Text>
+          {typingUser && (
+            <Text style={{ fontSize: 12, color: BRAND.colors.primary }}>typing...</Text>
+          )}
+        </View>
       </View>
 
       {/* Messages */}
@@ -170,8 +136,8 @@ function ChatView({
       >
         <FlatList
           ref={flatListRef}
-          data={messages}
-          keyExtractor={messageKeyExtractor}
+          data={realtimeMessages}
+          keyExtractor={(item: any) => item.id || `msg-${Math.random()}`}
           contentContainerStyle={{
             paddingHorizontal: 20,
             paddingTop: 16,
@@ -182,7 +148,21 @@ function ChatView({
           initialNumToRender={15}
           maxToRenderPerBatch={10}
           windowSize={11}
-          renderItem={({ item }) => <ChatBubble message={item} />}
+          renderItem={({ item }: { item: any }) => {
+            const isMe = item.isMe !== undefined ? item.isMe : (item.sender === "me" || item.senderId === userId);
+            return (
+              <View style={[s.bubbleWrapper, { alignSelf: isMe ? "flex-end" : "flex-start" }]}>
+                <View style={[s.bubble, isMe ? s.bubbleMe : s.bubbleThem]}>
+                  <Text style={{ fontSize: 14, color: isMe ? "#FFFFFF" : BRAND.colors.textPrimary }}>
+                    {item.body || item.text}
+                  </Text>
+                </View>
+                <Text style={[s.bubbleTime, { textAlign: isMe ? "right" : "left" }]}>
+                  {item.sentAt || item.time}
+                </Text>
+              </View>
+            );
+          }}
           ListEmptyComponent={
             <View className="items-center py-12">
               <Text style={{ color: BRAND.colors.textMuted, fontSize: 14 }}>
@@ -195,6 +175,15 @@ function ChatView({
           }
         />
 
+        {/* Typing indicator */}
+        {typingUser && (
+          <View style={{ paddingHorizontal: 20, paddingBottom: 4 }}>
+            <Text style={{ color: BRAND.colors.textMuted, fontSize: 12, fontStyle: "italic" }}>
+              {typingUser} is typing...
+            </Text>
+          </View>
+        )}
+
         {/* Input */}
         <View style={s.inputBar}>
           <TextInput
@@ -202,7 +191,7 @@ function ChatView({
             placeholder="Type a message..."
             placeholderTextColor={BRAND.colors.textMuted}
             value={text}
-            onChangeText={setText}
+            onChangeText={handleTextChange}
             onSubmitEditing={handleSend}
             returnKeyType="send"
           />
@@ -224,8 +213,8 @@ function ChatView({
 }
 
 export default function HomeownerMessages() {
-  const [activeConversation, setActiveConversation] =
-    useState<MockConversation | null>(null);
+  const [activeConversation, setActiveConversation] = useState<any | null>(null);
+  const { data: conversations = [] } = useConversations();
 
   if (activeConversation) {
     return (
@@ -238,7 +227,6 @@ export default function HomeownerMessages() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      {/* Header */}
       <View className="px-5 pt-4">
         <Text style={{ fontSize: 24, fontWeight: "700", color: BRAND.colors.textPrimary }}>
           Messages
@@ -248,10 +236,9 @@ export default function HomeownerMessages() {
         </Text>
       </View>
 
-      {/* Conversation List */}
       <FlatList
-        data={mockConversations}
-        keyExtractor={convoKeyExtractor}
+        data={conversations}
+        keyExtractor={(item: any) => item.id}
         contentContainerStyle={{
           paddingHorizontal: 20,
           paddingTop: 16,
@@ -261,7 +248,7 @@ export default function HomeownerMessages() {
         removeClippedSubviews
         initialNumToRender={10}
         maxToRenderPerBatch={10}
-        renderItem={({ item }) => (
+        renderItem={({ item }: { item: any }) => (
           <ConversationRow
             conversation={item}
             onPress={() => setActiveConversation(item)}
@@ -289,15 +276,6 @@ const s = StyleSheet.create({
     marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 4,
-    backgroundColor: BRAND.colors.dark,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
   },
   unreadBadge: {
     width: 20,
@@ -337,15 +315,6 @@ const s = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: BRAND.colors.border,
-  },
-  chatAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 4,
-    backgroundColor: BRAND.colors.dark,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
   },
   inputBar: {
     flexDirection: "row",

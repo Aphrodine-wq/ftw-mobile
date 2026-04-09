@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, type ViewProps } from "react-native";
+import { View, type ViewProps, type DimensionValue } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 interface SkeletonProps extends ViewProps {
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   circle?: boolean;
 }

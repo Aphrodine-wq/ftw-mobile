@@ -5,15 +5,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageCircle, Bell } from "lucide-react-native";
 import CustomTabBar from "@src/components/layout/CustomTabBar";
 import { BRAND } from "@src/lib/constants";
-
-const UNREAD_MESSAGES = 3;
-const UNREAD_NOTIFICATIONS = 5;
+import { useNotificationStore } from "@src/stores/notifications";
 
 // Only show floating buttons on dashboard
 const SHOW_FLOATING_ON = ["(dashboard)"];
 
 const FloatingButtons = memo(function FloatingButtons({ top }: { top: number }) {
   const router = useRouter();
+  const unreadNotifications = useNotificationStore((s) => s.unreadCount);
 
   const goNotifications = useCallback(() => {
     router.push("/(contractor)/notifications" as any);
@@ -27,19 +26,14 @@ const FloatingButtons = memo(function FloatingButtons({ top }: { top: number }) 
     <View style={[styles.topBar, { top }]} pointerEvents="box-none">
       <TouchableOpacity style={styles.topButton} onPress={goNotifications} activeOpacity={0.8}>
         <Bell size={22} color={BRAND.colors.textSecondary} />
-        {UNREAD_NOTIFICATIONS > 0 && (
+        {unreadNotifications > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{UNREAD_NOTIFICATIONS}</Text>
+            <Text style={styles.badgeText}>{unreadNotifications}</Text>
           </View>
         )}
       </TouchableOpacity>
       <TouchableOpacity style={styles.topButton} onPress={goMessages} activeOpacity={0.8}>
         <MessageCircle size={22} color={BRAND.colors.textSecondary} />
-        {UNREAD_MESSAGES > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{UNREAD_MESSAGES}</Text>
-          </View>
-        )}
       </TouchableOpacity>
     </View>
   );
@@ -93,6 +87,7 @@ export default function ContractorLayout() {
           <Tabs.Screen name="about-ai" options={{ href: null }} />
           <Tabs.Screen name="referrals" options={{ href: null }} />
           <Tabs.Screen name="help" options={{ href: null }} />
+          <Tabs.Screen name="onboarding" options={{ href: null }} />
         </Tabs>
       </View>
     </>

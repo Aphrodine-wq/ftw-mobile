@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,76 +11,54 @@ import {
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Send } from "lucide-react-native";
-import {
-  mockConversations,
-  mockMessages,
-  type MockConversation,
-  type MockMessage,
-} from "@src/lib/mock-data";
 import { BRAND } from "@src/lib/constants";
 import { useRealtimeChat } from "@src/realtime/hooks";
-
-const convoKeyExtractor = (item: MockConversation) => item.id;
-const messageKeyExtractor = (item: MockMessage) => item.id;
+import { useConversations } from "@src/api/hooks";
+import { useAuthStore } from "@src/stores/auth";
+import type { Conversation } from "@src/types";
 
 export default function ContractorMessages() {
   const [selectedConvo, setSelectedConvo] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
-  const [localMessages, setLocalMessages] = useState<
-    Record<string, MockMessage[]>
-  >(mockMessages);
   const flatListRef = useRef<FlatList>(null);
+  const typingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userId = useAuthStore((s) => s.user?.id);
 
-  // Realtime chat integration
-  const { messages: realtimeMessages, sendMessage: realtimeSend } = useRealtimeChat(selectedConvo);
-
-  // Merge realtime messages when available
-  useEffect(() => {
-    if (realtimeMessages.length > 0 && selectedConvo) {
-      setLocalMessages((prev) => ({ ...prev, [selectedConvo]: realtimeMessages as MockMessage[] }));
-    }
-  }, [realtimeMessages, selectedConvo]);
+  const { data: conversations = [] } = useConversations();
+  const { messages: realtimeMessages, sendMessage: realtimeSend, sendTyping, typingUser, loading: chatLoading } = useRealtimeChat(selectedConvo);
 
   const activeConvo = selectedConvo
-    ? mockConversations.find((c) => c.id === selectedConvo)
+    ? (conversations as Conversation[]).find((c) => c.id === selectedConvo)
     : null;
-  const messages = selectedConvo ? localMessages[selectedConvo] || [] : [];
 
   const handleContentSizeChange = useCallback(() => {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, []);
 
+  const handleTextChange = useCallback((text: string) => {
+    setMessageText(text);
+    if (text.trim()) {
+      sendTyping(true);
+      if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
+      typingDebounceRef.current = setTimeout(() => sendTyping(false), 2000);
+    }
+  }, [sendTyping]);
+
   const handleSend = () => {
     const trimmed = messageText.trim();
     if (!trimmed || !selectedConvo) return;
-
-    // Send via realtime if connected
     realtimeSend(trimmed);
-
-    const newMsg: MockMessage = {
-      id: `m-${Date.now()}`,
-      text: trimmed,
-      sender: "me",
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-    };
-
-    setLocalMessages((prev) => ({
-      ...prev,
-      [selectedConvo]: [...(prev[selectedConvo] || []), newMsg],
-    }));
     setMessageText("");
+    sendTyping(false);
   };
 
   useEffect(() => {
-    if (selectedConvo && messages.length > 0) {
+    if (selectedConvo && realtimeMessages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
       }, 100);
     }
-  }, [selectedConvo, messages.length]);
+  }, [selectedConvo, realtimeMessages.length]);
 
   // Conversation list view
   if (!selectedConvo) {
@@ -94,20 +72,19 @@ export default function ContractorMessages() {
         </View>
 
         <FlatList
-          data={mockConversations}
-          keyExtractor={convoKeyExtractor}
+          data={conversations}
+          keyExtractor={(item: any) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
           removeClippedSubviews
           initialNumToRender={10}
           maxToRenderPerBatch={10}
-          renderItem={({ item }: { item: MockConversation }) => (
+          renderItem={({ item }: { item: any }) => (
             <TouchableOpacity
               className="flex-row items-center px-5 py-3 bg-white border-b border-border"
               activeOpacity={0.7}
               onPress={() => setSelectedConvo(item.id)}
             >
-              {/* Avatar */}
               <Image
                 source={{ uri: item.avatar }}
                 style={{ width: 48, height: 48, borderRadius: 4 }}
@@ -115,9 +92,7 @@ export default function ContractorMessages() {
                 recyclingKey={`avatar-${item.id}`}
                 transition={150}
               />
-
-              {/* Content */}
-              <View className="flex-1 mr-3">
+              <View className="flex-1 ml-3 mr-3">
                 <View className="flex-row items-center justify-between">
                   <Text className="text-dark font-semibold text-base">
                     {item.name}
@@ -133,8 +108,6 @@ export default function ContractorMessages() {
                   {item.lastMessage}
                 </Text>
               </View>
-
-              {/* Unread badge */}
               {item.unread > 0 && (
                 <View
                   className="bg-brand-600 w-5 h-5 items-center justify-center"
@@ -189,17 +162,21 @@ export default function ContractorMessages() {
             <Text className="text-dark font-semibold text-base">
               {activeConvo?.name}
             </Text>
-            <Text className="text-text-muted text-xs capitalize">
-              {activeConvo?.role}
-            </Text>
+            {typingUser ? (
+              <Text className="text-brand-600 text-xs">typing...</Text>
+            ) : (
+              <Text className="text-text-muted text-xs capitalize">
+                {activeConvo?.role}
+              </Text>
+            )}
           </View>
         </View>
 
         {/* Messages */}
         <FlatList
           ref={flatListRef}
-          data={messages}
-          keyExtractor={messageKeyExtractor}
+          data={realtimeMessages}
+          keyExtractor={(item: any) => item.id || `msg-${Math.random()}`}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
           removeClippedSubviews
@@ -207,34 +184,24 @@ export default function ContractorMessages() {
           maxToRenderPerBatch={10}
           windowSize={11}
           onContentSizeChange={handleContentSizeChange}
-          renderItem={({ item }: { item: MockMessage }) => {
-            const isMe = item.sender === "me";
+          renderItem={({ item }: { item: any }) => {
+            const isMe = item.isMe !== undefined ? item.isMe : (item.sender === "me" || item.senderId === userId);
             return (
               <View
-                className={`mb-3 max-w-[80%] ${
-                  isMe ? "self-end" : "self-start"
-                }`}
+                className={`mb-3 max-w-[80%] ${isMe ? "self-end" : "self-start"}`}
               >
                 <View
-                  className={`px-4 py-2.5 ${
-                    isMe ? "bg-gray-900" : "bg-gray-100"
-                  }`}
+                  className={`px-4 py-2.5 ${isMe ? "bg-gray-900" : "bg-gray-100"}`}
                   style={{ borderRadius: 4 }}
                 >
-                  <Text
-                    className={`text-base ${
-                      isMe ? "text-white" : "text-dark"
-                    }`}
-                  >
-                    {item.text}
+                  <Text className={`text-base ${isMe ? "text-white" : "text-dark"}`}>
+                    {item.body || item.text}
                   </Text>
                 </View>
                 <Text
-                  className={`text-text-muted text-xs mt-1 ${
-                    isMe ? "text-right" : "text-left"
-                  }`}
+                  className={`text-text-muted text-xs mt-1 ${isMe ? "text-right" : "text-left"}`}
                 >
-                  {item.time}
+                  {item.sentAt || item.time}
                 </Text>
               </View>
             );
@@ -248,6 +215,15 @@ export default function ContractorMessages() {
           }
         />
 
+        {/* Typing indicator */}
+        {typingUser && (
+          <View className="px-4 pb-1">
+            <Text className="text-text-muted text-xs italic">
+              {typingUser} is typing...
+            </Text>
+          </View>
+        )}
+
         {/* Input bar */}
         <View className="flex-row items-end px-4 py-3 bg-white border-t border-border">
           <TextInput
@@ -256,7 +232,7 @@ export default function ContractorMessages() {
             placeholder="Type a message..."
             placeholderTextColor={BRAND.colors.textMuted}
             value={messageText}
-            onChangeText={setMessageText}
+            onChangeText={handleTextChange}
             multiline
             textAlignVertical="top"
           />

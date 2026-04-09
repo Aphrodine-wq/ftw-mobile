@@ -174,3 +174,51 @@ export interface Client {
   projectCount: number;
   totalSpent: number;
 }
+
+export interface Conversation {
+  id: string;
+  name: string;
+  avatar: string;
+  role: "homeowner" | "contractor" | "subcontractor";
+  lastMessage: string;
+  lastMessageTime: string;
+  unread: number;
+  jobId?: string;
+  jobTitle?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  body: string;
+  senderId: string;
+  senderName: string;
+  isMe: boolean;
+  sentAt: string;
+}
+
+export interface ReviewSubmission {
+  contractorId: string;
+  jobId: string;
+  rating: number;
+  comment: string;
+}
+
+export interface ContractorOnboarding {
+  businessName: string;
+  licenseNumber: string;
+  licenseState: string;
+  licenseExpiry: string;
+  insuranceProvider: string;
+  insurancePolicyNumber: string;
+  insuranceCoverage: number;
+  insuranceExpiry: string;
+}
+
+export interface VerificationStatus {
+  step: "pending" | "business_info" | "license" | "insurance" | "review" | "verified";
+  businessVerified: boolean;
+  licenseVerified: boolean;
+  insuranceVerified: boolean;
+  overallStatus: "incomplete" | "pending_review" | "verified" | "rejected";
+}

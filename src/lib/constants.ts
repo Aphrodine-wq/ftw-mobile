@@ -13,6 +13,7 @@ export const BRAND = {
     textSecondary: "#2D3239",
     textMuted: "#5C6370",
     border: "#C8C3BC",
+    primaryLight: "#FDF2F3",
   },
 } as const;
 

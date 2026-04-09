@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { realtimeClient } from "./client";
 import { useAuthStore } from "@src/stores/auth";
 
@@ -46,7 +46,9 @@ export function useRealtimeBids(jobId: string | null) {
 export function useRealtimeChat(conversationId: string | null) {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [typingUser, setTypingUser] = useState<string | null>(null);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!conversationId || !isAuthenticated) return;
@@ -55,8 +57,20 @@ export function useRealtimeChat(conversationId: string | null) {
     const leave = realtimeClient.joinChat(conversationId, {
       onMessagesList: (list) => { setMessages(list); setLoading(false); },
       onNewMessage: (msg) => setMessages((prev) => [...prev, msg]),
+      onTyping: (data) => {
+        if (data.typing) {
+          setTypingUser(data.userName || data.userId || "Someone");
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
+        } else {
+          setTypingUser(null);
+        }
+      },
     });
-    return leave;
+    return () => {
+      leave();
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
   }, [conversationId, isAuthenticated]);
 
   const sendMessage = useCallback((body: string) => {
@@ -67,7 +81,7 @@ export function useRealtimeChat(conversationId: string | null) {
     if (conversationId) realtimeClient.sendTyping(conversationId, typing);
   }, [conversationId]);
 
-  return { messages, loading, sendMessage, sendTyping };
+  return { messages, loading, sendMessage, sendTyping, typingUser };
 }
 
 export function useRealtimeSubJobs() {

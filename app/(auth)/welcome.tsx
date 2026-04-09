@@ -277,7 +277,7 @@ export default function WelcomeScreen() {
   const isLastPage = currentPage === pages.length - 1;
 
   const renderItem = useCallback(
-    ({ item }: { item: OnboardingPage }) => item.content,
+    ({ item }: { item: OnboardingPage }) => <>{item.content}</>,
     []
   );
 

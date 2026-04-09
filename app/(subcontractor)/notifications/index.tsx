@@ -4,16 +4,16 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   DollarSign,
   MessageSquare,
-  Star,
-  CreditCard,
   CheckCheck,
   ChevronLeft,
   Bell,
+  Briefcase,
 } from "lucide-react-native";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@src/api/hooks";
 import { useRealtimeNotifications } from "@src/realtime/hooks";
@@ -27,18 +27,17 @@ import type { Notification as BaseNotification } from "@src/types";
 type Notification = BaseNotification & { read: boolean };
 
 const TYPE_ICONS: Record<string, { icon: typeof DollarSign; color: string; bg: string }> = {
-  bid_received: { icon: DollarSign, color: "#6B7280", bg: "bg-gray-100" },
-  bid_accepted: { icon: DollarSign, color: "#6B7280", bg: "bg-gray-100" },
-  message: { icon: MessageSquare, color: "#6B7280", bg: "bg-gray-100" },
-  review: { icon: Star, color: "#6B7280", bg: "bg-gray-100" },
-  payment: { icon: CreditCard, color: "#6B7280", bg: "bg-gray-100" },
+  bid_accepted: { icon: DollarSign, color: "#059669", bg: "#ECFDF5" },
+  message: { icon: MessageSquare, color: "#2563EB", bg: "#EFF6FF" },
+  work_assigned: { icon: Briefcase, color: "#7C3AED", bg: "#F5F3FF" },
+  payment: { icon: DollarSign, color: "#D97706", bg: "#FFFBEB" },
 };
 
 function getTypeConfig(type: string) {
-  return TYPE_ICONS[type] || { icon: Bell, color: "#6B7280", bg: "bg-gray-100" };
+  return TYPE_ICONS[type] || { icon: Bell, color: BRAND.colors.textSecondary, bg: "#F3F4F6" };
 }
 
-export default function ContractorNotifications() {
+export default function SubContractorNotifications() {
   const userId = useAuthStore((s) => s.user?.id);
   const { data: queryNotifications = [] } = useNotifications();
   const [notifications, setNotifications] = useState<Notification[]>(queryNotifications as Notification[]);
@@ -47,14 +46,12 @@ export default function ContractorNotifications() {
   const markAllReadMutation = useMarkAllNotificationsRead();
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
 
-  // Sync query data
   useEffect(() => {
     if (queryNotifications.length > 0) {
       setNotifications(queryNotifications as Notification[]);
     }
   }, [queryNotifications]);
 
-  // Overlay realtime notifications
   useEffect(() => {
     if (realtimeNotifications.length > 0) {
       setNotifications((prev) => {
@@ -69,7 +66,6 @@ export default function ContractorNotifications() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Keep badge store in sync
   useEffect(() => {
     setUnreadCount(unreadCount);
   }, [unreadCount, setUnreadCount]);
@@ -93,42 +89,36 @@ export default function ContractorNotifications() {
 
       return (
         <TouchableOpacity
-          className="bg-white border border-border rounded p-4 mx-5 mb-3"
-          style={{ borderRadius: 4 }}
+          style={st.card}
           activeOpacity={0.7}
           onPress={() => markRead(item.id)}
         >
           <View className="flex-row items-start">
-            <View
-              className={`w-10 h-10 ${config.bg} items-center justify-center mr-3`}
-              style={{ borderRadius: 4 }}
-            >
+            <View style={[st.iconBox, { backgroundColor: config.bg }]}>
               <IconComponent size={18} color={config.color} />
             </View>
-            <View className="flex-1">
+            <View style={{ flex: 1 }}>
               <View className="flex-row items-center">
                 <Text
-                  className={`flex-1 text-base ${
-                    !item.read ? "font-bold text-dark" : "font-medium text-dark"
-                  }`}
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: item.read ? "500" : "700",
+                    color: BRAND.colors.textPrimary,
+                  }}
                   numberOfLines={1}
                 >
                   {item.title}
                 </Text>
-                {!item.read && (
-                  <View
-                    className="w-2.5 h-2.5 bg-brand-600 ml-2"
-                    style={{ borderRadius: 4 }}
-                  />
-                )}
+                {!item.read && <View style={st.unreadDot} />}
               </View>
               <Text
-                className="text-text-secondary text-sm mt-0.5"
+                style={{ fontSize: 13, color: BRAND.colors.textSecondary, marginTop: 2 }}
                 numberOfLines={2}
               >
                 {item.body}
               </Text>
-              <Text className="text-text-muted text-xs mt-1.5">
+              <Text style={{ fontSize: 12, color: BRAND.colors.textMuted, marginTop: 6 }}>
                 {formatDate(item.createdAt)}
               </Text>
             </View>
@@ -142,37 +132,24 @@ export default function ContractorNotifications() {
   return (
     <SafeAreaView className="flex-1 bg-surface">
       <View className="flex-row items-center px-5 pt-4 pb-2">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="mr-3"
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={() => router.back()} className="mr-3" activeOpacity={0.7}>
           <ChevronLeft size={24} color={BRAND.colors.dark} />
         </TouchableOpacity>
-        <Text className="text-2xl font-bold text-dark flex-1">
+        <Text style={{ fontSize: 24, fontWeight: "700", color: BRAND.colors.textPrimary, flex: 1 }}>
           Notifications
         </Text>
         {unreadCount > 0 && (
-          <View
-            className="bg-brand-600 px-2.5 py-0.5"
-            style={{ borderRadius: 4 }}
-          >
-            <Text className="text-white text-xs font-bold">
-              {unreadCount}
-            </Text>
+          <View style={st.countBadge}>
+            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{unreadCount}</Text>
           </View>
         )}
       </View>
 
       {unreadCount > 0 && (
         <View className="px-5 mt-2 mb-1">
-          <TouchableOpacity
-            className="flex-row items-center self-end py-2"
-            activeOpacity={0.7}
-            onPress={markAllRead}
-          >
+          <TouchableOpacity className="flex-row items-center self-end py-2" activeOpacity={0.7} onPress={markAllRead}>
             <CheckCheck size={16} color={BRAND.colors.primary} />
-            <Text className="text-brand-600 text-sm font-medium ml-1.5">
+            <Text style={{ color: BRAND.colors.primary, fontSize: 13, fontWeight: "600", marginLeft: 6 }}>
               Mark all read
             </Text>
           </TouchableOpacity>
@@ -184,14 +161,13 @@ export default function ContractorNotifications() {
         keyExtractor={(item) => item.id}
         renderItem={renderNotification}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}
         removeClippedSubviews
         initialNumToRender={10}
-        maxToRenderPerBatch={10}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 90 }}
         ListEmptyComponent={
           <View className="items-center py-12 px-5">
             <Bell size={40} color={BRAND.colors.textMuted} />
-            <Text className="text-text-secondary text-base mt-3">
+            <Text style={{ color: BRAND.colors.textSecondary, fontSize: 15, marginTop: 12 }}>
               No notifications yet.
             </Text>
           </View>
@@ -200,3 +176,10 @@ export default function ContractorNotifications() {
     </SafeAreaView>
   );
 }
+
+const st = StyleSheet.create({
+  card: { backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: BRAND.colors.border, borderRadius: 4, padding: 16, marginBottom: 12 },
+  iconBox: { width: 40, height: 40, borderRadius: 4, alignItems: "center", justifyContent: "center", marginRight: 12 },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#2563EB", marginLeft: 8 },
+  countBadge: { backgroundColor: BRAND.colors.primary, borderRadius: 4, paddingHorizontal: 8, paddingVertical: 2 },
+});

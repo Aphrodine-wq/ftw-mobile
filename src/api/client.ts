@@ -188,6 +188,17 @@ export async function listReviews(): Promise<{ reviews: any[] }> {
   return apiFetch("/api/reviews");
 }
 
+export async function listContractorReviews(contractorId: string): Promise<{ reviews: any[]; stats: { avgRating: number; totalReviews: number } }> {
+  return apiFetch(`/api/reviews/contractor/${contractorId}`);
+}
+
+export async function submitReview(review: { contractorId: string; jobId: string; rating: number; comment: string }): Promise<any> {
+  return apiFetch("/api/reviews", {
+    method: "POST",
+    body: JSON.stringify({ review }),
+  });
+}
+
 // Notifications
 export async function listNotifications(): Promise<{ notifications: any[] }> {
   return apiFetch("/api/notifications");
@@ -211,7 +222,7 @@ export async function getPublicRecord(publicId: string): Promise<any> {
   return data.record;
 }
 
-// Verification
+// Verification / Onboarding
 export async function getVerificationStatus(): Promise<any> {
   return apiFetch("/api/contractor/verification");
 }
@@ -221,6 +232,39 @@ export async function submitVerification(step: string, data: Record<string, unkn
     method: "POST",
     body: JSON.stringify({ data }),
   });
+}
+
+export async function uploadLicense(formData: FormData): Promise<any> {
+  const token = useAuthStore.getState().token;
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}/api/contractor/licenses`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+  if (!res.ok) throw new ApiError("Upload failed", res.status);
+  return res.json();
+}
+
+export async function uploadInsurance(formData: FormData): Promise<any> {
+  const token = useAuthStore.getState().token;
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}/api/contractor/insurance`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+  if (!res.ok) throw new ApiError("Upload failed", res.status);
+  return res.json();
+}
+
+// Conversations
+export async function listConversations(): Promise<{ conversations: any[] }> {
+  return apiFetch("/api/conversations");
 }
 
 // Chat
