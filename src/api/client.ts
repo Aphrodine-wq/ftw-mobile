@@ -169,6 +169,65 @@ export async function listInvoices(params?: { cursor?: string; limit?: number })
   return apiFetch(`/api/invoices${qs ? `?${qs}` : ""}`);
 }
 
+export async function getInvoice(id: string): Promise<{ invoice: any }> {
+  return apiFetch(`/api/invoices/${id}`);
+}
+
+export async function createInvoice(attrs: {
+  invoice_number?: string;
+  amount: number;
+  notes?: string;
+  due_date?: string;
+  client_id?: string;
+  estimate_id?: string;
+  project_id?: string;
+}): Promise<{ invoice: any }> {
+  return apiFetch("/api/invoices", {
+    method: "POST",
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function updateInvoice(id: string, attrs: {
+  amount?: number;
+  status?: string;
+  notes?: string;
+  due_date?: string;
+}): Promise<{ invoice: any }> {
+  return apiFetch(`/api/invoices/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(attrs),
+  });
+}
+
+// QuickBooks
+export async function getQbStatus(): Promise<{ connected: boolean; company_name?: string; realm_id?: string; connected_at?: string }> {
+  return apiFetch("/api/quickbooks/status");
+}
+
+export async function disconnectQb(): Promise<void> {
+  return apiFetch("/api/quickbooks/disconnect", { method: "DELETE" });
+}
+
+export async function syncInvoiceToQb(invoiceId: string): Promise<{ qb_invoice_id: string; qb_synced_at: string }> {
+  return apiFetch(`/api/quickbooks/invoices/${invoiceId}/sync`, { method: "POST" });
+}
+
+export async function recordQbPayment(invoiceId: string, amount?: number): Promise<{ status: string; paid_at: string }> {
+  return apiFetch(`/api/quickbooks/invoices/${invoiceId}/payment`, {
+    method: "POST",
+    body: JSON.stringify(amount != null ? { amount } : {}),
+  });
+}
+
+export async function getQbInvoice(invoiceId: string): Promise<any> {
+  return apiFetch(`/api/quickbooks/invoices/${invoiceId}`);
+}
+
+export function getQbOAuthUrl(): string {
+  return `${API_BASE}/api/quickbooks/connect`;
+}
+
 // Projects
 export async function listProjects(): Promise<{ projects: any[] }> {
   return apiFetch("/api/projects");
@@ -188,15 +247,15 @@ export async function listReviews(): Promise<{ reviews: any[] }> {
   return apiFetch("/api/reviews");
 }
 
-export async function listContractorReviews(contractorId: string): Promise<{ reviews: any[]; stats: { avgRating: number; totalReviews: number } }> {
+export async function listContractorReviews(contractorId: string): Promise<{ reviews: any[]; stats: { avg_rating: number; count: number } }> {
   const [reviewsData, statsData] = await Promise.all([
     apiFetch<{ reviews: any[] }>(`/api/reviews/contractor/${contractorId}`),
-    apiFetch<{ stats: { avgRating: number; totalReviews: number } }>(`/api/reviews/stats/${contractorId}`),
+    apiFetch<{ stats: { avg_rating: number; count: number } }>(`/api/reviews/stats/${contractorId}`),
   ]);
   return { reviews: reviewsData.reviews, stats: statsData.stats };
 }
 
-export async function submitReview(review: { contractorId: string; jobId: string; rating: number; comment: string }): Promise<any> {
+export async function submitReview(review: { reviewed_id: string; job_id: string; rating: number; comment: string }): Promise<any> {
   return apiFetch("/api/reviews", {
     method: "POST",
     body: JSON.stringify(review),
@@ -382,7 +441,7 @@ export async function listMySubJobs(params?: {
   if (params?.limit) query.set("limit", String(params.limit));
   if (params?.status) query.set("status", params.status);
   const qs = query.toString();
-  return apiFetch(`/api/sub-jobs/mine${qs ? `?${qs}` : ""}`);
+  return apiFetch(`/api/sub-jobs/my-posts${qs ? `?${qs}` : ""}`);
 }
 
 export async function placeSubBid(

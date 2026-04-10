@@ -66,8 +66,8 @@ export default function HomeownerReviews() {
 
     try {
       await submitReview.mutateAsync({
-        contractorId: "", // Backend resolves from job
-        jobId: selectedJobId,
+        reviewed_id: "", // Backend resolves from job
+        job_id: selectedJobId,
         rating,
         comment: comment.trim(),
       });

@@ -55,10 +55,10 @@ export default function ReviewsScreen() {
   const { data, refetch, isRefetching } = useContractorReviews(userId);
 
   const reviews = (data?.reviews || []) as Review[];
-  const stats = data?.stats || { avgRating: 0, totalReviews: 0 };
+  const stats = data?.stats || { avg_rating: 0, count: 0 };
 
   const totalReviews = reviews.length;
-  const avgRating = stats.avgRating || (totalReviews > 0
+  const avgRating = stats.avg_rating || (totalReviews > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
     : 0);
 

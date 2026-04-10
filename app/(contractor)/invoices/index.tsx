@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -33,7 +33,10 @@ import {
   Shield,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { useInvoices } from "@src/api/hooks";
+import { useInvoices, useCreateInvoice, useQbStatus } from "@src/api/hooks";
+import { useRealtimeInvoices } from "@src/realtime/hooks";
+import { useAuthStore } from "@src/stores/auth";
+import { useQueryClient } from "@tanstack/react-query";
 import { mockProjects } from "@src/lib/mock-data";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
@@ -56,6 +59,7 @@ function getStatusVariant(status: Invoice["status"]): "neutral" | "default" | "s
     case "sent": return "default";
     case "paid": return "success";
     case "overdue": return "danger";
+    case "cancelled": return "neutral";
   }
 }
 
@@ -71,6 +75,11 @@ function getMilestoneIcon(status: ProjectMilestone["status"]) {
 export default function InvoicesScreen() {
   const router = useRouter();
   const { data: invoices = [], refetch, isRefetching } = useInvoices();
+  const createInvoiceMutation = useCreateInvoice();
+  const { data: qbStatus } = useQbStatus();
+  const userId = useAuthStore((s) => s.user?.id);
+  const queryClient = useQueryClient();
+  const { invoiceEvents } = useRealtimeInvoices(userId ?? null);
   const [pageTab, setPageTab] = useState<PageTab>("invoices");
   const [activeFilter, setActiveFilter] = useState<InvoiceFilter>("all");
   const [showModal, setShowModal] = useState(false);
@@ -79,6 +88,15 @@ export default function InvoicesScreen() {
   const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
   const [invoiceNote, setInvoiceNote] = useState("");
   const [dueInDays, setDueInDays] = useState("30");
+
+  // Invalidate invoice cache when realtime events arrive
+  const lastEventTs = useRef(0);
+  useEffect(() => {
+    if (invoiceEvents.length > 0 && invoiceEvents[0].ts !== lastEventTs.current) {
+      lastEventTs.current = invoiceEvents[0].ts;
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    }
+  }, [invoiceEvents, queryClient]);
 
   const filtered = useMemo(
     () => activeFilter === "all" ? invoices : invoices.filter((inv) => inv.status === activeFilter),
@@ -114,10 +132,29 @@ export default function InvoicesScreen() {
 
   function createInvoice() {
     if (!selectedProject || !selectedMilestone) return;
-    Alert.alert(
-      "Invoice Created",
-      `${formatCurrency(selectedMilestone.amount)} invoice sent to ${selectedProject.homeownerName} for "${selectedMilestone.title}"`,
-      [{ text: "OK", onPress: () => setShowModal(false) }],
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + parseInt(dueInDays, 10));
+
+    createInvoiceMutation.mutate(
+      {
+        amount: selectedMilestone.amount,
+        notes: invoiceNote || `${selectedProject.name} — ${selectedMilestone.title}`,
+        due_date: dueDate.toISOString().split("T")[0],
+        project_id: selectedProject.id,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert(
+            "Invoice Created",
+            `${formatCurrency(selectedMilestone.amount)} invoice created for "${selectedMilestone.title}"`,
+            [{ text: "OK", onPress: () => setShowModal(false) }],
+          );
+        },
+        onError: (error) => {
+          Alert.alert("Error", error.message || "Failed to create invoice");
+        },
+      },
     );
   }
 
@@ -289,15 +326,28 @@ export default function InvoicesScreen() {
   );
 
   const renderInvoice = ({ item }: { item: Invoice }) => (
-    <TouchableOpacity className="bg-white border border-border rounded mx-5 mb-3 p-4 flex-row items-center" style={{ borderRadius: 4 }} activeOpacity={0.7}>
+    <TouchableOpacity
+      className="bg-white border border-border rounded mx-5 mb-3 p-4 flex-row items-center"
+      style={{ borderRadius: 4 }}
+      activeOpacity={0.7}
+      onPress={() => router.push(`/(contractor)/invoices/${item.id}` as any)}
+    >
       <View className="w-10 h-10 bg-gray-100 items-center justify-center mr-3" style={{ borderRadius: 4 }}>
         <Receipt size={20} color={BRAND.colors.textSecondary} />
       </View>
       <View className="flex-1">
-        <Text className="text-dark font-semibold" numberOfLines={1}>{item.description}</Text>
-        <Text className="text-text-muted text-sm mt-0.5">
-          {item.status === "paid" && item.paidAt ? `Paid ${formatDate(item.paidAt)}` : `Due ${formatDate(item.dueDate)}`}
-        </Text>
+        <Text className="text-dark font-semibold" numberOfLines={1}>{item.description || item.notes || `Invoice ${item.invoiceNumber || ""}`}</Text>
+        <View className="flex-row items-center mt-0.5">
+          <Text className="text-text-muted text-sm">
+            {item.status === "paid" && item.paidAt ? `Paid ${formatDate(item.paidAt)}` : `Due ${formatDate(item.dueDate)}`}
+          </Text>
+          {item.qbInvoiceId && (
+            <View className="flex-row items-center ml-2">
+              <View className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1" />
+              <Text className="text-green-700 text-xs font-medium">QB</Text>
+            </View>
+          )}
+        </View>
       </View>
       <View className="items-end ml-3">
         <Text className="text-dark font-bold">{formatCurrency(item.amount)}</Text>
@@ -569,11 +619,14 @@ export default function InvoicesScreen() {
                   {/* Send */}
                   <TouchableOpacity
                     onPress={createInvoice}
-                    className="bg-brand-600 py-4 items-center"
+                    className={`py-4 items-center ${createInvoiceMutation.isPending ? "bg-gray-400" : "bg-brand-600"}`}
                     style={{ borderRadius: 4 }}
                     activeOpacity={0.8}
+                    disabled={createInvoiceMutation.isPending}
                   >
-                    <Text className="text-white font-bold text-base">Send Invoice — {formatCurrency(selectedMilestone.amount)}</Text>
+                    <Text className="text-white font-bold text-base">
+                      {createInvoiceMutation.isPending ? "Creating..." : `Send Invoice — ${formatCurrency(selectedMilestone.amount)}`}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}

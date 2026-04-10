@@ -159,11 +159,45 @@ export interface Project {
 
 export interface Invoice {
   id: string;
+  invoiceNumber?: string;
   amount: number;
-  status: "draft" | "sent" | "paid" | "overdue";
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
   dueDate: string;
   paidAt: string | null;
   description: string;
+  notes?: string;
+  clientId?: string;
+  projectId?: string;
+  estimateId?: string;
+  qbInvoiceId?: string | null;
+  qbSyncedAt?: string | null;
+}
+
+export interface QbStatus {
+  connected: boolean;
+  companyName?: string;
+  realmId?: string;
+  connectedAt?: string;
+}
+
+export interface QbInvoiceDetails {
+  qbInvoiceId: string;
+  qbSyncedAt: string;
+  status: string;
+  balance: number;
+  totalAmount: number;
+  customerName?: string;
+}
+
+export interface Payout {
+  id: string;
+  subJobId: string;
+  amount: number;
+  platformFee: number;
+  netAmount: number;
+  status: "pending" | "pending_manual" | "processing" | "completed" | "failed";
+  processedAt?: string;
+  createdAt: string;
 }
 
 export interface Client {
@@ -198,8 +232,8 @@ export interface ChatMessage {
 }
 
 export interface ReviewSubmission {
-  contractorId: string;
-  jobId: string;
+  reviewed_id: string;
+  job_id: string;
   rating: number;
   comment: string;
 }

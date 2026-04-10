@@ -150,6 +150,51 @@ export function useSubContractorStats() {
   return { stats, loading };
 }
 
+export function useRealtimeInvoices(userId: string | null) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [invoiceEvents, setInvoiceEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!userId || !isAuthenticated) return;
+
+    realtimeClient.connect();
+    const leave = realtimeClient.joinInvoiceFeed(userId, {
+      onInvoiceCreated: (invoice) =>
+        setInvoiceEvents((prev) => [{ type: "created", invoice, ts: Date.now() }, ...prev]),
+      onInvoiceUpdated: (invoice) =>
+        setInvoiceEvents((prev) => [{ type: "updated", invoice, ts: Date.now() }, ...prev]),
+      onPaymentReceived: (data) =>
+        setInvoiceEvents((prev) => [{ type: "payment", ...data, ts: Date.now() }, ...prev]),
+      onQbSynced: (data) =>
+        setInvoiceEvents((prev) => [{ type: "qb_synced", ...data, ts: Date.now() }, ...prev]),
+    });
+    return leave;
+  }, [userId, isAuthenticated]);
+
+  return { invoiceEvents };
+}
+
+export function useRealtimePayouts(userId: string | null) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [payouts, setPayouts] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!userId || !isAuthenticated) return;
+
+    realtimeClient.connect();
+    const leave = realtimeClient.joinPayoutFeed(userId, {
+      onPayoutCreated: (payout) => setPayouts((prev) => [payout, ...prev]),
+      onPayoutUpdated: (updated) =>
+        setPayouts((prev) => prev.map((p) => (p.id === updated.id ? updated : p))),
+      onPayoutCompleted: (completed) =>
+        setPayouts((prev) => prev.map((p) => (p.id === completed.id ? completed : p))),
+    });
+    return leave;
+  }, [userId, isAuthenticated]);
+
+  return { payouts };
+}
+
 export function useRealtimeNotifications(userId: string | null) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);

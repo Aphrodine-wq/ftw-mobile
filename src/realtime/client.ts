@@ -220,6 +220,56 @@ class RealtimeClient {
     });
   }
 
+  joinInvoiceFeed(
+    userId: string,
+    callbacks: {
+      onInvoiceCreated?: (invoice: any) => void;
+      onInvoiceUpdated?: (invoice: any) => void;
+      onPaymentReceived?: (data: { invoiceId: string; amount: number; paidAt: string }) => void;
+      onQbSynced?: (data: { invoiceId: string; qbInvoiceId: string; qbSyncedAt: string }) => void;
+    },
+  ): () => void {
+    return this.subscribe(`/topic/user.${userId}.invoices`, (msg) => {
+      switch (msg.event) {
+        case "invoice:created":
+          callbacks.onInvoiceCreated?.(msg.data);
+          break;
+        case "invoice:updated":
+          callbacks.onInvoiceUpdated?.(msg.data);
+          break;
+        case "payment:received":
+          callbacks.onPaymentReceived?.(msg.data);
+          break;
+        case "invoice:qb_synced":
+          callbacks.onQbSynced?.(msg.data);
+          break;
+      }
+    });
+  }
+
+  joinPayoutFeed(
+    userId: string,
+    callbacks: {
+      onPayoutCreated?: (payout: any) => void;
+      onPayoutUpdated?: (payout: any) => void;
+      onPayoutCompleted?: (payout: any) => void;
+    },
+  ): () => void {
+    return this.subscribe(`/topic/user.${userId}.payouts`, (msg) => {
+      switch (msg.event) {
+        case "payout:created":
+          callbacks.onPayoutCreated?.(msg.data);
+          break;
+        case "payout:updated":
+          callbacks.onPayoutUpdated?.(msg.data);
+          break;
+        case "payout:completed":
+          callbacks.onPayoutCompleted?.(msg.data);
+          break;
+      }
+    });
+  }
+
   placeSubBid(subJobId: string, attrs: { amount: number; message: string; timeline: string }) {
     this.client?.publish({
       destination: `/app/sub-job.${subJobId}.bid`,

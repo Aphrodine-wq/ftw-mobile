@@ -24,6 +24,7 @@ export const queryKeys = {
   projects: ["projects"] as const,
   clients: ["clients"] as const,
   invoices: ["invoices"] as const,
+  invoice: (id: string) => ["invoices", id] as const,
   reviews: ["reviews"] as const,
   contractorReviews: (id: string) => ["reviews", "contractor", id] as const,
   notifications: ["notifications"] as const,
@@ -32,6 +33,8 @@ export const queryKeys = {
   settings: ["settings"] as const,
   messages: (conversationId: string) => ["messages", conversationId] as const,
   verification: ["verification"] as const,
+  qbStatus: ["quickbooks", "status"] as const,
+  qbInvoice: (invoiceId: string) => ["quickbooks", "invoice", invoiceId] as const,
 };
 
 // ── Fetchers with mock fallback ───────────────────────────────────────
@@ -359,7 +362,7 @@ export function useContractorReviews(contractorId: string) {
         const data = await api.listContractorReviews(contractorId);
         if (data.reviews.length > 0) return data;
       } catch {}
-      return { reviews: mockReviews, stats: { avgRating: 4.8, totalReviews: mockReviews.length } };
+      return { reviews: mockReviews, stats: { avg_rating: 4.8, count: mockReviews.length } };
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -424,6 +427,102 @@ export function useUploadInsurance() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.verification });
     },
+  });
+}
+
+// ── Invoice Mutations ──────────────────────────────────────────────────
+
+export function useCreateInvoice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.createInvoice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+    },
+  });
+}
+
+export function useUpdateInvoice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, attrs }: { id: string; attrs: Parameters<typeof api.updateInvoice>[1] }) =>
+      api.updateInvoice(id, attrs),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoice(variables.id) });
+    },
+  });
+}
+
+export function useInvoice(id: string) {
+  return useQuery({
+    queryKey: queryKeys.invoice(id),
+    queryFn: async () => {
+      const data = await api.getInvoice(id);
+      return data.invoice;
+    },
+    staleTime: 1000 * 60,
+    enabled: !!id,
+  });
+}
+
+// ── QuickBooks ────────────────────────────────────────────────────────
+
+export function useQbStatus() {
+  return useQuery({
+    queryKey: queryKeys.qbStatus,
+    queryFn: async () => {
+      try {
+        return await api.getQbStatus();
+      } catch {
+        return { connected: false };
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useDisconnectQb() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.disconnectQb,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.qbStatus });
+    },
+  });
+}
+
+export function useSyncInvoiceToQb() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (invoiceId: string) => api.syncInvoiceToQb(invoiceId),
+    onSuccess: (_data, invoiceId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoice(invoiceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.qbInvoice(invoiceId) });
+    },
+  });
+}
+
+export function useRecordQbPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ invoiceId, amount }: { invoiceId: string; amount?: number }) =>
+      api.recordQbPayment(invoiceId, amount),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoice(variables.invoiceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.qbInvoice(variables.invoiceId) });
+    },
+  });
+}
+
+export function useQbInvoice(invoiceId: string) {
+  return useQuery({
+    queryKey: queryKeys.qbInvoice(invoiceId),
+    queryFn: () => api.getQbInvoice(invoiceId),
+    staleTime: 1000 * 60 * 2,
+    enabled: !!invoiceId,
   });
 }
 
