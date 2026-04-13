@@ -7,7 +7,7 @@ import {
   Platform,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { Link, useRouter } from "expo-router";
+import { Link, useRouter, Href } from "expo-router";
 import { Mail, Lock } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import Svg, { Path, G, Defs, ClipPath, Rect } from "react-native-svg";
@@ -200,8 +200,18 @@ export default function LoginScreen() {
             placeholder="Enter password"
             secureTextEntry
             icon={Lock}
-            className="mb-6"
+            className="mb-2"
           />
+
+          <View className="items-end mb-4">
+            <Link href={"/(auth)/forgot-password" as Href} asChild>
+              <TouchableOpacity>
+                <Text className="text-brand-600 font-semibold text-sm">
+                  Forgot password?
+                </Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
 
           <Button
             title="Sign In"

@@ -467,6 +467,19 @@ export async function getSubContractorStats(): Promise<any> {
   return apiFetch("/api/sub-contractors/stats");
 }
 
+// Payouts
+export async function listPayouts(params?: { cursor?: string; limit?: number }): Promise<{ payouts: any[]; nextCursor?: string }> {
+  const query = new URLSearchParams();
+  if (params?.cursor) query.set("cursor", params.cursor);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return apiFetch(`/api/payouts${qs ? `?${qs}` : ""}`);
+}
+
+export async function getPayout(id: string): Promise<{ payout: any }> {
+  return apiFetch(`/api/payouts/${id}`);
+}
+
 // Settings
 export async function getSettings(): Promise<any> {
   const data = await apiFetch<{ settings: any }>("/api/settings");

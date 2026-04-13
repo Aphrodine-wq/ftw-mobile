@@ -11,6 +11,7 @@ import {
   mockNotifications,
   mockFairRecords,
   mockConversations,
+  mockPayouts,
   contractorStats,
   homeownerStats,
 } from "@src/lib/mock-data";
@@ -35,6 +36,7 @@ export const queryKeys = {
   verification: ["verification"] as const,
   qbStatus: ["quickbooks", "status"] as const,
   qbInvoice: (invoiceId: string) => ["quickbooks", "invoice", invoiceId] as const,
+  payouts: ["payouts"] as const,
 };
 
 // ── Fetchers with mock fallback ───────────────────────────────────────
@@ -523,6 +525,25 @@ export function useQbInvoice(invoiceId: string) {
     queryFn: () => api.getQbInvoice(invoiceId),
     staleTime: 1000 * 60 * 2,
     enabled: !!invoiceId,
+  });
+}
+
+// ── Payouts ─────────────────────────────────────────────────────────
+
+async function fetchPayoutsWithFallback() {
+  try {
+    const data = await api.listPayouts();
+    if (data.payouts.length > 0) return data.payouts;
+  } catch {}
+  return mockPayouts;
+}
+
+export function usePayouts() {
+  return useQuery({
+    queryKey: queryKeys.payouts,
+    queryFn: fetchPayoutsWithFallback,
+    initialData: mockPayouts,
+    staleTime: 1000 * 60 * 2,
   });
 }
 

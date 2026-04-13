@@ -27,3 +27,10 @@ export async function registerApi(attrs: {
 export async function meApi(): Promise<{ user: AuthUser }> {
   return apiFetch("/api/auth/me");
 }
+
+export async function forgotPasswordApi(email: string): Promise<{ message: string }> {
+  return apiFetch("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}

@@ -1,10 +1,14 @@
-export function formatCurrency(amount: number): string {
+/**
+ * Format an amount in cents as a USD dollar string for display.
+ * Example: 250000 -> "$2,500"
+ */
+export function formatCurrency(cents: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(cents / 100);
 }
 
 export function formatDate(date: string | Date): string {
