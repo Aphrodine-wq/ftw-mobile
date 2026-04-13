@@ -233,6 +233,67 @@ export async function listProjects(): Promise<{ projects: any[] }> {
   return apiFetch("/api/projects");
 }
 
+export async function createProject(data: {
+  name: string;
+  description?: string;
+  budget?: number;
+  category?: string;
+  start_date?: string;
+  end_date?: string;
+  milestones?: { title: string; amount: number; sort_order: number }[];
+}): Promise<{ project: any }> {
+  return apiFetch("/api/projects", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function listMilestones(projectId: string): Promise<{ milestones: any[] }> {
+  return apiFetch(`/api/projects/${projectId}/milestones`);
+}
+
+export async function createMilestone(projectId: string, data: {
+  title: string;
+  amount?: number;
+  due_date?: string;
+  sort_order?: number;
+}): Promise<{ milestone: any }> {
+  return apiFetch(`/api/projects/${projectId}/milestones`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateMilestone(projectId: string, milestoneId: string, data: {
+  title?: string;
+  status?: string;
+  amount?: number;
+  note?: string;
+}): Promise<{ milestone: any }> {
+  return apiFetch(`/api/projects/${projectId}/milestones/${milestoneId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function listExpenses(projectId: string): Promise<{ expenses: any[] }> {
+  return apiFetch(`/api/projects/${projectId}/expenses`);
+}
+
+export async function createExpense(projectId: string, data: {
+  description: string;
+  amount: number;
+  category?: string;
+  milestone_id?: string;
+  date?: string;
+  vendor?: string;
+}): Promise<{ expense: any }> {
+  return apiFetch(`/api/projects/${projectId}/expenses`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 // Clients
 export async function listClients(params?: { cursor?: string; limit?: number }): Promise<{ clients: any[]; nextCursor?: string }> {
   const query = new URLSearchParams();

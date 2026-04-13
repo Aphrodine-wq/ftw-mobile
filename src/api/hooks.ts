@@ -547,6 +547,28 @@ export function usePayouts() {
   });
 }
 
+// ── Project Mutations ──────────────────────────────────────────────────
+
+export function useCreateProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Parameters<typeof api.createProject>[0]) => api.createProject(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+    },
+  });
+}
+
+export function useCreateExpense(projectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Parameters<typeof api.createExpense>[1]) => api.createExpense(projectId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+    },
+  });
+}
+
 // ── Re-exports for backward compatibility ─────────────────────────────
 
 export { contractorStats, homeownerStats };

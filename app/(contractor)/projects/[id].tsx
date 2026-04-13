@@ -4,6 +4,9 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  TextInput,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -25,15 +28,30 @@ import {
   MessageCircle,
   Activity,
   ClipboardList,
+  Plus,
+  X,
 } from "lucide-react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { mockProjects } from "@src/lib/mock-data";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
-import type { Project, ProjectMilestone, ProjectTask, ProjectDocument, ProjectActivity } from "@src/types";
+import type { Project, ProjectMilestone, ProjectTask, ProjectDocument, ProjectActivity, ProjectExpense } from "@src/types";
 
-type Tab = "overview" | "milestones" | "tasks" | "documents" | "activity";
+type Tab = "overview" | "milestones" | "tasks" | "documents" | "activity" | "costs";
+
+const EXPENSE_CATEGORIES = ["Labor", "Materials", "Equipment", "Subcontractor", "Permits", "Overhead", "Other"] as const;
+
+const MOCK_EXPENSES: ProjectExpense[] = [
+  { id: "e1", description: "Framing lumber delivery", amount: 285000, category: "Materials", date: "2026-03-01", vendor: "McCoy's Building Supply" },
+  { id: "e2", description: "Electrical rough-in labor", amount: 195000, category: "Labor", date: "2026-03-05" },
+  { id: "e3", description: "Plumbing subcontractor", amount: 340000, category: "Subcontractor", date: "2026-03-08", vendor: "Austin Plumbing Co" },
+  { id: "e4", description: "Building permit fee", amount: 45000, category: "Permits", date: "2026-02-14" },
+  { id: "e5", description: "Dumpster rental", amount: 65000, category: "Equipment", date: "2026-02-16", vendor: "Waste Management" },
+  { id: "e6", description: "Cabinet order deposit", amount: 480000, category: "Materials", date: "2026-02-20", vendor: "KraftMaid" },
+  { id: "e7", description: "Tile crew — day 1", amount: 120000, category: "Labor", date: "2026-03-12" },
+  { id: "e8", description: "Insurance rider", amount: 35000, category: "Overhead", date: "2026-02-15" },
+];
 
 function getStatusVariant(status: Project["status"]): "neutral" | "default" | "success" | "warning" {
   switch (status) {
@@ -47,8 +65,9 @@ function getStatusVariant(status: Project["status"]): "neutral" | "default" | "s
 function getMilestoneIcon(status: ProjectMilestone["status"]) {
   switch (status) {
     case "paid": return { icon: CheckCircle2, color: "#059669" };
-    case "completed": return { icon: CheckCircle2, color: BRAND.colors.primary };
+    case "complete": return { icon: CheckCircle2, color: BRAND.colors.primary };
     case "in_progress": return { icon: Clock, color: "#D97706" };
+    case "delayed": return { icon: AlertTriangle, color: "#DC2626" };
     default: return { icon: Circle, color: BRAND.colors.textMuted };
   }
 }
@@ -100,6 +119,12 @@ export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [expenseDesc, setExpenseDesc] = useState("");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseCategory, setExpenseCategory] = useState<string>("Materials");
+  const [expenseMilestone, setExpenseMilestone] = useState<string>("");
+  const [expenseVendor, setExpenseVendor] = useState("");
 
   const project = mockProjects.find((p) => p.id === id) as Project | undefined;
 
@@ -126,6 +151,7 @@ export default function ProjectDetailScreen() {
     { key: "tasks", label: `Tasks (${totalTasks})` },
     { key: "documents", label: `Docs (${project.documents.length})` },
     { key: "activity", label: "Activity" },
+    { key: "costs", label: "Costs" },
   ];
 
   return (
@@ -276,7 +302,7 @@ export default function ProjectDetailScreen() {
           <View className="p-4" style={{ gap: 8 }}>
             {project.milestones.map((ms) => {
               const { icon: Icon, color } = getMilestoneIcon(ms.status);
-              const statusLabel = ms.status === "paid" ? "Paid" : ms.status === "completed" ? "Complete" : ms.status === "in_progress" ? "In Progress" : "Pending";
+              const statusLabel = ms.status === "paid" ? "Paid" : ms.status === "complete" ? "Complete" : ms.status === "in_progress" ? "In Progress" : ms.status === "delayed" ? "Delayed" : "Pending";
               return (
                 <View key={ms.id} className="bg-white border border-border rounded p-4">
                   <View className="flex-row items-start">
@@ -293,8 +319,8 @@ export default function ProjectDetailScreen() {
                         <Text className="text-xs text-text-muted">
                           {ms.completedDate ? `Completed ${formatDate(ms.completedDate)}` : `Due ${formatDate(ms.dueDate)}`}
                         </Text>
-                        <View className={`px-2 py-0.5 ${ms.status === "paid" ? "bg-green-100" : ms.status === "in_progress" ? "bg-amber-100" : "bg-gray-100"}`}>
-                          <Text className={`text-[10px] font-bold ${ms.status === "paid" ? "text-green-700" : ms.status === "in_progress" ? "text-amber-700" : "text-text-secondary"}`}>
+                        <View className={`px-2 py-0.5 ${ms.status === "paid" ? "bg-green-100" : ms.status === "complete" ? "bg-brand-50" : ms.status === "in_progress" ? "bg-amber-100" : ms.status === "delayed" ? "bg-red-100" : "bg-gray-100"}`}>
+                          <Text className={`text-[10px] font-bold ${ms.status === "paid" ? "text-green-700" : ms.status === "complete" ? "text-brand-600" : ms.status === "in_progress" ? "text-amber-700" : ms.status === "delayed" ? "text-red-700" : "text-text-secondary"}`}>
                             {statusLabel}
                           </Text>
                         </View>
@@ -452,7 +478,235 @@ export default function ProjectDetailScreen() {
             })}
           </View>
         )}
+
+        {activeTab === "costs" && (() => {
+          const totalSpent = MOCK_EXPENSES.reduce((s, e) => s + e.amount, 0);
+          const remaining = project.budget - totalSpent;
+          const spentPct = project.budget > 0 ? Math.round((totalSpent / project.budget) * 100) : 0;
+
+          const categoryTotals = EXPENSE_CATEGORIES.map((cat) => {
+            const catTotal = MOCK_EXPENSES.filter((e) => e.category === cat).reduce((s, e) => s + e.amount, 0);
+            return { category: cat, total: catTotal, pct: totalSpent > 0 ? Math.round((catTotal / totalSpent) * 100) : 0 };
+          }).filter((c) => c.total > 0);
+
+          return (
+            <View>
+              {/* Budget / Spent / Remaining */}
+              <View className="bg-white border-b border-border p-4">
+                <View className="flex-row" style={{ gap: 8 }}>
+                  <View className="flex-1 bg-surface p-3">
+                    <Text className="text-xs text-text-muted uppercase tracking-wide">Budget</Text>
+                    <Text className="text-base font-bold text-dark mt-1">{formatCurrency(project.budget)}</Text>
+                  </View>
+                  <View className="flex-1 bg-surface p-3">
+                    <Text className="text-xs text-text-muted uppercase tracking-wide">Spent</Text>
+                    <Text className="text-base font-bold text-dark mt-1">{formatCurrency(totalSpent)}</Text>
+                  </View>
+                  <View className="flex-1 bg-surface p-3">
+                    <Text className="text-xs text-text-muted uppercase tracking-wide">Remaining</Text>
+                    <Text className="text-base font-bold text-brand-600 mt-1">{formatCurrency(remaining)}</Text>
+                  </View>
+                </View>
+                <View className="mt-3">
+                  <View className="bg-gray-100 h-3 w-full" style={{ borderRadius: 99 }}>
+                    <View
+                      className="h-3"
+                      style={{
+                        width: `${Math.min(spentPct, 100)}%`,
+                        backgroundColor: spentPct > 90 ? "#D97706" : BRAND.colors.primary,
+                        borderRadius: 99,
+                      }}
+                    />
+                  </View>
+                  <Text className="text-xs text-text-muted mt-1">{spentPct}% of budget used</Text>
+                </View>
+              </View>
+
+              {/* Category Breakdown */}
+              <View className="bg-white border-b border-border p-4">
+                <Text className="text-base font-bold text-dark mb-3">By Category</Text>
+                {categoryTotals.map((cat) => (
+                  <View key={cat.category} className="mb-3">
+                    <View className="flex-row items-center justify-between mb-1">
+                      <Text className="text-sm text-text-secondary">{cat.category}</Text>
+                      <Text className="text-sm font-bold text-dark">{formatCurrency(cat.total)}</Text>
+                    </View>
+                    <View className="bg-gray-100 h-2 w-full" style={{ borderRadius: 99 }}>
+                      <View
+                        className="h-2"
+                        style={{
+                          width: `${cat.pct}%`,
+                          backgroundColor: BRAND.colors.primary,
+                          borderRadius: 99,
+                        }}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              {/* Expense List */}
+              <View className="bg-white border-b border-border p-4">
+                <Text className="text-base font-bold text-dark mb-3">Expenses</Text>
+                {MOCK_EXPENSES.map((exp, i) => (
+                  <View key={exp.id} className={`flex-row items-center py-3 ${i > 0 ? "border-t border-border" : ""}`}>
+                    <View className="flex-1">
+                      <Text className="text-sm font-bold text-dark">{exp.description}</Text>
+                      <View className="flex-row items-center mt-0.5">
+                        <Text className="text-xs text-text-muted">{formatDate(exp.date)}</Text>
+                        {exp.vendor && <Text className="text-xs text-text-muted ml-2">-- {exp.vendor}</Text>}
+                      </View>
+                    </View>
+                    <View className="items-end ml-3">
+                      <Text className="text-sm font-bold text-dark">{formatCurrency(exp.amount)}</Text>
+                      {exp.category && (
+                        <View className="bg-surface px-2 py-0.5 mt-0.5">
+                          <Text className="text-[10px] font-bold text-text-secondary">{exp.category}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              {/* Add Expense Button */}
+              <View className="p-4">
+                <TouchableOpacity
+                  onPress={() => {
+                    setExpenseDesc("");
+                    setExpenseAmount("");
+                    setExpenseCategory("Materials");
+                    setExpenseMilestone("");
+                    setExpenseVendor("");
+                    setShowExpenseModal(true);
+                  }}
+                  className="bg-brand-600 py-4 items-center flex-row justify-center"
+                  activeOpacity={0.8}
+                >
+                  <Plus size={18} color="#FFFFFF" />
+                  <Text className="text-white font-bold text-base ml-2">Add Expense</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })()}
       </ScrollView>
+
+      {/* Add Expense Modal */}
+      <Modal visible={showExpenseModal} animationType="slide" onRequestClose={() => setShowExpenseModal(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+          {/* Modal Header */}
+          <View className="bg-dark px-5 pt-4 pb-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-white text-xl font-bold">Add Expense</Text>
+              <TouchableOpacity onPress={() => setShowExpenseModal(false)} activeOpacity={0.7}>
+                <X size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView className="flex-1 bg-surface" contentContainerStyle={{ paddingBottom: 40 }}>
+            <View className="px-5 pt-4">
+              {/* Description */}
+              <View className="mb-4">
+                <Text className="text-text-secondary text-sm font-bold mb-1.5">Description</Text>
+                <TextInput
+                  className="bg-white border border-border p-3 text-dark text-sm"
+                  value={expenseDesc}
+                  onChangeText={setExpenseDesc}
+                  placeholder="What was this expense for?"
+                  placeholderTextColor={BRAND.colors.textMuted}
+                />
+              </View>
+
+              {/* Amount */}
+              <View className="mb-4">
+                <Text className="text-text-secondary text-sm font-bold mb-1.5">Amount</Text>
+                <TextInput
+                  className="bg-white border border-border p-3 text-dark text-sm"
+                  value={expenseAmount}
+                  onChangeText={setExpenseAmount}
+                  placeholder="0.00"
+                  placeholderTextColor={BRAND.colors.textMuted}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+
+              {/* Category */}
+              <View className="mb-4">
+                <Text className="text-text-secondary text-sm font-bold mb-1.5">Category</Text>
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                  {EXPENSE_CATEGORIES.map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      onPress={() => setExpenseCategory(cat)}
+                      className={`px-4 py-2 border ${expenseCategory === cat ? "bg-brand-600 border-brand-600" : "bg-white border-border"}`}
+                      activeOpacity={0.7}
+                    >
+                      <Text className={`text-sm font-bold ${expenseCategory === cat ? "text-white" : "text-dark"}`}>{cat}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Milestone */}
+              <View className="mb-4">
+                <Text className="text-text-secondary text-sm font-bold mb-1.5">Milestone (optional)</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row" style={{ gap: 8 }}>
+                    <TouchableOpacity
+                      onPress={() => setExpenseMilestone("")}
+                      className={`px-4 py-2 border ${expenseMilestone === "" ? "bg-brand-600 border-brand-600" : "bg-white border-border"}`}
+                      activeOpacity={0.7}
+                    >
+                      <Text className={`text-sm font-bold ${expenseMilestone === "" ? "text-white" : "text-dark"}`}>None</Text>
+                    </TouchableOpacity>
+                    {project.milestones.map((ms) => (
+                      <TouchableOpacity
+                        key={ms.id}
+                        onPress={() => setExpenseMilestone(ms.id)}
+                        className={`px-4 py-2 border ${expenseMilestone === ms.id ? "bg-brand-600 border-brand-600" : "bg-white border-border"}`}
+                        activeOpacity={0.7}
+                      >
+                        <Text className={`text-sm font-bold ${expenseMilestone === ms.id ? "text-white" : "text-dark"}`}>{ms.title}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+
+              {/* Vendor */}
+              <View className="mb-6">
+                <Text className="text-text-secondary text-sm font-bold mb-1.5">Vendor (optional)</Text>
+                <TextInput
+                  className="bg-white border border-border p-3 text-dark text-sm"
+                  value={expenseVendor}
+                  onChangeText={setExpenseVendor}
+                  placeholder="Vendor or supplier name"
+                  placeholderTextColor={BRAND.colors.textMuted}
+                />
+              </View>
+
+              {/* Save */}
+              <TouchableOpacity
+                onPress={() => {
+                  if (!expenseDesc || !expenseAmount) {
+                    Alert.alert("Missing Info", "Description and amount are required.");
+                    return;
+                  }
+                  Alert.alert("Expense Added", `${expenseDesc} -- ${formatCurrency(Math.round(parseFloat(expenseAmount) * 100))}`, [
+                    { text: "OK", onPress: () => setShowExpenseModal(false) },
+                  ]);
+                }}
+                className="bg-brand-600 py-4 items-center"
+                activeOpacity={0.8}
+              >
+                <Text className="text-white font-bold text-base">Save Expense</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

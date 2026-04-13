@@ -34,8 +34,9 @@ import type { Project, ProjectMilestone } from "@src/types";
 function getMilestoneStatusLabel(status: string): string {
   switch (status) {
     case "paid": return "Paid";
-    case "completed": return "Completed";
+    case "complete": return "Complete";
     case "in_progress": return "In Progress";
+    case "delayed": return "Delayed";
     case "pending": return "Pending";
     default: return status.charAt(0).toUpperCase() + status.slice(1);
   }
@@ -44,8 +45,9 @@ function getMilestoneStatusLabel(status: string): string {
 function getMilestoneBadgeVariant(status: string): "success" | "default" | "warning" | "danger" | "neutral" {
   switch (status) {
     case "paid": return "success";
-    case "completed": return "default";
+    case "complete": return "default";
     case "in_progress": return "danger";
+    case "delayed": return "danger";
     case "pending": return "neutral";
     default: return "neutral";
   }
@@ -54,7 +56,7 @@ function getMilestoneBadgeVariant(status: string): "success" | "default" | "warn
 function getMilestoneIcon(status: string) {
   switch (status) {
     case "paid": return <CheckCircle2 size={20} color="#059669" />;
-    case "completed": return <CheckCircle2 size={20} color="#3B82F6" />;
+    case "complete": return <CheckCircle2 size={20} color="#3B82F6" />;
     case "in_progress": return <Clock size={20} color={BRAND.colors.primary} />;
     default: return <Circle size={20} color={BRAND.colors.textMuted} />;
   }
@@ -93,7 +95,7 @@ function MilestoneRow({
   const [expanded, setExpanded] = useState(false);
   const isPaid = milestone.status === "paid";
   const isActive = milestone.status === "in_progress";
-  const isDone = milestone.status === "completed";
+  const isDone = milestone.status === "complete";
   const daysInfo = !isPaid && !isDone ? getDaysLabel(milestone.dueDate) : null;
 
   const doneTasks = tasks.filter((t) => t.status === "done").length;

@@ -66,8 +66,9 @@ function getStatusVariant(status: Invoice["status"]): "neutral" | "default" | "s
 function getMilestoneIcon(status: ProjectMilestone["status"]) {
   switch (status) {
     case "paid": return { Icon: CheckCircle2, color: "#059669" };
-    case "completed": return { Icon: CheckCircle2, color: BRAND.colors.primary };
+    case "complete": return { Icon: CheckCircle2, color: BRAND.colors.primary };
     case "in_progress": return { Icon: Clock, color: "#D97706" };
+    case "delayed": return { Icon: Clock, color: "#DC2626" };
     default: return { Icon: Circle, color: BRAND.colors.textMuted };
   }
 }
@@ -507,8 +508,8 @@ export default function InvoicesScreen() {
                   <Text className="text-text-secondary text-sm font-bold mb-3">Select a milestone to invoice</Text>
                   {unpaidMilestones.map((ms) => {
                     const { Icon: MsIcon, color } = getMilestoneIcon(ms.status);
-                    const statusLabel = ms.status === "completed" ? "Completed" : ms.status === "in_progress" ? "In Progress" : "Pending";
-                    const statusVariant = ms.status === "completed" ? "success" as const : ms.status === "in_progress" ? "default" as const : "neutral" as const;
+                    const statusLabel = ms.status === "complete" ? "Complete" : ms.status === "in_progress" ? "In Progress" : ms.status === "delayed" ? "Delayed" : "Pending";
+                    const statusVariant = ms.status === "complete" ? "success" as const : ms.status === "in_progress" ? "default" as const : ms.status === "delayed" ? "danger" as const : "neutral" as const;
                     return (
                       <TouchableOpacity
                         key={ms.id}

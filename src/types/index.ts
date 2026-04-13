@@ -108,7 +108,7 @@ export interface ProjectMilestone {
   id: string;
   title: string;
   amount: number;
-  status: "pending" | "in_progress" | "completed" | "paid";
+  status: "pending" | "in_progress" | "complete" | "paid" | "delayed";
   dueDate: string;
   completedDate?: string;
 }
@@ -155,6 +155,16 @@ export interface Project {
   tasks: ProjectTask[];
   documents: ProjectDocument[];
   activity: ProjectActivity[];
+}
+
+export interface ProjectExpense {
+  id: string;
+  description: string;
+  amount: number;
+  category?: string;
+  milestone_id?: string;
+  date: string;
+  vendor?: string;
 }
 
 export interface Invoice {
