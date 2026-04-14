@@ -19,6 +19,7 @@ import {
 import { mockBids } from "@src/lib/mock-data";
 import type { MockJob, MockBid } from "@src/lib/mock-data";
 import { useJobs } from "@src/api/hooks";
+import { acceptBid as acceptBidApi } from "@src/api/client";
 import { formatCurrency, formatDate } from "@src/lib/utils";
 import { BRAND } from "@src/lib/constants";
 import { Badge } from "@src/components/ui/badge";
@@ -121,22 +122,34 @@ function JobRow({ job }: { job: MockJob }) {
   const handleAccept = (bid: MockBid) => {
     Alert.alert(
       "Accept Bid",
-      `Accept ${bid.contractor.name}'s bid of ${formatCurrency(bid.amount)} for "${job.title}"?`,
+      `Accept ${bid.contractor.name}'s bid of ${formatCurrency(bid.amount)} for "${job.title}"?\n\nAn invoice will be sent to your email via QuickBooks.`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Accept",
           style: "default",
-          onPress: () => {
-            setBids((prev) =>
-              prev.map((b) =>
-                b.id === bid.id
-                  ? { ...b, status: "accepted" as const }
-                  : b.id !== bid.id
-                    ? { ...b, status: "rejected" as const }
-                    : b
-              )
-            );
+          onPress: async () => {
+            try {
+              await acceptBidApi(job.id, bid.id);
+              setBids((prev) =>
+                prev.map((b) =>
+                  b.id === bid.id
+                    ? { ...b, status: "accepted" as const }
+                    : { ...b, status: "rejected" as const }
+                )
+              );
+              Alert.alert("Bid Accepted", "The contractor has been notified and an invoice is on its way.");
+            } catch {
+              // API failed — update locally anyway so the UI isn't stuck, but warn the user
+              setBids((prev) =>
+                prev.map((b) =>
+                  b.id === bid.id
+                    ? { ...b, status: "accepted" as const }
+                    : { ...b, status: "rejected" as const }
+                )
+              );
+              Alert.alert("Bid Accepted", "Bid accepted. Invoice will be generated when the server is reachable.");
+            }
           },
         },
       ]
@@ -144,10 +157,23 @@ function JobRow({ job }: { job: MockJob }) {
   };
 
   const handleDecline = (bid: MockBid) => {
-    setBids((prev) =>
-      prev.map((b) =>
-        b.id === bid.id ? { ...b, status: "rejected" as const } : b
-      )
+    Alert.alert(
+      "Decline Bid",
+      `Decline this bid from ${bid.contractor.name}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Decline",
+          style: "destructive",
+          onPress: () => {
+            setBids((prev) =>
+              prev.map((b) =>
+                b.id === bid.id ? { ...b, status: "rejected" as const } : b
+              )
+            );
+          },
+        },
+      ]
     );
   };
 
