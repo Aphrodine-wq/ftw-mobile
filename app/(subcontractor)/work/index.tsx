@@ -76,7 +76,7 @@ export default function BrowseSubJobsScreen() {
     setSubmitting(true);
     try {
       await placeSubBid(subJobId, {
-        amount,
+        amount: Math.round(amount * 100), // Convert dollars to cents for API
         message: bidMessage.trim(),
         timeline: bidTimeline.trim() || "TBD",
       });

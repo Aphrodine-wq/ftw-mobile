@@ -113,8 +113,8 @@ export default function PostJobScreen() {
         title: title || `${category} Project`,
         description,
         category,
-        budget_min: budgetRange?.min || 0,
-        budget_max: budgetRange?.max || 0,
+        budget_min: (budgetRange?.min || 0) * 100, // Convert dollars to cents
+        budget_max: (budgetRange?.max || 0) * 100, // Convert dollars to cents
         location: location || "Texas",
         latitude: finalCoords?.latitude,
         longitude: finalCoords?.longitude,
